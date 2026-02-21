@@ -56,21 +56,25 @@
 
 | Component | Minimum Version |
 |-----------|----------------|
-| macOS | 13.0 (Ventura) |
-| Xcode | 15.0 |
-| Swift | 5.9 |
+| macOS | 26.3 Tahoe |
+| Xcode | 26.2 |
+| Swift | 6.2.3 |
 | Hardware | Apple Silicon (ARM64) |
 
-### Installation
+# Installation
+
 
 # Clone repository
-git clone https://github.com/skyones-0/kuando_macos.git
-cd kuando_macos/Busylight
+
+    git clone https://github.com/skyones-0/kuando_macos.git
+    cd kuando_macos/Busylight
 
 # Open in Xcode
-open Busylight.xcodeproj
+
+    open Busylight.xcodeproj
 
 # Build and run (⌘R)
+
 
 ---
 
@@ -92,15 +96,5 @@ busylight.pulseBlue()
 busylight.blinkRedFast()    // 200ms intervals
 busylight.blinkGreenSlow()  // 1s intervals
 
----
 
-## 📜 License
-
-MIT License — see [LICENSE](LICENSE) for details.
-
----
-
-<p align="center">
-  <sub>Built with precision by <a href="https://github.com/skyones-0">@skyones-0</a></sub>
-</p>
 
