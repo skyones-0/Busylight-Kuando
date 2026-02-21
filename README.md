@@ -78,12 +78,12 @@
 
     open Busylight.xcodeproj
 
-# Build and run (⌘R)
+# Build and run
 ---
 
-## 🎮 Usage
+# 🎮 Usage
 
-### Basic Controls
+# Basic Controls
 
 
 
