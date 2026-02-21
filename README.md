@@ -2,7 +2,7 @@
   <img src="https://via.placeholder.com/120x120/6366f1/ffffff?text=BL" alt="Busylight Logo" width="120" height="120">
 </p>
 
-<h1 align="center">Busylight for macOS</h1>
+<h1 align="center">New Busylight app for macOS</h1>
 
 <p align="center">
   <b>Professional USB status light control for modern workspaces</b>
