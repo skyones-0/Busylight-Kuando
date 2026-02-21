@@ -1,0 +1,11 @@
+framework module BusylightSDK_Swift {
+  umbrella header "BusylightSDK_Swift.h"
+  export *
+
+  module * { export * }
+}
+
+module BusylightSDK_Swift.Swift {
+  header "BusylightSDK_Swift-Swift.h"
+  requires objc
+}
