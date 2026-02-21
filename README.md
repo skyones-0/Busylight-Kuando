@@ -78,18 +78,6 @@
 
 ### Basic Controls
 
-Solid colors
-busylight.red()      // RGB(100, 0, 0)
-busylight.green()    // RGB(0, 100, 0)
-busylight.blue()     // RGB(0, 0, 100)
-
-Pulse effects
-busylight.pulseRed()
-busylight.pulseBlue()
-
-Blink patterns
-busylight.blinkRedFast()    // 200ms intervals
-busylight.blinkGreenSlow()  // 1s intervals`
 
 
 
