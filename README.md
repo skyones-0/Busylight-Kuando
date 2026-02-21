@@ -1,72 +1,52 @@
+<p align="center">
+  <img src="https://via.placeholder.com/120x120/6366f1/ffffff?text=BL" alt="Busylight Logo" width="120" height="120">
+</p>
 
-&lt;p align="center"&gt;
-  &lt;img src="https://via.placeholder.com/120x120/6366f1/ffffff?text=BL" alt="Busylight Logo" width="120" height="120" style="border-radius: 20px;"&gt;
-&lt;/p&gt;
+<h1 align="center">Busylight for macOS</h1>
 
-&lt;h1 align="center"&gt;Busylight for macOS&lt;/h1&gt;
+<p align="center">
+  <b>Professional USB status light control for modern workspaces</b>
+</p>
 
-&lt;p align="center"&gt;
-  &lt;b&gt;Professional USB status light control for modern workspaces&lt;/b&gt;
-&lt;/p&gt;
+<p align="center">
+  <a href="#"><img src="https://img.shields.io/badge/macOS-13.0%2B-000000?logo=apple&logoColor=white" alt="macOS"></a>
+  <a href="#"><img src="https://img.shields.io/badge/Swift-5.9-F05138?logo=swift&logoColor=white" alt="Swift"></a>
+  <a href="#"><img src="https://img.shields.io/badge/Architecture-ARM64-FF6B6B" alt="ARM64"></a>
+  <a href="#"><img src="https://img.shields.io/badge/License-MIT-4ECDC4" alt="License"></a>
+  <a href="#"><img src="https://img.shields.io/badge/Status-Active-95E1D3" alt="Status"></a>
+</p>
 
-&lt;p align="center"&gt;
-  &lt;a href="#"&gt;&lt;img src="https://img.shields.io/badge/macOS-13.0%2B-000000?logo=apple&logoColor=white" alt="macOS"&gt;&lt;/a&gt;
-  &lt;a href="#"&gt;&lt;img src="https://img.shields.io/badge/Swift-5.9-F05138?logo=swift&logoColor=white" alt="Swift"&gt;&lt;/a&gt;
-  &lt;a href="#"&gt;&lt;img src="https://img.shields.io/badge/Architecture-ARM64-FF6B6B" alt="ARM64"&gt;&lt;/a&gt;
-  &lt;a href="#"&gt;&lt;img src="https://img.shields.io/badge/License-MIT-4ECDC4" alt="License"&gt;&lt;/a&gt;
-  &lt;a href="#"&gt;&lt;img src="https://img.shields.io/badge/Status-Active-95E1D3" alt="Status"&gt;&lt;/a&gt;
-&lt;/p&gt;
-
-&lt;p align="center"&gt;
-  &lt;a href="#features"&gt;Features&lt;/a&gt; •
-  &lt;a href="#installation"&gt;Installation&lt;/a&gt; •
-  &lt;a href="#usage"&gt;Usage&lt;/a&gt; •
-  &lt;a href="#architecture"&gt;Architecture&lt;/a&gt; •
-  &lt;a href="#roadmap"&gt;Roadmap&lt;/a&gt;
-&lt;/p&gt;
+<p align="center">
+  <a href="#features">Features</a> •
+  <a href="#installation">Installation</a> •
+  <a href="#usage">Usage</a> •
+  <a href="#architecture">Architecture</a> •
+  <a href="#roadmap">Roadmap</a>
+</p>
 
 ---
 
 ## ✨ Features
 
-&lt;table&gt;
-&lt;tr&gt;
-&lt;td width="50%"&gt;
-
-### 🎨 **Color Control**
+### 🎨 Color Control
 - 10 solid colors with precise RGB values
 - Smooth pulse breathing effects
 - Configurable blink patterns (slow/medium/fast)
 
-&lt;/td&gt;
-&lt;td width="50%"&gt;
-
-### 🔊 **Audio Integration**
+### 🔊 Audio Integration
 - 8 built-in alert sounds
 - Volume control (0-100%)
 - Custom jingles with color sync
 
-&lt;/td&gt;
-&lt;/tr&gt;
-&lt;tr&gt;
-&lt;td width="50%"&gt;
-
-### ⏱️ **Productivity Timer**
+### ⏱️ Productivity Timer
 - Pomodoro-style focus sessions
 - Automatic light state changes
 - Menu bar quick access
 
-&lt;/td&gt;
-&lt;td width="50%"&gt;
-
-### 🖥️ **Native macOS**
+### 🖥️ Native macOS
 - SwiftUI interface
 - Menu bar extra support
 - Sandboxed & code-signed
-
-&lt;/td&gt;
-&lt;/tr&gt;
-&lt;/table&gt;
 
 ---
 
@@ -83,7 +63,7 @@
 
 ### Installation
 
-```bash
+\`\`\`bash
 # Clone repository
 git clone https://github.com/skyones-0/kuando_macos.git
 cd kuando_macos/Busylight
@@ -92,8 +72,15 @@ cd kuando_macos/Busylight
 open Busylight.xcodeproj
 
 # Build and run (⌘R)
+\`\`\`
 
+---
 
+## 🎮 Usage
+
+### Basic Controls
+
+\`\`\`swift
 // Solid colors
 busylight.red()      // RGB(100, 0, 0)
 busylight.green()    // RGB(0, 100, 0)
@@ -106,96 +93,17 @@ busylight.pulseBlue()
 // Blink patterns
 busylight.blinkRedFast()    // 200ms intervals
 busylight.blinkGreenSlow()  // 1s intervals
+\`\`\`
 
-// Custom jingle with color and sound
-busylight.jingle(
-    soundNumber: 5,
-    red: 100,
-    green: 50,
-    blue: 0,
-    andVolume: 75
-)
+---
 
-// Alert with auto-off
-busylight.alertLoud()
-// Auto resets after 10 seconds
+## 📜 License
 
-┌─────────────────────────────────────────┐
-│           Presentation Layer            │
-│  ┌─────────────┐    ┌───────────────┐  │
-│  │ ContentView │    │  MenuBarView  │  │
-│  │  (Colors)   │    │  (Quick Menu) │  │
-│  └──────┬──────┘    └───────┬───────┘  │
-│         │                   │           │
-│  ┌─────────────┐    ┌───────────────┐  │
-│  │  TimerView  │    │ AppDelegate   │  │
-│  │ (Pomodoro)  │    │  (Lifecycle)  │  │
-│  └──────┬──────┘    └───────────────┘  │
-└─────────┼───────────────────────────────┘
-          │
-┌─────────▼───────────────────────────────┐
-│         Business Logic Layer            │
-│         BusylightManager                │
-│  ┌─────────────────────────────────┐    │
-│  │  • ObservableObject             │    │
-│  │  • @Published state properties  │    │
-│  │  • USB device management        │    │
-│  └─────────────────────────────────┘    │
-└───────────────────┬─────────────────────┘
-                    │
-┌───────────────────▼─────────────────────┐
-│           Hardware Abstraction          │
-│      BusylightSDK_Swift.framework       │
-│  ┌─────────────────────────────────┐    │
-│  │  • USB HID communication        │    │
-│  │  • Device discovery             │    │
-│  │  • Light & sound commands       │    │
-│  └─────────────────────────────────┘    │
-└─────────────────────────────────────────┘
+MIT License — see [LICENSE](LICENSE) for details.
 
-Busylight/
-├── 📱 Application
-│   ├── BusylightApp.swift          # Entry point
-│   ├── AppDelegate.swift           # Dock/MenuBar config
-│   └── Persistence.swift           # Core Data stack
-│
-├── 🖼️ Views
-│   ├── ContentView.swift           # Main color controls
-│   ├── MenuBarView.swift           # Status bar interface
-│   └── TimerView.swift             # Pomodoro timer
-│
-├── 🧠 Core
-│   └── BusylightManager.swift      # Device controller
-│
-└── 🔌 Vendor
-    └── BusylightSDK_Swift.framework  # Official SDK
+---
 
+<p align="center">
+  <sub>Built with precision by <a href="https://github.com/skyones-0">@skyones-0</a></sub>
+</p>
 
-
-
-// Example: Type-safe color API
-func light(red: Int, green: Int, blue: Int) {
-    bl?.Light(
-        red: UInt8(red),
-        green: UInt8(green),
-        blue: UInt8(blue)
-    )
-}
-
-// Automatic cleanup with deferred off command
-DispatchQueue.main.asyncAfter(deadline: .now() + 10.0) { [weak self] in
-    self?.off()
-}
-
-🗺️ Roadmap
-
-[x] Core color control
-[x] Pulse & blink effects
-[x] Audio alerts
-[x] Menu bar integration
-[x] Pomodoro timer
-[ ] Intel (x86_64) support
-[ ] Keyboard shortcuts
-[ ] Custom color presets
-[ ] Meeting integration (Zoom/Teams)
-[ ] HomeKit bridge
