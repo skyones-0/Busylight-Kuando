@@ -27,7 +27,14 @@
 ---
 
 ## ✨ Features
-### ✅ Busylight Framework
+### ✅ Official SDK Integration
+-Official Busylight® protocol implementation ensuring seamless operation with Omega series devices. No reverse engineering—just native SDK compliance.
+- **Color Control:** 8-bit RGB channels (0-255)
+- **Audio:** 8 built-in jingles + volume control
+- **Timing:** Configurable pulse/flash intervals
+- **Status:** Device presence and firmware version query
+### 💻 Native Swift Core
+- Zero-dependency ARM64 binary. Direct integration for sub-millisecond USB communication—no runtimes, no wrappers, no overhead.
 ### 🎨 Color Control
 - 10 solid colors with precise RGB values
 - Smooth pulse breathing effects
