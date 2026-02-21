@@ -1,104 +1,206 @@
+//
+//  MenuBarView.swift
+//  Busylight
+//
+//  Created by Jose Araujo on 20/02/26.
+//
+
 import SwiftUI
 
 struct MenuBarView: View {
     @EnvironmentObject var appDelegate: AppDelegate
-    @StateObject private var busylight = BusylightManager()
+    @ObservedObject var busylight: BusylightManager
+    @AppStorage("pomodoroWorkTime") private var workTime = 25
+    @AppStorage("pomodoroShortBreak") private var shortBreak = 5
+    @AppStorage("pomodoroLongBreak") private var longBreak = 15
+    @AppStorage("pomodoroSets") private var sets = 3
     
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 16) {
+                // Header
                 HStack {
                     Circle()
                         .fill(busylight.isConnected ? Color.green : Color.red)
                         .frame(width: 8, height: 8)
                     Text(busylight.isConnected ? "Connected" : "Disconnected")
-                    Text(busylight.deviceName)
                         .font(.caption)
-                        .foregroundColor(.secondary)
                     Spacer()
+                    Text(busylight.deviceName)
+                        .font(.caption2)
+                        .foregroundColor(.secondary)
                 }
+                
                 Divider()
                 
-                // VISIBILIDAD - Checkboxes nativos de macOS
-                VStack(alignment: .leading, spacing: 10) {
-                    Text("Visibilidad")
+                // POMODORO
+                VStack(alignment: .leading, spacing: 12) {
+                    Text("Pomodoro")
                         .font(.headline)
                     
-                    Toggle("Mostrar en Dock", isOn: $appDelegate.showInDock)
-                        .toggleStyle(.checkbox)
+                    HStack {
+                        Text(String(format: "%02d:00", workTime))
+                            .font(.system(size: 32, weight: .bold, design: .rounded))
+                            .monospacedDigit()
+                        
+                        Spacer()
+                        
+                        VStack(alignment: .trailing, spacing: 2) {
+                            Text("Work")
+                                .font(.caption.bold())
+                                .foregroundColor(.red)
+                            Text("Set 1/\(sets)")
+                                .font(.caption2)
+                                .foregroundColor(.secondary)
+                        }
+                    }
                     
-                    Toggle("Mostrar en Menu Bar", isOn: $appDelegate.showInMenuBar)
-                        .toggleStyle(.checkbox)
+                    // Progress bar
+                    GeometryReader { geo in
+                        ZStack(alignment: .leading) {
+                            Rectangle()
+                                .fill(Color.gray.opacity(0.2))
+                                .frame(height: 4)
+                                .cornerRadius(2)
+                            
+                            Rectangle()
+                                .fill(Color.red)
+                                .frame(width: geo.size.width * 0.3, height: 4)
+                                .cornerRadius(2)
+                        }
+                    }
+                    .frame(height: 4)
+                    
+                    // Buttons
+                    HStack(spacing: 8) {
+                        Button {
+                            BusylightLogger.shared.info("MenuBar: Start Pomodoro")
+                        } label: {
+                            Label("Start", systemImage: "play.fill")
+                                .frame(maxWidth: .infinity)
+                        }
+                        .buttonStyle(.borderedProminent)
+                        .tint(.green)
+                        .controlSize(.small)
+                        
+                        Button {
+                            BusylightLogger.shared.info("MenuBar: Pause Pomodoro")
+                        } label: {
+                            Label("Pause", systemImage: "pause.fill")
+                                .frame(maxWidth: .infinity)
+                        }
+                        .buttonStyle(.bordered)
+                        .controlSize(.small)
+                    }
+                    
+                    // Config badges
+                    HStack(spacing: 6) {
+                        ConfigBadge(icon: "briefcase.fill", value: workTime, color: .red)
+                        ConfigBadge(icon: "cup.and.saucer.fill", value: shortBreak, color: .green)
+                        ConfigBadge(icon: "sun.max.fill", value: longBreak, color: .yellow)
+                    }
                 }
                 .padding()
                 .background(Color.gray.opacity(0.1))
                 .cornerRadius(8)
                 
-
+                Divider()
+                
+                // Visibility
+                VStack(alignment: .leading, spacing: 10) {
+                    Text("Visibility")
+                        .font(.headline)
+                    
+                    Toggle("Show in Dock", isOn: $appDelegate.showInDock)
+                        .toggleStyle(.checkbox)
+                    
+                    Toggle("Show in Menu Bar", isOn: $appDelegate.showInMenuBar)
+                        .toggleStyle(.checkbox)
+                }
                 
                 Divider()
                 
-                // Colores rápidos
+                // Quick Colors
                 VStack(alignment: .leading, spacing: 8) {
-                    Text("Colores")
+                    Text("Quick Colors")
                         .font(.headline)
                     
-                    LazyVGrid(columns: [GridItem(.adaptive(minimum: 35))], spacing: 5) {
-                        ColorButton(color: .red, action: { busylight.red() })
-                        ColorButton(color: .green, action: { busylight.green() })
-                        ColorButton(color: .blue, action: { busylight.blue() })
-                        ColorButton(color: .yellow, action: { busylight.yellow() })
-                        ColorButton(color: .cyan, action: { busylight.cyan() })
-                        ColorButton(color: .purple, action: { busylight.purple() })
-                        ColorButton(color: .white, action: { busylight.white() })
-                        ColorButton(color: .orange, action: { busylight.orange() })
-                    }
-                }
-                
-                // Jingles
-                VStack(alignment: .leading, spacing: 8) {
-                    Text("Jingles")
-                        .font(.headline)
-                    
-                    LazyVGrid(columns: [GridItem(.adaptive(minimum: 35))], spacing: 5) {
-                        ForEach(1...16, id: \.self) { number in
-                            Button("\(number)") {
-                                busylight.jingle(
-                                    soundNumber: number,
-                                    red: Int.random(in: 0...100),
-                                    green: Int.random(in: 0...100),
-                                    blue: Int.random(in: 0...100),
-                                    andVolume: Int.random(in: 30...100)
-                                )
-                            }
-                            .frame(width: 35, height: 35)
-                            .buttonStyle(.bordered)
+                    LazyVGrid(columns: [GridItem(.adaptive(minimum: 30))], spacing: 6) {
+                        QuickColorButton(color: .red) {
+                            BusylightLogger.shared.info("MenuBar: Red")
+                            busylight.red()
+                        }
+                        QuickColorButton(color: .green) {
+                            BusylightLogger.shared.info("MenuBar: Green")
+                            busylight.green()
+                        }
+                        QuickColorButton(color: .blue) {
+                            BusylightLogger.shared.info("MenuBar: Blue")
+                            busylight.blue()
+                        }
+                        QuickColorButton(color: .yellow) {
+                            BusylightLogger.shared.info("MenuBar: Yellow")
+                            busylight.yellow()
+                        }
+                        QuickColorButton(color: .purple) {
+                            BusylightLogger.shared.info("MenuBar: Purple")
+                            busylight.purple()
+                        }
+                        QuickColorButton(color: .white) {
+                            BusylightLogger.shared.info("MenuBar: White")
+                            busylight.white()
                         }
                     }
                 }
                 
-                Spacer(minLength: 20)
+                Spacer(minLength: 12)
                 
-                // BOTÓN NOTIFICATIONCENTER
-                Button("Abrir Ventana Principal") {
+                // Actions
+                Button {
+                    BusylightLogger.shared.info("MenuBar: Abrir ventana principal")
                     NotificationCenter.default.post(name: .openMainWindow, object: nil)
+                } label: {
+                    Label("Open Main Window", systemImage: "arrow.up.forward.app")
+                        .frame(maxWidth: .infinity)
                 }
                 .buttonStyle(.borderedProminent)
-                .frame(maxWidth: .infinity)
                 
-                Button("Salir") {
+                Button {
+                    BusylightLogger.shared.info("MenuBar: Salir")
                     NSApp.terminate(nil)
+                } label: {
+                    Label("Quit", systemImage: "power")
+                        .frame(maxWidth: .infinity)
                 }
                 .foregroundColor(.red)
-                .frame(maxWidth: .infinity)
             }
             .padding()
         }
-        .frame(width: 300, height: 500)
+        .frame(width: 240, height: 420)
     }
 }
 
-struct ColorButton: View {
+// MARK: - MenuBar Supporting Views
+struct ConfigBadge: View {
+    let icon: String
+    let value: Int
+    let color: Color
+    
+    var body: some View {
+        HStack(spacing: 2) {
+            Image(systemName: icon)
+                .foregroundColor(color)
+            Text("\(value)m")
+        }
+        .font(.caption2)
+        .padding(.horizontal, 6)
+        .padding(.vertical, 2)
+        .background(color.opacity(0.1))
+        .cornerRadius(4)
+    }
+}
+
+struct QuickColorButton: View {
     let color: Color
     let action: () -> Void
     
@@ -106,7 +208,7 @@ struct ColorButton: View {
         Button(action: action) {
             Circle()
                 .fill(color)
-                .frame(width: 30, height: 30)
+                .frame(width: 26, height: 26)
         }
         .buttonStyle(.borderless)
     }
