@@ -63,7 +63,7 @@
 
 | Component | Minimum Version |
 |-----------|----------------|
-| macOS | 26.3 Tahoe |
+| macOS | 26 Tahoe |
 | Xcode | 26.2 |
 | Swift | 6.2.3 |
 | Hardware | Apple Silicon (ARM64) |
