@@ -63,7 +63,6 @@
 
 ### Installation
 
-\`\`\`bash
 # Clone repository
 git clone https://github.com/skyones-0/kuando_macos.git
 cd kuando_macos/Busylight
@@ -72,7 +71,6 @@ cd kuando_macos/Busylight
 open Busylight.xcodeproj
 
 # Build and run (⌘R)
-\`\`\`
 
 ---
 
@@ -80,7 +78,7 @@ open Busylight.xcodeproj
 
 ### Basic Controls
 
-\`\`\`swift
+
 // Solid colors
 busylight.red()      // RGB(100, 0, 0)
 busylight.green()    // RGB(0, 100, 0)
@@ -93,7 +91,6 @@ busylight.pulseBlue()
 // Blink patterns
 busylight.blinkRedFast()    // 200ms intervals
 busylight.blinkGreenSlow()  // 1s intervals
-\`\`\`
 
 ---
 

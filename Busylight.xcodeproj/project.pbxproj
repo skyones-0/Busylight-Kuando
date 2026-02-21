@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		686E10C52F49FA4E00F8EED5 /* README.md in Resources */ = {isa = PBXBuildFile; fileRef = 686E10C42F49FA4E00F8EED5 /* README.md */; };
 		6896E76F2F490BB90010A930 /* BusylightSDK_Swift.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 6896E76E2F490BB90010A930 /* BusylightSDK_Swift.framework */; };
 		6896E7702F490BB90010A930 /* BusylightSDK_Swift.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 6896E76E2F490BB90010A930 /* BusylightSDK_Swift.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 /* End PBXBuildFile section */
@@ -43,6 +44,7 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
+		686E10C42F49FA4E00F8EED5 /* README.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = README.md; sourceTree = "<group>"; };
 		6896E7342F490AC10010A930 /* Busylight.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Busylight.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		6896E7462F490AC30010A930 /* BusylightTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = BusylightTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		6896E7502F490AC30010A930 /* BusylightUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = BusylightUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -96,6 +98,7 @@
 		6896E72B2F490AC10010A930 = {
 			isa = PBXGroup;
 			children = (
+				686E10C42F49FA4E00F8EED5 /* README.md */,
 				6896E7362F490AC10010A930 /* Busylight */,
 				6896E7492F490AC30010A930 /* BusylightTests */,
 				6896E7532F490AC30010A930 /* BusylightUITests */,
@@ -243,6 +246,7 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				686E10C52F49FA4E00F8EED5 /* README.md in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
