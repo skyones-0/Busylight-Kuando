@@ -32,6 +32,9 @@ enum PomodoroPhase: String, CaseIterable {
 }
 
 class PomodoroManager: ObservableObject {
+    // MARK: - Singleton
+    static let shared = PomodoroManager()
+    
     @Published var isRunning = false
     @Published var isPaused = false
     @Published var currentPhase: PomodoroPhase = .work
@@ -46,12 +49,15 @@ class PomodoroManager: ObservableObject {
     @AppStorage("pomodoroSets") var configuredSets: Int = 3
     
     private var timer: Timer?
-    private var busylight: BusylightManager?
+    private weak var busylight: BusylightManager?
     
-    init(busylight: BusylightManager? = nil) {
-        self.busylight = busylight
+    private init() {
         self.totalSets = configuredSets
         self.remainingSeconds = workTimeMinutes * 60
+    }
+    
+    func configure(with busylight: BusylightManager) {
+        self.busylight = busylight
     }
     
     var timeString: String {

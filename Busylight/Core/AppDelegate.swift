@@ -21,6 +21,10 @@ class AppDelegate: NSObject, NSApplicationDelegate, ObservableObject {
     
     func applicationDidFinishLaunching(_ notification: Notification) {
         BusylightLogger.shared.info("AppDelegate - applicationDidFinishLaunching")
+        
+        // Configure shared PomodoroManager with busylight
+        PomodoroManager.shared.configure(with: busylight)
+        
         setupMenuBar()
         updateDockVisibility()
     }

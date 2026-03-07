@@ -10,12 +10,7 @@ import SwiftUI
 struct MenuBarView: View {
     @EnvironmentObject var appDelegate: AppDelegate
     @ObservedObject var busylight: BusylightManager
-    @StateObject private var pomodoroManager: PomodoroManager
-    
-    init(busylight: BusylightManager) {
-        self.busylight = busylight
-        _pomodoroManager = StateObject(wrappedValue: PomodoroManager(busylight: busylight))
-    }
+    @ObservedObject private var pomodoroManager = PomodoroManager.shared
     
     var body: some View {
         ScrollView {

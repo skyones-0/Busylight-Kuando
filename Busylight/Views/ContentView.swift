@@ -8,21 +8,21 @@
 import SwiftUI
 
 enum SidebarItem: String, CaseIterable, Identifiable {
-    case test = "Test"
     case pomodoro = "Pomodoro"
     case teams = "Teams"
     case configuration = "Settings"
     case about = "About"
+    case device = "Device"
     
     var id: String { rawValue }
     
     var icon: String {
         switch self {
-        case .test: return "lightbulb.fill"
         case .pomodoro: return "timer"
         case .teams: return "person.2.fill"
         case .configuration: return "gearshape.fill"
         case .about: return "info.circle.fill"
+        case .device: return "lightbulb.fill"
         }
     }
 }
@@ -30,7 +30,7 @@ enum SidebarItem: String, CaseIterable, Identifiable {
 struct ContentView: View {
     @StateObject private var busylight = BusylightManager()
     @EnvironmentObject var appDelegate: AppDelegate
-    @State private var selectedItem: SidebarItem = .test
+    @State private var selectedItem: SidebarItem = .pomodoro
     
     var body: some View {
         NavigationSplitView {
@@ -99,8 +99,6 @@ struct ContentView: View {
                 
                 ScrollView {
                     switch selectedItem {
-                    case .test:
-                        TestView(busylight: busylight)
                     case .pomodoro:
                         PomodoroView(busylight: busylight)
                     case .teams:
@@ -109,6 +107,8 @@ struct ContentView: View {
                         ConfigurationView()
                     case .about:
                         AboutView(busylight: busylight)
+                    case .device:
+                        DeviceView(busylight: busylight)
                     }
                 }
             }
@@ -219,7 +219,7 @@ struct GlassStatusCard: View {
 }
 
 // MARK: - Test View (Glassmorphism)
-struct TestView: View {
+struct DeviceView: View {
     @ObservedObject var busylight: BusylightManager
     
     private var colors: [(name: String, color: Color, action: () -> Void)] {
@@ -262,7 +262,7 @@ struct TestView: View {
                             name: item.name,
                             color: item.color,
                             action: {
-                                BusylightLogger.shared.info("TestView: \(item.name) presionado")
+                                BusylightLogger.shared.info("DeviceView: \(item.name) presionado")
                                 item.action()
                             }
                         )
@@ -278,7 +278,7 @@ struct TestView: View {
                 ], spacing: 8) {
                     ForEach(1...16, id: \.self) { number in
                         GlassJingleButton(number: number) {
-                            BusylightLogger.shared.info("TestView: Jingle \(number) presionado")
+                            BusylightLogger.shared.info("DeviceView: Jingle \(number) presionado")
                             busylight.jingle(
                                 soundNumber: number,
                                 red: Int.random(in: 0...100),
@@ -327,12 +327,7 @@ struct TestView: View {
 // MARK: - Pomodoro View (Glassmorphism)
 struct PomodoroView: View {
     @ObservedObject var busylight: BusylightManager
-    @StateObject private var manager: PomodoroManager
-    
-    init(busylight: BusylightManager) {
-        self.busylight = busylight
-        _manager = StateObject(wrappedValue: PomodoroManager(busylight: busylight))
-    }
+    @ObservedObject private var manager = PomodoroManager.shared
     
     var body: some View {
         VStack(spacing: 20) {
