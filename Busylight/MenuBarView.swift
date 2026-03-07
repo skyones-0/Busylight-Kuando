@@ -50,7 +50,7 @@ struct MenuBarView: View {
                         .frame(maxWidth: .infinity)
                         .padding(.vertical, 10)
                     }
-                    .buttonStyle(.glass(color: .accentColor, prominent: true))
+                    .buttonStyle(.glassButton(color: .accentColor, prominent: true))
                     
                     Button {
                         BusylightLogger.shared.info("MenuBar: Salir")
@@ -64,7 +64,7 @@ struct MenuBarView: View {
                         .frame(maxWidth: .infinity)
                         .padding(.vertical, 10)
                     }
-                    .buttonStyle(.glass(color: .red))
+                    .buttonStyle(.glassButton(color: .red))
                 }
             }
             .padding(14)
@@ -220,7 +220,7 @@ struct GlassPomodoroCard: View {
                     .frame(maxWidth: .infinity)
                     .padding(.vertical, 8)
                 }
-                .buttonStyle(.glass(color: .green, prominent: true))
+                .buttonStyle(.glassButton(color: .green, prominent: true))
                 
                 Button {
                     BusylightLogger.shared.info("MenuBar: Pause Pomodoro")
@@ -234,7 +234,7 @@ struct GlassPomodoroCard: View {
                     .frame(maxWidth: .infinity)
                     .padding(.vertical, 8)
                 }
-                .buttonStyle(.glass)
+                .buttonStyle(.glassButton)
             }
             
             // Config badges
@@ -311,7 +311,7 @@ struct GlassVisibilityCard: View {
             HStack(spacing: 6) {
                 Image(systemName: "eye.fill")
                     .font(.caption)
-                    .foregroundStyle(.accent)
+                    .foregroundStyle(Color.accentColor)
                 Text("Visibility")
                     .font(.system(.subheadline, design: .rounded).weight(.semibold))
             }

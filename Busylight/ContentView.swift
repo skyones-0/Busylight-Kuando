@@ -416,7 +416,7 @@ struct PomodoroView: View {
                     .frame(maxWidth: .infinity)
                     .padding(.vertical, 12)
                 }
-                .buttonStyle(.glass(color: .green, prominent: true))
+                .buttonStyle(.glassButton(color: .green, prominent: true))
                 
                 Button {
                     BusylightLogger.shared.info("Pomodoro: Pause presionado")
@@ -429,7 +429,7 @@ struct PomodoroView: View {
                     .frame(maxWidth: .infinity)
                     .padding(.vertical, 12)
                 }
-                .buttonStyle(.glass)
+                .buttonStyle(.glassButton)
                 
                 Button {
                     BusylightLogger.shared.info("Pomodoro: Stop presionado")
@@ -443,7 +443,7 @@ struct PomodoroView: View {
                     .frame(maxWidth: .infinity)
                     .padding(.vertical, 12)
                 }
-                .buttonStyle(.glass(color: .red))
+                .buttonStyle(.glassButton(color: .red))
             }
             .padding(.horizontal, 20)
             
@@ -573,7 +573,7 @@ struct TeamsView: View {
                         .frame(maxWidth: .infinity)
                         .padding(.vertical, 12)
                     }
-                    .buttonStyle(.glass(color: isLoggedIn ? .red : .blue, prominent: !isLoggedIn))
+                    .buttonStyle(.glassButton(color: isLoggedIn ? .red : .blue, prominent: !isLoggedIn))
                 }
             }
             .frame(maxWidth: 380)

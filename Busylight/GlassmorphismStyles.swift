@@ -29,7 +29,7 @@ struct GlassBackground: ViewModifier {
 }
 
 extension View {
-    func glass(material: Material = .ultraThinMaterial, cornerRadius: CGFloat = 16) -> some View {
+    func glassBackground(material: Material = .ultraThinMaterial, cornerRadius: CGFloat = 16) -> some View {
         modifier(GlassBackground(material: material, cornerRadius: cornerRadius))
     }
 }
@@ -50,7 +50,7 @@ struct GlassButtonStyle: ButtonStyle {
                 ZStack {
                     // Base glass layer
                     RoundedRectangle(cornerRadius: cornerRadius)
-                        .fill(isProminent ? color.opacity(0.8) : Material.thinMaterial)
+                        .fill(isProminent ? color.opacity(0.8) : Color.gray.opacity(0.15))
                     
                     // Highlight overlay
                     RoundedRectangle(cornerRadius: cornerRadius)
@@ -85,8 +85,8 @@ struct GlassButtonStyle: ButtonStyle {
 }
 
 extension ButtonStyle where Self == GlassButtonStyle {
-    static var glass: GlassButtonStyle { GlassButtonStyle() }
-    static func glass(color: Color, prominent: Bool = false) -> GlassButtonStyle {
+    static var glassButton: GlassButtonStyle { GlassButtonStyle() }
+    static func glassButton(color: Color, prominent: Bool = false) -> GlassButtonStyle {
         GlassButtonStyle(color: color, isProminent: prominent)
     }
 }
@@ -369,7 +369,7 @@ struct GlassStatusBadge: View {
         .background(
             ZStack {
                 Capsule()
-                    .fill(isActive ? Color.green.opacity(0.8) : Material.thinMaterial)
+                    .fill(isActive ? Color.green.opacity(0.8) : Color.gray.opacity(0.2))
                 
                 Capsule()
                     .stroke(.white.opacity(0.2), lineWidth: 1)
