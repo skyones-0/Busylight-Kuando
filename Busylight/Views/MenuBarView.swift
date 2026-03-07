@@ -14,7 +14,7 @@ struct MenuBarView: View {
     
     var body: some View {
         ScrollView {
-            VStack(alignment: .leading, spacing: 14) {
+            VStack(alignment: .leading, spacing: 10) {
                 // Header con glassmorphism
                 GlassHeader(busylight: busylight)
                 
@@ -30,21 +30,22 @@ struct MenuBarView: View {
                 // Quick Colors
                 GlassQuickColorsCard(busylight: busylight)
                 
-                Spacer(minLength: 8)
+                Spacer(minLength: 4)
                 
-                // Actions
-                VStack(spacing: 8) {
+                // Actions - más compactos
+                HStack(spacing: 8) {
                     Button {
                         BusylightLogger.shared.info("MenuBar: Abrir ventana principal")
                         NotificationCenter.default.post(name: .openMainWindow, object: nil)
                     } label: {
-                        HStack(spacing: 6) {
+                        HStack(spacing: 4) {
                             Image(systemName: "arrow.up.forward.app")
-                            Text("Open Main Window")
+                                .font(.caption)
+                            Text("Open")
+                                .font(.system(.caption, design: .rounded).weight(.medium))
                         }
-                        .font(.system(.subheadline, design: .rounded).weight(.semibold))
                         .frame(maxWidth: .infinity)
-                        .padding(.vertical, 10)
+                        .padding(.vertical, 6)
                     }
                     .buttonStyle(.glassButton(color: .accentColor, prominent: true))
                     
@@ -52,20 +53,21 @@ struct MenuBarView: View {
                         BusylightLogger.shared.info("MenuBar: Salir")
                         NSApp.terminate(nil)
                     } label: {
-                        HStack(spacing: 6) {
+                        HStack(spacing: 4) {
                             Image(systemName: "power")
+                                .font(.caption)
                             Text("Quit")
+                                .font(.system(.caption, design: .rounded).weight(.medium))
                         }
-                        .font(.system(.subheadline, design: .rounded).weight(.medium))
                         .frame(maxWidth: .infinity)
-                        .padding(.vertical, 10)
+                        .padding(.vertical, 6)
                     }
                     .buttonStyle(.glassButton(color: .red))
                 }
             }
-            .padding(14)
+            .padding(10)
         }
-        .frame(width: 260, height: 480)
+        .frame(width: 220, height: 400)
         .background(
             ZStack {
                 // Background con blur
@@ -76,13 +78,13 @@ struct MenuBarView: View {
                     Circle()
                         .fill(Color.purple.opacity(0.08))
                         .blur(radius: 40)
-                        .frame(width: 150, height: 150)
-                        .offset(x: -30, y: -30)
+                        .frame(width: 120, height: 120)
+                        .offset(x: -20, y: -20)
                     
                     Circle()
                         .fill(Color.blue.opacity(0.06))
                         .blur(radius: 50)
-                        .frame(width: 180, height: 180)
+                        .frame(width: 140, height: 140)
                         .offset(x: geo.size.width * 0.4, y: geo.size.height * 0.3)
                 }
             }
@@ -95,22 +97,22 @@ struct GlassHeader: View {
     @ObservedObject var busylight: BusylightManager
     
     var body: some View {
-        HStack(spacing: 10) {
+        HStack(spacing: 8) {
             // Connection status indicator
             ZStack {
                 Circle()
                     .fill(busylight.isConnected ? Color.green.opacity(0.2) : Color.red.opacity(0.2))
-                    .frame(width: 32, height: 32)
+                    .frame(width: 28, height: 28)
                 
                 Circle()
                     .fill(busylight.isConnected ? Color.green : Color.red)
-                    .frame(width: 10, height: 10)
-                    .shadow(color: (busylight.isConnected ? Color.green : Color.red).opacity(0.6), radius: 4)
+                    .frame(width: 8, height: 8)
+                    .shadow(color: (busylight.isConnected ? Color.green : Color.red).opacity(0.6), radius: 3)
             }
             
-            VStack(alignment: .leading, spacing: 1) {
+            VStack(alignment: .leading, spacing: 0) {
                 Text(busylight.isConnected ? "Connected" : "Disconnected")
-                    .font(.system(.caption, design: .rounded).weight(.semibold))
+                    .font(.system(.caption2, design: .rounded).weight(.semibold))
                 
                 Text(busylight.deviceName)
                     .font(.system(.caption2, design: .rounded))
@@ -124,20 +126,20 @@ struct GlassHeader: View {
             // Current color
             Circle()
                 .fill(busylight.color)
-                .frame(width: 18, height: 18)
+                .frame(width: 14, height: 14)
                 .overlay(
                     Circle()
                         .stroke(.white.opacity(0.4), lineWidth: 1)
                 )
-                .shadow(color: busylight.color.opacity(0.4), radius: 4)
+                .shadow(color: busylight.color.opacity(0.4), radius: 3)
         }
-        .padding(10)
+        .padding(8)
         .background(
             ZStack {
-                RoundedRectangle(cornerRadius: 12)
+                RoundedRectangle(cornerRadius: 10)
                     .fill(Material.thinMaterial)
                 
-                RoundedRectangle(cornerRadius: 12)
+                RoundedRectangle(cornerRadius: 10)
                     .stroke(.white.opacity(0.15), lineWidth: 1)
             }
         )
@@ -150,14 +152,14 @@ struct GlassPomodoroCard: View {
     @ObservedObject var manager: PomodoroManager
     
     var body: some View {
-        VStack(alignment: .leading, spacing: 10) {
+        VStack(alignment: .leading, spacing: 8) {
             // Header
-            HStack(spacing: 6) {
+            HStack(spacing: 4) {
                 Image(systemName: manager.currentPhase.icon)
-                    .font(.caption)
+                    .font(.caption2)
                     .foregroundStyle(manager.currentPhase.color)
-                Text("Focus Timer")
-                    .font(.system(.subheadline, design: .rounded).weight(.semibold))
+                Text("Focus")
+                    .font(.system(.caption, design: .rounded).weight(.semibold))
                 Spacer()
                 
                 // Phase badge
@@ -172,15 +174,15 @@ struct GlassPomodoroCard: View {
             // Timer display
             HStack {
                 Text(manager.timeString)
-                    .font(.system(size: 36, weight: .bold, design: .rounded))
+                    .font(.system(size: 32, weight: .bold, design: .rounded))
                     .monospacedDigit()
                     .foregroundStyle(manager.isRunning ? manager.currentPhase.color : .primary)
                 
                 Spacer()
                 
-                VStack(alignment: .trailing, spacing: 2) {
+                VStack(alignment: .trailing, spacing: 0) {
                     Text(manager.currentPhase.rawValue)
-                        .font(.caption.weight(.semibold))
+                        .font(.caption2.weight(.semibold))
                         .foregroundStyle(manager.currentPhase.color)
                     Text("Set \(manager.currentSet)/\(manager.totalSets)")
                         .font(.caption2)
@@ -191,11 +193,11 @@ struct GlassPomodoroCard: View {
             // Progress bar glass
             GeometryReader { geo in
                 ZStack(alignment: .leading) {
-                    RoundedRectangle(cornerRadius: 3)
+                    RoundedRectangle(cornerRadius: 2)
                         .fill(Material.thinMaterial)
-                        .frame(height: 6)
+                        .frame(height: 4)
                     
-                    RoundedRectangle(cornerRadius: 3)
+                    RoundedRectangle(cornerRadius: 2)
                         .fill(
                             LinearGradient(
                                 colors: [
@@ -206,60 +208,76 @@ struct GlassPomodoroCard: View {
                                 endPoint: .trailing
                             )
                         )
-                        .frame(width: geo.size.width * manager.progress, height: 6)
-                        .shadow(color: manager.currentPhase.color.opacity(0.4), radius: 3)
+                        .frame(width: geo.size.width * manager.progress, height: 4)
+                        .shadow(color: manager.currentPhase.color.opacity(0.4), radius: 2)
                         .animation(.linear(duration: 0.5), value: manager.progress)
                 }
             }
-            .frame(height: 6)
+            .frame(height: 4)
             
-            // Control buttons
-            HStack(spacing: 8) {
+            // Control buttons - más compactos
+            HStack(spacing: 6) {
                 Button {
                     manager.start()
                 } label: {
-                    HStack(spacing: 4) {
-                        Image(systemName: manager.isPaused ? "play.fill" : "play.fill")
-                            .font(.caption)
+                    HStack(spacing: 2) {
+                        Image(systemName: "play.fill")
+                            .font(.caption2)
                         Text(manager.isPaused ? "Resume" : "Start")
-                            .font(.system(.caption, design: .rounded).weight(.medium))
+                            .font(.system(.caption2, design: .rounded).weight(.medium))
                     }
                     .frame(maxWidth: .infinity)
-                    .padding(.vertical, 8)
+                    .padding(.vertical, 5)
                 }
                 .buttonStyle(.glassButton(color: .green, prominent: true))
                 .disabled(manager.isRunning && !manager.isPaused)
+                .opacity(manager.isRunning && !manager.isPaused ? 0.5 : 1)
                 
                 Button {
                     manager.pause()
                 } label: {
-                    HStack(spacing: 4) {
+                    HStack(spacing: 2) {
                         Image(systemName: "pause.fill")
-                            .font(.caption)
+                            .font(.caption2)
                         Text("Pause")
-                            .font(.system(.caption, design: .rounded).weight(.medium))
+                            .font(.system(.caption2, design: .rounded).weight(.medium))
                     }
                     .frame(maxWidth: .infinity)
-                    .padding(.vertical, 8)
+                    .padding(.vertical, 5)
                 }
                 .buttonStyle(.glassButton)
                 .disabled(!manager.isRunning || manager.isPaused)
+                .opacity(!manager.isRunning || manager.isPaused ? 0.5 : 1)
+                
+                Button {
+                    manager.stop()
+                } label: {
+                    HStack(spacing: 2) {
+                        Image(systemName: "stop.fill")
+                            .font(.caption2)
+                        Text("Stop")
+                            .font(.system(.caption2, design: .rounded).weight(.medium))
+                    }
+                    .frame(maxWidth: .infinity)
+                    .padding(.vertical, 5)
+                }
+                .buttonStyle(.glassButton(color: .red))
             }
             
-            // Config badges
-            HStack(spacing: 6) {
+            // Config badges - más pequeños
+            HStack(spacing: 4) {
                 GlassConfigBadge(icon: "briefcase.fill", value: manager.workTimeMinutes, color: .green)
                 GlassConfigBadge(icon: "cup.and.saucer.fill", value: manager.shortBreakMinutes, color: .blue)
                 GlassConfigBadge(icon: "sun.max.fill", value: manager.longBreakMinutes, color: .orange)
             }
         }
-        .padding(12)
+        .padding(10)
         .background(
             ZStack {
-                RoundedRectangle(cornerRadius: 12)
+                RoundedRectangle(cornerRadius: 10)
                     .fill(Material.thinMaterial)
                 
-                RoundedRectangle(cornerRadius: 12)
+                RoundedRectangle(cornerRadius: 10)
                     .stroke(
                         LinearGradient(
                             colors: [.white.opacity(0.2), .white.opacity(0.1)],
@@ -270,7 +288,7 @@ struct GlassPomodoroCard: View {
                     )
                 
                 // Top highlight
-                RoundedRectangle(cornerRadius: 12)
+                RoundedRectangle(cornerRadius: 10)
                     .fill(
                         LinearGradient(
                             colors: [.white.opacity(0.1), .clear],
@@ -289,22 +307,22 @@ struct GlassConfigBadge: View {
     let color: Color
     
     var body: some View {
-        HStack(spacing: 3) {
+        HStack(spacing: 2) {
             Image(systemName: icon)
-                .font(.system(size: 8))
+                .font(.system(size: 7))
                 .foregroundStyle(color)
             Text("\(value)m")
                 .font(.system(.caption2, design: .rounded).weight(.medium))
         }
         .foregroundStyle(.secondary)
-        .padding(.horizontal, 6)
-        .padding(.vertical, 3)
+        .padding(.horizontal, 4)
+        .padding(.vertical, 2)
         .background(
             ZStack {
-                RoundedRectangle(cornerRadius: 4)
+                RoundedRectangle(cornerRadius: 3)
                     .fill(Material.thinMaterial)
                 
-                RoundedRectangle(cornerRadius: 4)
+                RoundedRectangle(cornerRadius: 3)
                     .stroke(color.opacity(0.3), lineWidth: 1)
             }
         )
@@ -316,36 +334,36 @@ struct GlassVisibilityCard: View {
     @EnvironmentObject var appDelegate: AppDelegate
     
     var body: some View {
-        VStack(alignment: .leading, spacing: 10) {
-            HStack(spacing: 6) {
+        VStack(alignment: .leading, spacing: 6) {
+            HStack(spacing: 4) {
                 Image(systemName: "eye.fill")
-                    .font(.caption)
+                    .font(.caption2)
                     .foregroundStyle(Color.accentColor)
                 Text("Visibility")
-                    .font(.system(.subheadline, design: .rounded).weight(.semibold))
+                    .font(.system(.caption, design: .rounded).weight(.semibold))
             }
             
-            VStack(spacing: 8) {
+            VStack(spacing: 4) {
                 GlassToggleRowMini(
                     icon: "dock.rectangle",
-                    title: "Show in Dock",
+                    title: "Dock",
                     isOn: $appDelegate.showInDock
                 )
                 
                 GlassToggleRowMini(
                     icon: "menubar.rectangle",
-                    title: "Show in Menu Bar",
+                    title: "Menu Bar",
                     isOn: $appDelegate.showInMenuBar
                 )
             }
         }
-        .padding(12)
+        .padding(8)
         .background(
             ZStack {
-                RoundedRectangle(cornerRadius: 12)
+                RoundedRectangle(cornerRadius: 10)
                     .fill(Material.thinMaterial)
                 
-                RoundedRectangle(cornerRadius: 12)
+                RoundedRectangle(cornerRadius: 10)
                     .stroke(.white.opacity(0.15), lineWidth: 1)
             }
         )
@@ -358,21 +376,21 @@ struct GlassToggleRowMini: View {
     @Binding var isOn: Bool
     
     var body: some View {
-        HStack(spacing: 8) {
+        HStack(spacing: 6) {
             Image(systemName: icon)
-                .font(.caption)
+                .font(.caption2)
                 .foregroundStyle(.secondary)
-                .frame(width: 16)
+                .frame(width: 14)
             
             Text(title)
-                .font(.system(.caption, design: .rounded))
+                .font(.system(.caption2, design: .rounded))
             
             Spacer()
             
             Toggle("", isOn: $isOn)
                 .toggleStyle(.switch)
                 .controlSize(.mini)
-                .scaleEffect(0.8)
+                .scaleEffect(0.7)
         }
     }
 }
@@ -384,20 +402,20 @@ struct GlassQuickColorsCard: View {
     let colors: [(color: Color, action: () -> Void)] = []
     
     var body: some View {
-        VStack(alignment: .leading, spacing: 10) {
-            HStack(spacing: 6) {
+        VStack(alignment: .leading, spacing: 6) {
+            HStack(spacing: 4) {
                 Image(systemName: "paintpalette.fill")
-                    .font(.caption)
+                    .font(.caption2)
                     .foregroundStyle(.orange)
-                Text("Quick Colors")
-                    .font(.system(.subheadline, design: .rounded).weight(.semibold))
+                Text("Colors")
+                    .font(.system(.caption, design: .rounded).weight(.semibold))
             }
             
             LazyVGrid(columns: [
                 GridItem(.flexible()),
                 GridItem(.flexible()),
                 GridItem(.flexible())
-            ], spacing: 8) {
+            ], spacing: 6) {
                 GlassQuickColorButton(color: .red) {
                     BusylightLogger.shared.info("MenuBar: Red")
                     busylight.red()
@@ -424,13 +442,13 @@ struct GlassQuickColorsCard: View {
                 }
             }
         }
-        .padding(12)
+        .padding(8)
         .background(
             ZStack {
-                RoundedRectangle(cornerRadius: 12)
+                RoundedRectangle(cornerRadius: 10)
                     .fill(Material.thinMaterial)
                 
-                RoundedRectangle(cornerRadius: 12)
+                RoundedRectangle(cornerRadius: 10)
                     .stroke(.white.opacity(0.15), lineWidth: 1)
             }
         )
@@ -449,9 +467,9 @@ struct GlassQuickColorButton: View {
                 // Glow
                 Circle()
                     .fill(color)
-                    .blur(radius: isHovered ? 6 : 0)
+                    .blur(radius: isHovered ? 4 : 0)
                     .opacity(isHovered ? 0.5 : 0)
-                    .frame(width: 28, height: 28)
+                    .frame(width: 22, height: 22)
                 
                 // Main circle
                 Circle()
@@ -460,20 +478,20 @@ struct GlassQuickColorButton: View {
                             colors: [color.opacity(0.9), color],
                             center: .topLeading,
                             startRadius: 0,
-                            endRadius: 15
+                            endRadius: 12
                         )
                     )
-                    .frame(width: 24, height: 24)
+                    .frame(width: 20, height: 20)
                     .overlay(
                         Circle()
                             .stroke(.white.opacity(0.4), lineWidth: 1)
                     )
-                    .shadow(color: color.opacity(0.5), radius: isHovered ? 6 : 2, x: 0, y: 2)
+                    .shadow(color: color.opacity(0.5), radius: isHovered ? 4 : 2, x: 0, y: 1)
             }
-            .scaleEffect(isHovered ? 1.15 : 1)
+            .scaleEffect(isHovered ? 1.1 : 1)
         }
         .buttonStyle(.plain)
-        .frame(height: 32)
+        .frame(height: 26)
         .animation(.easeOut(duration: 0.15), value: isHovered)
         .onHover { hovering in
             isHovered = hovering
