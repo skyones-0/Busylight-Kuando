@@ -472,7 +472,7 @@ struct PomodoroView: View {
                     .frame(maxWidth: .infinity)
                     .padding(.vertical, 12)
                 }
-                .buttonStyle(.glassButton(color: .green, prominent: true))
+                .buttonStyle(.waveButton(color: .green, prominent: true))
                 .disabled(manager.isRunning && !manager.isPaused)
                 .opacity(manager.isRunning && !manager.isPaused ? 0.5 : 1)
                 
@@ -487,7 +487,7 @@ struct PomodoroView: View {
                     .frame(maxWidth: .infinity)
                     .padding(.vertical, 12)
                 }
-                .buttonStyle(.glassButton)
+                .buttonStyle(.waveButton)
                 .disabled(!manager.isRunning || manager.isPaused)
                 .opacity(!manager.isRunning || manager.isPaused ? 0.5 : 1)
                 
@@ -502,7 +502,7 @@ struct PomodoroView: View {
                     .frame(maxWidth: .infinity)
                     .padding(.vertical, 12)
                 }
-                .buttonStyle(.glassButton(color: .red))
+                .buttonStyle(.waveButton(color: .red))
                 .disabled(!manager.isRunning && !manager.isPaused)
                 .opacity(!manager.isRunning && !manager.isPaused ? 0.5 : 1)
             }

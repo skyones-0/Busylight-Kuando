@@ -47,7 +47,7 @@ struct MenuBarView: View {
                         .frame(maxWidth: .infinity)
                         .padding(.vertical, 6)
                     }
-                    .buttonStyle(.glassButton(color: .accentColor, prominent: true))
+                    .buttonStyle(.smallWaveButton(color: .accentColor, prominent: true))
                     
                     Button {
                         BusylightLogger.shared.info("MenuBar: Salir")
@@ -62,7 +62,7 @@ struct MenuBarView: View {
                         .frame(maxWidth: .infinity)
                         .padding(.vertical, 6)
                     }
-                    .buttonStyle(.glassButton(color: .red))
+                    .buttonStyle(.smallWaveButton(color: .red))
                 }
             }
             .padding(10)
@@ -229,7 +229,7 @@ struct GlassPomodoroCard: View {
                     .frame(maxWidth: .infinity)
                     .padding(.vertical, 5)
                 }
-                .buttonStyle(.glassButton(color: .green, prominent: true))
+                .buttonStyle(.smallWaveButton(color: .green, prominent: true))
                 .disabled(manager.isRunning && !manager.isPaused)
                 .opacity(manager.isRunning && !manager.isPaused ? 0.5 : 1)
                 
@@ -245,7 +245,7 @@ struct GlassPomodoroCard: View {
                     .frame(maxWidth: .infinity)
                     .padding(.vertical, 5)
                 }
-                .buttonStyle(.glassButton)
+                .buttonStyle(.smallWaveButton)
                 .disabled(!manager.isRunning || manager.isPaused)
                 .opacity(!manager.isRunning || manager.isPaused ? 0.5 : 1)
                 
@@ -261,7 +261,7 @@ struct GlassPomodoroCard: View {
                     .frame(maxWidth: .infinity)
                     .padding(.vertical, 5)
                 }
-                .buttonStyle(.glassButton(color: .red))
+                .buttonStyle(.smallWaveButton(color: .red))
             }
             
             // Config badges - más pequeños

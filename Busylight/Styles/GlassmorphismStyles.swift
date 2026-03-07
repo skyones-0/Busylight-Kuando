@@ -91,6 +91,210 @@ extension ButtonStyle where Self == GlassButtonStyle {
     }
 }
 
+// MARK: - Wave Button Style
+struct WaveButtonStyle: ButtonStyle {
+    var color: Color = .accentColor
+    var isProminent: Bool = false
+    var cornerRadius: CGFloat = 12
+    
+    @State private var rippleOpacity: Double = 0
+    @State private var rippleScale: CGFloat = 0.5
+    @State private var wavePhase: Double = 0
+    @State private var isPressed: Bool = false
+    
+    func makeBody(configuration: Configuration) -> some View {
+        configuration.label
+            .font(.system(.subheadline, design: .rounded).weight(.semibold))
+            .foregroundStyle(isProminent ? .white : .primary)
+            .frame(maxWidth: .infinity)
+            .padding(.vertical, 12)
+            .background(
+                ZStack {
+                    // Base glass layer
+                    RoundedRectangle(cornerRadius: cornerRadius)
+                        .fill(isProminent ? color.opacity(0.8) : Color.gray.opacity(0.2))
+                    
+                    // Animated wave rings
+                    ForEach(0..<3) { index in
+                        RoundedRectangle(cornerRadius: cornerRadius)
+                            .stroke(
+                                isProminent ? color.opacity(0.3) : .white.opacity(0.3),
+                                lineWidth: 1.5
+                            )
+                            .scaleEffect(rippleScale + CGFloat(index) * 0.15)
+                            .opacity(rippleOpacity * (1.0 - Double(index) * 0.3))
+                    }
+                    
+                    // Inner glow when pressed
+                    RoundedRectangle(cornerRadius: cornerRadius)
+                        .fill(
+                            RadialGradient(
+                                colors: [
+                                    color.opacity(isPressed ? 0.4 : 0.0),
+                                    .clear
+                                ],
+                                center: .center,
+                                startRadius: 0,
+                                endRadius: 50
+                            )
+                        )
+                    
+                    // Top highlight
+                    RoundedRectangle(cornerRadius: cornerRadius)
+                        .fill(
+                            LinearGradient(
+                                colors: [
+                                    .white.opacity(configuration.isPressed ? 0.1 : 0.2),
+                                    .clear
+                                ],
+                                startPoint: .top,
+                                endPoint: .center
+                            )
+                        )
+                    
+                    // Border
+                    RoundedRectangle(cornerRadius: cornerRadius)
+                        .stroke(
+                            isProminent ? color.opacity(0.5) : .white.opacity(0.25),
+                            lineWidth: 1
+                        )
+                }
+            )
+            .overlay(
+                // Wave animation overlay
+                GeometryReader { geometry in
+                    ZStack {
+                        // Center ripple point
+                        Circle()
+                            .fill(color.opacity(0.3))
+                            .frame(width: 10, height: 10)
+                            .position(x: geometry.size.width / 2, y: geometry.size.height / 2)
+                            .scaleEffect(rippleScale * 2)
+                            .opacity(rippleOpacity)
+                    }
+                }
+            )
+            .shadow(
+                color: isProminent ? color.opacity(isPressed ? 0.6 : 0.4) : .black.opacity(0.1),
+                radius: isPressed ? 12 : 8,
+                x: 0,
+                y: isPressed ? 6 : 3
+            )
+            .scaleEffect(isPressed ? 0.96 : 1)
+            .onChange(of: configuration.isPressed) { _, pressed in
+                isPressed = pressed
+                if pressed {
+                    // Trigger wave animation
+                    withAnimation(.easeOut(duration: 0.4)) {
+                        rippleScale = 1.2
+                        rippleOpacity = 1.0
+                    }
+                    withAnimation(.easeIn(duration: 0.4).delay(0.1)) {
+                        rippleScale = 1.5
+                        rippleOpacity = 0
+                    }
+                } else {
+                    // Reset
+                    rippleScale = 0.5
+                    rippleOpacity = 0
+                }
+            }
+    }
+}
+
+extension ButtonStyle where Self == WaveButtonStyle {
+    static var waveButton: WaveButtonStyle { WaveButtonStyle() }
+    static func waveButton(color: Color, prominent: Bool = false) -> WaveButtonStyle {
+        WaveButtonStyle(color: color, isProminent: prominent)
+    }
+}
+
+// MARK: - Small Wave Button Style (for MenuBar)
+struct SmallWaveButtonStyle: ButtonStyle {
+    var color: Color = .accentColor
+    var isProminent: Bool = false
+    var cornerRadius: CGFloat = 8
+    
+    @State private var rippleScale: CGFloat = 0.5
+    @State private var rippleOpacity: Double = 0
+    @State private var isPressed: Bool = false
+    
+    func makeBody(configuration: Configuration) -> some View {
+        configuration.label
+            .font(.system(.caption, design: .rounded).weight(.medium))
+            .foregroundStyle(isProminent ? .white : .primary)
+            .frame(maxWidth: .infinity)
+            .padding(.vertical, 6)
+            .background(
+                ZStack {
+                    // Base
+                    RoundedRectangle(cornerRadius: cornerRadius)
+                        .fill(isProminent ? color.opacity(0.8) : Color.gray.opacity(0.2))
+                    
+                    // Wave ring
+                    RoundedRectangle(cornerRadius: cornerRadius)
+                        .stroke(
+                            isProminent ? color.opacity(0.4) : .white.opacity(0.3),
+                            lineWidth: 1
+                        )
+                        .scaleEffect(rippleScale)
+                        .opacity(rippleOpacity)
+                    
+                    // Inner glow
+                    RoundedRectangle(cornerRadius: cornerRadius)
+                        .fill(
+                            RadialGradient(
+                                colors: [
+                                    color.opacity(isPressed ? 0.3 : 0.0),
+                                    .clear
+                                ],
+                                center: .center,
+                                startRadius: 0,
+                                endRadius: 30
+                            )
+                        )
+                    
+                    // Border
+                    RoundedRectangle(cornerRadius: cornerRadius)
+                        .stroke(
+                            isProminent ? color.opacity(0.5) : .white.opacity(0.2),
+                            lineWidth: 1
+                        )
+                }
+            )
+            .shadow(
+                color: isProminent ? color.opacity(isPressed ? 0.5 : 0.3) : .black.opacity(0.08),
+                radius: isPressed ? 8 : 4,
+                x: 0,
+                y: isPressed ? 4 : 2
+            )
+            .scaleEffect(isPressed ? 0.95 : 1)
+            .onChange(of: configuration.isPressed) { _, pressed in
+                isPressed = pressed
+                if pressed {
+                    withAnimation(.easeOut(duration: 0.3)) {
+                        rippleScale = 1.1
+                        rippleOpacity = 0.8
+                    }
+                    withAnimation(.easeIn(duration: 0.3).delay(0.05)) {
+                        rippleScale = 1.3
+                        rippleOpacity = 0
+                    }
+                } else {
+                    rippleScale = 0.5
+                    rippleOpacity = 0
+                }
+            }
+    }
+}
+
+extension ButtonStyle where Self == SmallWaveButtonStyle {
+    static var smallWaveButton: SmallWaveButtonStyle { SmallWaveButtonStyle() }
+    static func smallWaveButton(color: Color, prominent: Bool = false) -> SmallWaveButtonStyle {
+        SmallWaveButtonStyle(color: color, isProminent: prominent)
+    }
+}
+
 // MARK: - Color Circle Button (Glass)
 struct GlassColorButton: View {
     let name: String
@@ -99,11 +303,13 @@ struct GlassColorButton: View {
     
     @State private var isHovered = false
     @State private var isPressed = false
+    @State private var rippleScale: CGFloat = 0.5
+    @State private var rippleOpacity: Double = 0
     
     var body: some View {
         Button(action: action) {
             VStack(spacing: 8) {
-                // Color circle with glow effect
+                // Color circle with wave effect
                 ZStack {
                     // Glow layer
                     Circle()
@@ -131,6 +337,13 @@ struct GlassColorButton: View {
                                 .stroke(.white.opacity(0.4), lineWidth: 1.5)
                         )
                         .shadow(color: color.opacity(0.5), radius: isHovered ? 10 : 4, x: 0, y: 2)
+                    
+                    // Wave ripple effect
+                    Circle()
+                        .stroke(color.opacity(0.6), lineWidth: 2)
+                        .frame(width: 40, height: 40)
+                        .scaleEffect(rippleScale)
+                        .opacity(rippleOpacity)
                 }
                 .scaleEffect(isPressed ? 0.9 : isHovered ? 1.1 : 1)
                 
@@ -167,14 +380,22 @@ struct GlassColorButton: View {
         .shadow(color: .black.opacity(0.08), radius: isHovered ? 12 : 4, x: 0, y: isHovered ? 6 : 2)
         .scaleEffect(isPressed ? 0.95 : 1)
         .animation(.easeOut(duration: 0.2), value: isHovered)
-        .animation(.easeOut(duration: 0.1), value: isPressed)
         .onHover { hovering in
             isHovered = hovering
         }
         .pressEvents {
             isPressed = true
+            // Trigger wave
+            withAnimation(.easeOut(duration: 0.3)) {
+                rippleScale = 1.3
+                rippleOpacity = 0.8
+            }
         } onRelease: {
             isPressed = false
+            withAnimation(.easeIn(duration: 0.3)) {
+                rippleScale = 1.8
+                rippleOpacity = 0
+            }
         }
     }
 }
@@ -186,6 +407,8 @@ struct GlassJingleButton: View {
     
     @State private var isHovered = false
     @State private var isPressed = false
+    @State private var rippleScale: CGFloat = 0.5
+    @State private var rippleOpacity: Double = 0
     
     var body: some View {
         Button(action: action) {
@@ -201,6 +424,12 @@ struct GlassJingleButton: View {
             ZStack {
                 RoundedRectangle(cornerRadius: 10)
                     .fill(Material.thinMaterial)
+                
+                // Wave effect
+                RoundedRectangle(cornerRadius: 10)
+                    .stroke(.white.opacity(0.5), lineWidth: 1.5)
+                    .scaleEffect(rippleScale)
+                    .opacity(rippleOpacity)
                 
                 RoundedRectangle(cornerRadius: 10)
                     .stroke(
@@ -237,14 +466,21 @@ struct GlassJingleButton: View {
         )
         .scaleEffect(isPressed ? 0.92 : isHovered ? 1.05 : 1)
         .animation(.easeOut(duration: 0.15), value: isHovered)
-        .animation(.easeOut(duration: 0.1), value: isPressed)
         .onHover { hovering in
             isHovered = hovering
         }
         .pressEvents {
             isPressed = true
+            withAnimation(.easeOut(duration: 0.25)) {
+                rippleScale = 1.1
+                rippleOpacity = 1.0
+            }
         } onRelease: {
             isPressed = false
+            withAnimation(.easeIn(duration: 0.25)) {
+                rippleScale = 1.4
+                rippleOpacity = 0
+            }
         }
     }
 }
