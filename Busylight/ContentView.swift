@@ -11,7 +11,7 @@ enum SidebarItem: String, CaseIterable, Identifiable {
     case test = "Test"
     case pomodoro = "Pomodoro"
     case teams = "Teams"
-    case configuration = "Configuration"
+    case configuration = "Settings"
     case about = "About"
     
     var id: String { rawValue }
@@ -34,29 +34,87 @@ struct ContentView: View {
     
     var body: some View {
         NavigationSplitView {
-            List(SidebarItem.allCases, selection: $selectedItem) { item in
-                Label(item.rawValue, systemImage: item.icon)
-                    .tag(item)
+            // Sidebar con glassmorphism
+            ZStack {
+                // Background
+                MeshGradientBackground()
+                
+                // Sidebar content
+                VStack(spacing: 0) {
+                    // Header
+                    VStack(spacing: 8) {
+                        ZStack {
+                            Circle()
+                                .fill(
+                                    LinearGradient(
+                                        colors: [.orange.opacity(0.8), .red.opacity(0.6)],
+                                        startPoint: .topLeading,
+                                        endPoint: .bottomTrailing
+                                    )
+                                )
+                                .frame(width: 50, height: 50)
+                                .shadow(color: .orange.opacity(0.4), radius: 10, x: 0, y: 4)
+                            
+                            Image(systemName: "lightbulb.fill")
+                                .font(.title2)
+                                .foregroundStyle(.white)
+                        }
+                        
+                        Text("Busylight")
+                            .font(.system(.title3, design: .rounded).weight(.bold))
+                        
+                        Text("Control Center")
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                    }
+                    .padding(.top, 20)
+                    .padding(.bottom, 16)
+                    
+                    // Navigation items
+                    VStack(spacing: 4) {
+                        ForEach(SidebarItem.allCases) { item in
+                            GlassSidebarItem(item: item, isSelected: selectedItem == item)
+                                .onTapGesture {
+                                    withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) {
+                                        selectedItem = item
+                                    }
+                                }
+                        }
+                    }
+                    .padding(.horizontal, 8)
+                    
+                    Spacer()
+                    
+                    // Connection status en sidebar
+                    GlassStatusCard(busylight: busylight)
+                        .padding(.horizontal, 12)
+                        .padding(.bottom, 16)
+                }
             }
-            .listStyle(.sidebar)
-            .navigationTitle("Busylight")
-            .frame(minWidth: 140, idealWidth: 150, maxWidth: 180)
+            .frame(minWidth: 180, idealWidth: 200, maxWidth: 220)
         } detail: {
-            switch selectedItem {
-            case .test:
-                TestView(busylight: busylight)
-            case .pomodoro:
-                PomodoroView(busylight: busylight)
-            case .teams:
-                TeamsView()
-            case .configuration:
-                ConfigurationView()
-            case .about:
-                AboutView(busylight: busylight)
+            // Detail view con glassmorphism background
+            ZStack {
+                MeshGradientBackground()
+                
+                ScrollView {
+                    switch selectedItem {
+                    case .test:
+                        TestView(busylight: busylight)
+                    case .pomodoro:
+                        PomodoroView(busylight: busylight)
+                    case .teams:
+                        TeamsView()
+                    case .configuration:
+                        ConfigurationView()
+                    case .about:
+                        AboutView(busylight: busylight)
+                    }
+                }
             }
         }
-        .frame(minWidth: 650, idealWidth: 750, maxWidth: 900,
-               minHeight: 450, idealHeight: 550, maxHeight: 700)
+        .frame(minWidth: 750, idealWidth: 850, maxWidth: 1000,
+               minHeight: 550, idealHeight: 650, maxHeight: 800)
         .onReceive(NotificationCenter.default.publisher(for: .openMainWindow)) { _ in
             BusylightLogger.shared.debug("Recibida notificación openMainWindow")
             bringWindowToFront()
@@ -82,7 +140,85 @@ struct ContentView: View {
     }
 }
 
-// MARK: - Test View
+// MARK: - Sidebar Status Card
+struct GlassStatusCard: View {
+    @ObservedObject var busylight: BusylightManager
+    
+    var body: some View {
+        VStack(spacing: 10) {
+            HStack(spacing: 8) {
+                // Connection indicator
+                ZStack {
+                    Circle()
+                        .fill(busylight.isConnected ? Color.green : Color.red)
+                        .frame(width: 10, height: 10)
+                        .shadow(color: (busylight.isConnected ? Color.green : Color.red).opacity(0.6), radius: 4)
+                    
+                    // Pulse animation
+                    if busylight.isConnected {
+                        Circle()
+                            .fill(Color.green)
+                            .frame(width: 10, height: 10)
+                            .opacity(0.5)
+                            .scaleEffect(1.5)
+                            .animation(.easeOut(duration: 1).repeatForever(autoreverses: true), value: busylight.isConnected)
+                    }
+                }
+                
+                Text(busylight.isConnected ? "Connected" : "Disconnected")
+                    .font(.system(.caption, design: .rounded).weight(.medium))
+                
+                Spacer()
+            }
+            
+            if busylight.isConnected {
+                Text(busylight.deviceName)
+                    .font(.caption2)
+                    .foregroundStyle(.secondary)
+                    .lineLimit(1)
+                    .truncationMode(.tail)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+            }
+            
+            // Current color indicator
+            HStack(spacing: 8) {
+                Text("Active:")
+                    .font(.caption2)
+                    .foregroundStyle(.secondary)
+                
+                Circle()
+                    .fill(busylight.color)
+                    .frame(width: 14, height: 14)
+                    .overlay(
+                        Circle()
+                            .stroke(.white.opacity(0.4), lineWidth: 1)
+                    )
+                    .shadow(color: busylight.color.opacity(0.5), radius: 4, x: 0, y: 2)
+                
+                Spacer()
+            }
+        }
+        .padding(12)
+        .background(
+            ZStack {
+                RoundedRectangle(cornerRadius: 12)
+                    .fill(Material.thinMaterial)
+                
+                RoundedRectangle(cornerRadius: 12)
+                    .stroke(
+                        LinearGradient(
+                            colors: [.white.opacity(0.2), .white.opacity(0.1)],
+                            startPoint: .topLeading,
+                            endPoint: .bottomTrailing
+                        ),
+                        lineWidth: 1
+                    )
+            }
+        )
+    }
+}
+
+// MARK: - Test View (Glassmorphism)
 struct TestView: View {
     @ObservedObject var busylight: BusylightManager
     
@@ -102,63 +238,93 @@ struct TestView: View {
     }
     
     var body: some View {
-        ScrollView {
-            VStack(spacing: 16) {
-                StatusHeaderView(busylight: busylight)
+        VStack(spacing: 20) {
+            // Header
+            VStack(spacing: 4) {
+                Text("Light Control")
+                    .font(.system(.largeTitle, design: .rounded).weight(.bold))
                 
-                VStack(alignment: .leading, spacing: 12) {
-                    Text("Colors")
-                        .font(.title3.bold())
-                    
-                    LazyVGrid(columns: [
-                        GridItem(.adaptive(minimum: 70, maximum: 90), spacing: 8)
-                    ], spacing: 8) {
-                        ForEach(colors, id: \.name) { item in
-                            ColorTestButton(
-                                name: item.name,
-                                color: item.color,
-                                action: {
-                                    BusylightLogger.shared.info("TestView: \(item.name) presionado")
-                                    item.action()
-                                }
+                Text("Test your Busylight device")
+                    .font(.subheadline)
+                    .foregroundStyle(.secondary)
+            }
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .padding(.horizontal, 24)
+            .padding(.top, 20)
+            
+            // Colors Section
+            GlassCard(title: "Solid Colors", icon: "paintpalette.fill") {
+                LazyVGrid(columns: [
+                    GridItem(.adaptive(minimum: 75, maximum: 85), spacing: 10)
+                ], spacing: 10) {
+                    ForEach(colors, id: \.name) { item in
+                        GlassColorButton(
+                            name: item.name,
+                            color: item.color,
+                            action: {
+                                BusylightLogger.shared.info("TestView: \(item.name) presionado")
+                                item.action()
+                            }
+                        )
+                    }
+                }
+            }
+            .padding(.horizontal, 20)
+            
+            // Jingles Section
+            GlassCard(title: "Audio Jingles", icon: "speaker.wave.2.fill") {
+                LazyVGrid(columns: [
+                    GridItem(.adaptive(minimum: 50, maximum: 60), spacing: 8)
+                ], spacing: 8) {
+                    ForEach(1...16, id: \.self) { number in
+                        GlassJingleButton(number: number) {
+                            BusylightLogger.shared.info("TestView: Jingle \(number) presionado")
+                            busylight.jingle(
+                                soundNumber: number,
+                                red: Int.random(in: 0...100),
+                                green: Int.random(in: 0...100),
+                                blue: Int.random(in: 0...100),
+                                andVolume: Int.random(in: 30...100)
                             )
                         }
                     }
                 }
-                
-                Divider()
-                
-                VStack(alignment: .leading, spacing: 12) {
-                    Text("Jingles")
-                        .font(.title3.bold())
-                    
-                    LazyVGrid(columns: [
-                        GridItem(.adaptive(minimum: 45, maximum: 55), spacing: 6)
-                    ], spacing: 6) {
-                        ForEach(1...16, id: \.self) { number in
-                            JingleButton(number: number) {
-                                BusylightLogger.shared.info("TestView: Jingle \(number) presionado")
-                                busylight.jingle(
-                                    soundNumber: number,
-                                    red: Int.random(in: 0...100),
-                                    green: Int.random(in: 0...100),
-                                    blue: Int.random(in: 0...100),
-                                    andVolume: Int.random(in: 30...100)
-                                )
-                            }
-                        }
-                    }
-                }
-                
-                Spacer(minLength: 20)
             }
-            .padding(20)
+            .padding(.horizontal, 20)
+            
+            // Quick Actions
+            GlassCard(title: "Quick Actions", icon: "bolt.fill") {
+                HStack(spacing: 12) {
+                    GlassActionButton(
+                        title: "Off",
+                        icon: "power",
+                        color: .gray,
+                        action: { busylight.off() }
+                    )
+                    
+                    GlassActionButton(
+                        title: "Pulse",
+                        icon: "waveform",
+                        color: .blue,
+                        action: { busylight.pulseBlue() }
+                    )
+                    
+                    GlassActionButton(
+                        title: "Blink",
+                        icon: "exclamationmark.triangle.fill",
+                        color: .orange,
+                        action: { busylight.blinkRedFast() }
+                    )
+                }
+            }
+            .padding(.horizontal, 20)
+            
+            Spacer(minLength: 20)
         }
-        .background(Color(NSColor.controlBackgroundColor))
     }
 }
 
-// MARK: - Pomodoro View
+// MARK: - Pomodoro View (Glassmorphism)
 struct PomodoroView: View {
     @ObservedObject var busylight: BusylightManager
     @AppStorage("pomodoroWorkTime") private var workTime = 25
@@ -167,94 +333,143 @@ struct PomodoroView: View {
     @AppStorage("pomodoroSets") private var sets = 3
     
     var body: some View {
-        ScrollView {
-            VStack(alignment: .leading, spacing: 16) {
-                VStack(alignment: .leading, spacing: 2) {
-                    Text("KUANDO TIMER")
-                        .font(.title2.bold())
-                    Text("Get the most of your time")
-                        .font(.subheadline)
-                        .foregroundColor(.secondary)
+        VStack(spacing: 20) {
+            // Header
+            VStack(spacing: 4) {
+                HStack(spacing: 10) {
+                    Image(systemName: "timer")
+                        .font(.largeTitle)
+                        .foregroundStyle(.green)
+                    
+                    Text("Focus Timer")
+                        .font(.system(.largeTitle, design: .rounded).weight(.bold))
                 }
                 
-                HStack(spacing: 8) {
-                    Text("Current color:")
-                        .font(.subheadline)
-                    Circle()
-                        .fill(busylight.color)
-                        .frame(width: 16, height: 16)
-                }
+                Text("Stay productive with timed sessions")
+                    .font(.subheadline)
+                    .foregroundStyle(.secondary)
+            }
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .padding(.horizontal, 24)
+            .padding(.top, 20)
+            
+            // Timer Display Cards
+            HStack(spacing: 12) {
+                GlassTimerCard(
+                    time: String(format: "%02d:00", workTime),
+                    color: .green,
+                    icon: "briefcase.fill"
+                )
                 
-                // Config
+                GlassTimerCard(
+                    time: String(format: "%02d:00", shortBreak),
+                    color: .blue,
+                    icon: "cup.and.saucer.fill"
+                )
+                
+                GlassTimerCard(
+                    time: String(format: "%02d:00", longBreak),
+                    color: .orange,
+                    icon: "sun.max.fill"
+                )
+                
+                GlassTimerCard(
+                    time: "\(sets)",
+                    color: .purple,
+                    icon: "arrow.clockwise",
+                    isNumber: true
+                )
+            }
+            .padding(.horizontal, 20)
+            
+            // Configuration
+            GlassCard(title: "Configuration", icon: "slider.horizontal.3") {
                 VStack(spacing: 12) {
                     HStack(spacing: 12) {
-                        ConfigColumnHeader(title: "Work", icon: "briefcase.fill")
-                        ConfigColumnHeader(title: "Short", icon: "cup.and.saucer.fill")
-                        ConfigColumnHeader(title: "Long", icon: "sun.max.fill")
-                        ConfigColumnHeader(title: "Sets", icon: "number")
+                        ConfigLabel(icon: "briefcase.fill", title: "Work")
+                        ConfigLabel(icon: "cup.and.saucer.fill", title: "Short")
+                        ConfigLabel(icon: "sun.max.fill", title: "Long")
+                        ConfigLabel(icon: "number", title: "Sets")
                     }
                     
-                    HStack(spacing: 8) {
-                        CompactStepper(value: $workTime, suffix: "min")
-                        CompactStepper(value: $shortBreak, suffix: "min")
-                        CompactStepper(value: $longBreak, suffix: "min")
-                        CompactStepper(value: $sets, suffix: "")
+                    HStack(spacing: 10) {
+                        GlassStepper(value: $workTime, suffix: "min", range: 1...60)
+                        GlassStepper(value: $shortBreak, suffix: "min", range: 1...30)
+                        GlassStepper(value: $longBreak, suffix: "min", range: 1...60)
+                        GlassStepper(value: $sets, suffix: "", range: 1...10)
                     }
                 }
-                
-                // Cards
-                HStack(spacing: 10) {
-                    CompactTimerCard(
-                        time: String(format: "%02d:00", workTime),
-                        color: .red,
-                        icon: "lightbulb.fill"
-                    )
-                    CompactTimerCard(
-                        time: String(format: "%02d:00", shortBreak),
-                        color: .green,
-                        icon: "cup.and.saucer.fill"
-                    )
-                    CompactTimerCard(
-                        time: String(format: "%02d:00", longBreak),
-                        color: .yellow,
-                        icon: "sun.max.fill"
-                    )
-                    CompactTimerCard(
-                        time: "\(sets)",
-                        color: .black,
-                        icon: "arrow.clockwise",
-                        isNumber: true
-                    )
-                }
-                
-                HStack(spacing: 12) {
-                    Button {
-                        BusylightLogger.shared.info("Pomodoro: Start presionado")
-                    } label: {
-                        Label("Start", systemImage: "play.fill")
-                    }
-                    .buttonStyle(.borderedProminent)
-                    .tint(.green)
-                    .controlSize(.small)
-                    
-                    Button {
-                        BusylightLogger.shared.info("Pomodoro: Pause presionado")
-                    } label: {
-                        Label("Pause", systemImage: "pause.fill")
-                    }
-                    .buttonStyle(.bordered)
-                    .controlSize(.small)
-                }
-                
-                Spacer()
             }
-            .padding(20)
+            .padding(.horizontal, 20)
+            
+            // Control Buttons
+            HStack(spacing: 16) {
+                Button {
+                    BusylightLogger.shared.info("Pomodoro: Start presionado")
+                    busylight.green()
+                } label: {
+                    HStack(spacing: 8) {
+                        Image(systemName: "play.fill")
+                        Text("Start Focus")
+                    }
+                    .font(.system(.subheadline, design: .rounded).weight(.semibold))
+                    .frame(maxWidth: .infinity)
+                    .padding(.vertical, 12)
+                }
+                .buttonStyle(.glass(color: .green, prominent: true))
+                
+                Button {
+                    BusylightLogger.shared.info("Pomodoro: Pause presionado")
+                } label: {
+                    HStack(spacing: 8) {
+                        Image(systemName: "pause.fill")
+                        Text("Pause")
+                    }
+                    .font(.system(.subheadline, design: .rounded).weight(.semibold))
+                    .frame(maxWidth: .infinity)
+                    .padding(.vertical, 12)
+                }
+                .buttonStyle(.glass)
+                
+                Button {
+                    BusylightLogger.shared.info("Pomodoro: Stop presionado")
+                    busylight.off()
+                } label: {
+                    HStack(spacing: 8) {
+                        Image(systemName: "stop.fill")
+                        Text("Stop")
+                    }
+                    .font(.system(.subheadline, design: .rounded).weight(.semibold))
+                    .frame(maxWidth: .infinity)
+                    .padding(.vertical, 12)
+                }
+                .buttonStyle(.glass(color: .red))
+            }
+            .padding(.horizontal, 20)
+            
+            Spacer()
         }
-        .background(Color(NSColor.controlBackgroundColor))
     }
 }
 
-// MARK: - Teams View
+struct ConfigLabel: View {
+    let icon: String
+    let title: String
+    
+    var body: some View {
+        VStack(spacing: 4) {
+            Image(systemName: icon)
+                .font(.caption)
+                .foregroundStyle(.secondary)
+            Text(title)
+                .font(.system(.caption2, design: .rounded).weight(.medium))
+                .foregroundStyle(.secondary)
+        }
+        .frame(maxWidth: .infinity)
+    }
+}
+
+// MARK: - Teams View (Glassmorphism)
 struct TeamsView: View {
     @State private var username = ""
     @State private var password = ""
@@ -263,327 +478,495 @@ struct TeamsView: View {
     @State private var teamsStatus = "Offline"
     
     var body: some View {
-        VStack(spacing: 20) {
+        VStack(spacing: 24) {
+            // Header
             VStack(spacing: 8) {
-                Image(systemName: "person.2.fill")
-                    .font(.system(size: 40))
-                    .foregroundColor(.accentColor)
+                ZStack {
+                    Circle()
+                        .fill(
+                            LinearGradient(
+                                colors: [.blue.opacity(0.8), .purple.opacity(0.6)],
+                                startPoint: .topLeading,
+                                endPoint: .bottomTrailing
+                            )
+                        )
+                        .frame(width: 70, height: 70)
+                        .shadow(color: .blue.opacity(0.4), radius: 15, x: 0, y: 5)
+                    
+                    Image(systemName: "person.2.fill")
+                        .font(.system(size: 30))
+                        .foregroundStyle(.white)
+                }
                 
                 Text("Microsoft Teams")
-                    .font(.title2.bold())
+                    .font(.system(.largeTitle, design: .rounded).weight(.bold))
                 
-                Text("Sync presence status")
+                Text("Sync your presence status")
                     .font(.subheadline)
-                    .foregroundColor(.secondary)
+                    .foregroundStyle(.secondary)
             }
+            .frame(maxWidth: .infinity)
+            .padding(.top, 20)
             
-            GroupBox {
-                VStack(alignment: .leading, spacing: 10) {
-                    Text("Account")
-                        .font(.headline)
-                    
-                    TextField("Email", text: $username)
-                        .textFieldStyle(.roundedBorder)
-                    
-                    SecureField("Password", text: $password)
-                        .textFieldStyle(.roundedBorder)
+            // Login Card
+            GlassCard(
+                title: isLoggedIn ? "Account Connected" : "Sign In",
+                icon: isLoggedIn ? "checkmark.shield.fill" : "person.crop.circle.fill",
+                material: .ultraThinMaterial
+            ) {
+                VStack(spacing: 14) {
+                    if !isLoggedIn {
+                        GlassTextField(
+                            placeholder: "Email",
+                            text: $username,
+                            icon: "envelope.fill"
+                        )
+                        
+                        GlassTextField(
+                            placeholder: "Password",
+                            text: $password,
+                            icon: "lock.fill",
+                            isSecure: true
+                        )
+                    } else {
+                        HStack(spacing: 12) {
+                            Image(systemName: "person.circle.fill")
+                                .font(.system(size: 40))
+                                .foregroundStyle(.blue)
+                            
+                            VStack(alignment: .leading, spacing: 2) {
+                                Text(username.isEmpty ? "user@company.com" : username)
+                                    .font(.system(.body, design: .rounded).weight(.medium))
+                                
+                                HStack(spacing: 6) {
+                                    Circle()
+                                        .fill(Color.green)
+                                        .frame(width: 8, height: 8)
+                                    Text("Connected")
+                                        .font(.caption)
+                                        .foregroundStyle(.secondary)
+                                }
+                            }
+                            
+                            Spacer()
+                        }
+                        .padding(12)
+                        .background(
+                            RoundedRectangle(cornerRadius: 10)
+                                .fill(Material.thinMaterial)
+                        )
+                    }
                     
                     Button {
                         BusylightLogger.shared.info("Teams: Login presionado")
-                        isLoggedIn.toggle()
-                        microsoftStatus = isLoggedIn ? "Connected" : "Disconnected"
-                        teamsStatus = isLoggedIn ? "Available" : "Offline"
+                        withAnimation(.spring(response: 0.4)) {
+                            isLoggedIn.toggle()
+                            microsoftStatus = isLoggedIn ? "Connected" : "Disconnected"
+                            teamsStatus = isLoggedIn ? "Available" : "Offline"
+                        }
                     } label: {
-                        Label(isLoggedIn ? "Disconnect" : "Login",
-                              systemImage: isLoggedIn ? "xmark.circle" : "arrow.right.circle")
+                        HStack(spacing: 8) {
+                            Image(systemName: isLoggedIn ? "xmark.circle.fill" : "arrow.right.circle.fill")
+                            Text(isLoggedIn ? "Disconnect" : "Connect Account")
+                        }
+                        .font(.system(.subheadline, design: .rounded).weight(.semibold))
+                        .frame(maxWidth: .infinity)
+                        .padding(.vertical, 12)
                     }
-                    .buttonStyle(.borderedProminent)
-                    .frame(maxWidth: .infinity, alignment: .center)
+                    .buttonStyle(.glass(color: isLoggedIn ? .red : .blue, prominent: !isLoggedIn))
                 }
-                .padding(12)
             }
-            .frame(width: 280)
+            .frame(maxWidth: 380)
             
+            // Status Card (when logged in)
             if isLoggedIn {
-                GroupBox {
-                    VStack(alignment: .leading, spacing: 12) {
-                        HStack {
-                            Image(systemName: "checkmark.circle.fill")
-                                .foregroundColor(.green)
-                            VStack(alignment: .leading) {
-                                Text("Microsoft")
-                                    .font(.subheadline)
-                                Text(microsoftStatus)
-                                    .font(.caption)
-                                    .foregroundColor(.secondary)
+                GlassCard(title: "Presence Status", icon: "status") {
+                    VStack(spacing: 12) {
+                        HStack(spacing: 12) {
+                            StatusOption(
+                                icon: "checkmark.circle.fill",
+                                title: "Available",
+                                color: .green,
+                                isSelected: teamsStatus == "Available"
+                            ) {
+                                teamsStatus = "Available"
                             }
-                            Spacer()
-                        }
-                        
-                        Divider()
-                        
-                        HStack {
-                            Image(systemName: "person.circle.fill")
-                                .foregroundColor(.blue)
-                            Text("Teams:")
-                                .font(.subheadline)
-                            Spacer()
-                            Picker("", selection: $teamsStatus) {
-                                Text("Available").tag("Available")
-                                Text("Busy").tag("Busy")
-                                Text("DND").tag("Do Not Disturb")
-                                Text("Away").tag("Away")
+                            
+                            StatusOption(
+                                icon: "minus.circle.fill",
+                                title: "Busy",
+                                color: .red,
+                                isSelected: teamsStatus == "Busy"
+                            ) {
+                                teamsStatus = "Busy"
                             }
-                            .pickerStyle(.menu)
-                            .frame(width: 120)
+                            
+                            StatusOption(
+                                icon: "moon.circle.fill",
+                                title: "DND",
+                                color: .purple,
+                                isSelected: teamsStatus == "Do Not Disturb"
+                            ) {
+                                teamsStatus = "Do Not Disturb"
+                            }
+                            
+                            StatusOption(
+                                icon: "clock.circle.fill",
+                                title: "Away",
+                                color: .orange,
+                                isSelected: teamsStatus == "Away"
+                            ) {
+                                teamsStatus = "Away"
+                            }
                         }
                     }
-                    .padding(12)
                 }
-                .frame(width: 280)
-                .transition(.opacity)
+                .frame(maxWidth: 380)
+                .transition(.move(edge: .bottom).combined(with: .opacity))
             }
             
             Spacer()
         }
-        .padding(20)
-        .frame(maxWidth: .infinity, maxHeight: .infinity)
-        .background(Color(NSColor.controlBackgroundColor))
+        .padding(.horizontal, 20)
     }
 }
 
-// MARK: - Configuration View
+struct StatusOption: View {
+    let icon: String
+    let title: String
+    let color: Color
+    var isSelected: Bool
+    let action: () -> Void
+    
+    var body: some View {
+        Button(action: action) {
+            VStack(spacing: 6) {
+                Image(systemName: icon)
+                    .font(.title2)
+                    .foregroundStyle(color)
+                
+                Text(title)
+                    .font(.system(.caption, design: .rounded).weight(.medium))
+                    .foregroundStyle(isSelected ? .primary : .secondary)
+            }
+            .frame(maxWidth: .infinity)
+            .padding(.vertical, 12)
+            .background(
+                ZStack {
+                    if isSelected {
+                        RoundedRectangle(cornerRadius: 10)
+                            .fill(color.opacity(0.15))
+                        
+                        RoundedRectangle(cornerRadius: 10)
+                            .stroke(color.opacity(0.4), lineWidth: 1.5)
+                    } else {
+                        RoundedRectangle(cornerRadius: 10)
+                            .fill(Material.thinMaterial)
+                        
+                        RoundedRectangle(cornerRadius: 10)
+                            .stroke(.white.opacity(0.1), lineWidth: 1)
+                    }
+                }
+            )
+        }
+        .buttonStyle(.plain)
+    }
+}
+
+// MARK: - Configuration View (Glassmorphism)
 struct ConfigurationView: View {
     @EnvironmentObject var appDelegate: AppDelegate
     @AppStorage("appearanceMode") private var appearanceMode = 0
     
     var body: some View {
-        Form {
-            Section {
-                VStack(alignment: .leading, spacing: 16) {
-                    Text("Appearance")
-                        .font(.title3.bold())
-                    
+        VStack(spacing: 24) {
+            // Header
+            VStack(spacing: 4) {
+                Text("Settings")
+                    .font(.system(.largeTitle, design: .rounded).weight(.bold))
+                
+                Text("Customize your experience")
+                    .font(.subheadline)
+                    .foregroundStyle(.secondary)
+            }
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .padding(.horizontal, 24)
+            .padding(.top, 20)
+            
+            // Appearance Card
+            GlassCard(title: "Appearance", icon: "paintbrush.fill") {
+                VStack(spacing: 16) {
                     Picker("Theme", selection: $appearanceMode) {
-                        Text("System").tag(0)
-                        Text("Light").tag(1)
-                        Text("Dark").tag(2)
+                        Label("System", systemImage: "macpro.gen1").tag(0)
+                        Label("Light", systemImage: "sun.max.fill").tag(1)
+                        Label("Dark", systemImage: "moon.fill").tag(2)
                     }
                     .pickerStyle(.segmented)
-                    .frame(width: 250)
                     .onChange(of: appearanceMode) { _, newValue in
                         BusylightLogger.shared.info("Appearance: \(newValue)")
                     }
                     
-                    Toggle("Show in Dock", isOn: $appDelegate.showInDock)
-                    Toggle("Show in Menu Bar", isOn: $appDelegate.showInMenuBar)
+                    Divider()
+                        .opacity(0.5)
+                    
+                    HStack(spacing: 16) {
+                        GlassToggleRow(
+                            icon: "dock.rectangle",
+                            title: "Show in Dock",
+                            isOn: $appDelegate.showInDock
+                        )
+                        
+                        GlassToggleRow(
+                            icon: "menubar.rectangle",
+                            title: "Show in Menu Bar",
+                            isOn: $appDelegate.showInMenuBar
+                        )
+                    }
                 }
-                .padding(.vertical, 8)
             }
+            .padding(.horizontal, 20)
+            
+            // Info Card
+            GlassCard(title: "Application", icon: "app.badge.fill") {
+                VStack(spacing: 12) {
+                    InfoRowGlass(label: "Version", value: "1.0.0", icon: "number")
+                    InfoRowGlass(label: "Build", value: "2026.03.07", icon: "hammer.fill")
+                    InfoRowGlass(label: "Developer", value: "Sky One", icon: "person.fill")
+                }
+            }
+            .padding(.horizontal, 20)
             
             Spacer()
         }
-        .formStyle(.grouped)
-        .padding()
     }
 }
 
-// MARK: - About View
+struct GlassToggleRow: View {
+    let icon: String
+    let title: String
+    @Binding var isOn: Bool
+    
+    var body: some View {
+        HStack(spacing: 12) {
+            Image(systemName: icon)
+                .font(.callout)
+                .foregroundStyle(.secondary)
+                .frame(width: 24)
+            
+            Text(title)
+                .font(.system(.body, design: .rounded))
+            
+            Spacer()
+            
+            Toggle("", isOn: $isOn)
+                .toggleStyle(.switch)
+                .controlSize(.small)
+        }
+        .padding(12)
+        .background(
+            ZStack {
+                RoundedRectangle(cornerRadius: 10)
+                    .fill(Material.thinMaterial)
+                
+                RoundedRectangle(cornerRadius: 10)
+                    .stroke(.white.opacity(0.15), lineWidth: 1)
+            }
+        )
+    }
+}
+
+struct InfoRowGlass: View {
+    let label: String
+    let value: String
+    let icon: String
+    
+    var body: some View {
+        HStack(spacing: 12) {
+            Image(systemName: icon)
+                .font(.caption)
+                .foregroundStyle(.secondary)
+                .frame(width: 20)
+            
+            Text(label)
+                .font(.system(.callout, design: .rounded))
+                .foregroundStyle(.secondary)
+            
+            Spacer()
+            
+            Text(value)
+                .font(.system(.callout, design: .rounded).weight(.medium))
+        }
+        .padding(.vertical, 4)
+    }
+}
+
+// MARK: - About View (Glassmorphism)
 struct AboutView: View {
     @ObservedObject var busylight: BusylightManager
     
     var body: some View {
-        HStack(spacing: 0) {
-            VStack(alignment: .leading, spacing: 16) {
-                Text("ABOUT")
-                    .font(.title2.bold())
-                
-                VStack(alignment: .leading, spacing: 4) {
-                    InfoRow(label: "Name:", value: "Busylight App")
-                    InfoRow(label: "Version:", value: "1.0.0")
-                    InfoRow(label: "Copyright:", value: "Sky One, 2026")
+        VStack(spacing: 24) {
+            // Header
+            VStack(spacing: 16) {
+                ZStack {
+                    // Glow effect
+                    Circle()
+                        .fill(
+                            RadialGradient(
+                                colors: [.orange.opacity(0.4), .clear],
+                                center: .center,
+                                startRadius: 20,
+                                endRadius: 60
+                            )
+                        )
+                        .frame(width: 120, height: 120)
+                    
+                    Circle()
+                        .fill(
+                            LinearGradient(
+                                colors: [.orange, .red],
+                                startPoint: .topLeading,
+                                endPoint: .bottomTrailing
+                            )
+                        )
+                        .frame(width: 80, height: 80)
+                        .shadow(color: .orange.opacity(0.5), radius: 20, x: 0, y: 8)
+                    
+                    Image(systemName: "lightbulb.fill")
+                        .font(.system(size: 36))
+                        .foregroundStyle(.white)
                 }
                 
-                VStack(alignment: .leading, spacing: 8) {
-                    Text("DEVICE")
-                        .font(.caption.bold())
-                        .foregroundColor(.secondary)
+                VStack(spacing: 4) {
+                    Text("Busylight")
+                        .font(.system(.largeTitle, design: .rounded).weight(.bold))
                     
-                    HStack {
-                        Image(systemName: busylight.isConnected ? "lightbulb.fill" : "lightbulb.slash")
-                            .foregroundColor(busylight.isConnected ? .green : .gray)
-                        Text(busylight.isConnected ? busylight.deviceName : "No device")
-                            .font(.callout)
+                    Text("Version 1.0.0")
+                        .font(.subheadline)
+                        .foregroundStyle(.secondary)
+                }
+            }
+            .padding(.top, 20)
+            
+            // Info Cards
+            HStack(spacing: 16) {
+                GlassCard(title: "Device", icon: "lightbulb.fill") {
+                    VStack(spacing: 10) {
+                        HStack(spacing: 10) {
+                            Image(systemName: busylight.isConnected ? "checkmark.circle.fill" : "xmark.circle.fill")
+                                .font(.title2)
+                                .foregroundStyle(busylight.isConnected ? .green : .red)
+                            
+                            VStack(alignment: .leading, spacing: 2) {
+                                Text(busylight.isConnected ? "Connected" : "Disconnected")
+                                    .font(.system(.body, design: .rounded).weight(.semibold))
+                                
+                                Text(busylight.deviceName)
+                                    .font(.caption)
+                                    .foregroundStyle(.secondary)
+                            }
+                            
+                            Spacer()
+                        }
+                        
+                        if busylight.isConnected {
+                            HStack(spacing: 8) {
+                                Text("Current Color:")
+                                    .font(.caption)
+                                    .foregroundStyle(.secondary)
+                                
+                                Circle()
+                                    .fill(busylight.color)
+                                    .frame(width: 16, height: 16)
+                                    .overlay(
+                                        Circle()
+                                            .stroke(.white.opacity(0.4), lineWidth: 1)
+                                    )
+                                    .shadow(color: busylight.color.opacity(0.5), radius: 4)
+                            }
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                        }
                     }
                 }
-                .padding(.top, 10)
+                .frame(maxWidth: .infinity)
                 
-                Spacer()
+                GlassCard(title: "About", icon: "info.circle.fill") {
+                    VStack(spacing: 8) {
+                        Text("Professional USB status light control for modern workspaces.")
+                            .font(.callout)
+                            .foregroundStyle(.secondary)
+                            .multilineTextAlignment(.center)
+                        
+                        Divider()
+                            .opacity(0.5)
+                        
+                        Text("© 2026 Sky One")
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                    }
+                }
+                .frame(maxWidth: .infinity)
             }
-            .frame(maxWidth: .infinity, alignment: .leading)
-            .padding(24)
-            .background(Color(NSColor.controlBackgroundColor))
+            .padding(.horizontal, 20)
             
-            VStack(alignment: .leading, spacing: 12) {
-                Image(systemName: "lightbulb.circle.fill")
-                    .font(.system(size: 40))
-                    .foregroundColor(.orange)
-                    .frame(maxWidth: .infinity, alignment: .trailing)
-                
-                Text("Control Busylights colors, sound, and sync with Teams presence.")
-                    .font(.callout)
-                    .lineSpacing(2)
-                
-                Spacer()
-            }
-            .frame(maxWidth: .infinity, alignment: .leading)
-            .padding(24)
-            .background(Color.white.opacity(0.5))
+            Spacer()
         }
     }
 }
 
 // MARK: - Supporting Views
-struct StatusHeaderView: View {
-    @ObservedObject var busylight: BusylightManager
-    
-    var body: some View {
-        HStack(spacing: 12) {
-            Circle()
-                .fill(busylight.isConnected ? Color.green : Color.red)
-                .frame(width: 12, height: 12)
-            
-            VStack(alignment: .leading, spacing: 2) {
-                Text(busylight.isConnected ? "Connected" : "Disconnected")
-                    .font(.subheadline.bold())
-                Text(busylight.deviceName)
-                    .font(.caption)
-                    .foregroundColor(.secondary)
-            }
-            
-            Spacer()
-            
-            Circle()
-                .fill(busylight.color)
-                .frame(width: 28, height: 28)
-        }
-        .padding(12)
-        .background(Color(NSColor.textBackgroundColor))
-        .cornerRadius(8)
-    }
-}
-
-struct ColorTestButton: View {
-    let name: String
-    let color: Color
-    let action: () -> Void
-    
-    var body: some View {
-        Button(action: action) {
-            VStack(spacing: 4) {
-                Circle()
-                    .fill(color)
-                    .frame(width: 36, height: 36)
-                Text(name)
-                    .font(.caption2)
-            }
-            .frame(maxWidth: .infinity, minHeight: 60)
-        }
-        .buttonStyle(.plain)
-        .padding(6)
-        .background(Color(NSColor.controlBackgroundColor))
-        .cornerRadius(6)
-        .overlay(
-            RoundedRectangle(cornerRadius: 6)
-                .stroke(Color.gray.opacity(0.2), lineWidth: 1)
-        )
-    }
-}
-
-struct JingleButton: View {
-    let number: Int
-    let action: () -> Void
-    
-    var body: some View {
-        Button(action: action) {
-            Text("\(number)")
-                .font(.system(.callout, design: .rounded).bold())
-                .frame(width: 45, height: 32)
-        }
-        .buttonStyle(.bordered)
-        .tint(.accentColor)
-        .controlSize(.small)
-    }
-}
-
-struct ConfigColumnHeader: View {
+struct GlassActionButton: View {
     let title: String
     let icon: String
-    
-    var body: some View {
-        VStack(spacing: 2) {
-            Image(systemName: icon)
-                .font(.caption)
-            Text(title)
-                .font(.caption2)
-        }
-        .frame(maxWidth: .infinity)
-        .foregroundColor(.secondary)
-    }
-}
-
-struct CompactStepper: View {
-    @Binding var value: Int
-    let suffix: String
-    
-    var body: some View {
-        HStack(spacing: 2) {
-            Text("\(value)\(suffix.isEmpty ? "" : " \(suffix)")")
-                .font(.caption)
-            Spacer()
-            Stepper("", value: $value, in: 1...99)
-                .labelsHidden()
-                .controlSize(.small)
-        }
-        .padding(6)
-        .background(Color.gray.opacity(0.1))
-        .cornerRadius(4)
-    }
-}
-
-struct CompactTimerCard: View {
-    let time: String
     let color: Color
-    let icon: String
-    var isNumber: Bool = false
+    let action: () -> Void
+    
+    @State private var isHovered = false
     
     var body: some View {
-        VStack(spacing: 6) {
-            Text(time)
-                .font(.system(size: isNumber ? 24 : 20, weight: .bold, design: .rounded))
-                .foregroundColor(.white)
-            Image(systemName: icon)
-                .font(.system(size: 24))
-                .foregroundColor(.white.opacity(0.8))
+        Button(action: action) {
+            VStack(spacing: 8) {
+                ZStack {
+                    Circle()
+                        .fill(color.opacity(0.2))
+                        .frame(width: 44, height: 44)
+                    
+                    Image(systemName: icon)
+                        .font(.system(size: 20, weight: .semibold))
+                        .foregroundStyle(color)
+                }
+                
+                Text(title)
+                    .font(.system(.caption, design: .rounded).weight(.medium))
+                    .foregroundStyle(.secondary)
+            }
+            .frame(maxWidth: .infinity, minHeight: 80)
         }
-        .frame(maxWidth: .infinity, minHeight: 70)
-        .background(color)
-        .cornerRadius(6)
-    }
-}
-
-struct InfoRow: View {
-    let label: String
-    let value: String
-    
-    var body: some View {
-        HStack(alignment: .firstTextBaseline, spacing: 6) {
-            Text(label)
-                .font(.caption)
-                .foregroundColor(.secondary)
-                .frame(width: 60, alignment: .trailing)
-            Text(value)
-                .font(.callout)
+        .buttonStyle(.plain)
+        .background(
+            ZStack {
+                RoundedRectangle(cornerRadius: 12)
+                    .fill(Material.thinMaterial)
+                
+                RoundedRectangle(cornerRadius: 12)
+                    .stroke(
+                        LinearGradient(
+                            colors: [
+                                color.opacity(isHovered ? 0.4 : 0.2),
+                                .white.opacity(0.1)
+                            ],
+                            startPoint: .topLeading,
+                            endPoint: .bottomTrailing
+                        ),
+                        lineWidth: 1
+                    )
+            }
+        )
+        .shadow(color: color.opacity(isHovered ? 0.3 : 0.1), radius: isHovered ? 12 : 4, x: 0, y: isHovered ? 6 : 2)
+        .scaleEffect(isHovered ? 1.02 : 1)
+        .animation(.easeOut(duration: 0.2), value: isHovered)
+        .onHover { hovering in
+            isHovered = hovering
         }
     }
 }

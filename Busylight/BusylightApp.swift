@@ -9,6 +9,9 @@ struct BusylightApp: App {
     init() {
         BusylightLogger.shared.info("=== Busylight App Iniciada ===")
         
+        // Configurar apariencia de ventana moderna
+        configureWindowAppearance()
+        
         // Escuchar notificación para traer ventana al frente
         NotificationCenter.default.addObserver(
             forName: .openMainWindow,
@@ -23,10 +26,11 @@ struct BusylightApp: App {
         WindowGroup {
             ContentView()
                 .environmentObject(appDelegate)
-                .preferredColorScheme(colorScheme) // ← Aplicar tema aquí
+                .preferredColorScheme(colorScheme)
         }
-        .windowStyle(.titleBar)
-        .defaultSize(width: 700, height: 500)
+        .windowStyle(.hiddenTitleBar)
+        .defaultSize(width: 800, height: 600)
+        .windowResizability(.contentSize)
         .onChange(of: scenePhase) {
             if scenePhase == .background {
                 appDelegate.busylight.off()
@@ -41,6 +45,16 @@ struct BusylightApp: App {
         case 1: return .light
         case 2: return .dark
         default: return nil // System
+        }
+    }
+    
+    private func configureWindowAppearance() {
+        // Configurar apariencia de ventana
+        if let window = NSApplication.shared.windows.first {
+            window.titlebarAppearsTransparent = true
+            window.titleVisibility = .hidden
+            window.isMovableByWindowBackground = true
+            window.backgroundColor = .clear
         }
     }
 }
