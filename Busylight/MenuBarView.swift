@@ -10,10 +10,12 @@ import SwiftUI
 struct MenuBarView: View {
     @EnvironmentObject var appDelegate: AppDelegate
     @ObservedObject var busylight: BusylightManager
-    @AppStorage("pomodoroWorkTime") private var workTime = 25
-    @AppStorage("pomodoroShortBreak") private var shortBreak = 5
-    @AppStorage("pomodoroLongBreak") private var longBreak = 15
-    @AppStorage("pomodoroSets") private var sets = 3
+    @StateObject private var pomodoroManager: PomodoroManager
+    
+    init(busylight: BusylightManager) {
+        self.busylight = busylight
+        _pomodoroManager = StateObject(wrappedValue: PomodoroManager(busylight: busylight))
+    }
     
     var body: some View {
         ScrollView {
@@ -24,8 +26,7 @@ struct MenuBarView: View {
                 // Pomodoro Card
                 GlassPomodoroCard(
                     busylight: busylight,
-                    workTime: workTime,
-                    sets: sets
+                    manager: pomodoroManager
                 )
                 
                 // Visibility Card
@@ -151,34 +152,42 @@ struct GlassHeader: View {
 // MARK: - Glass Pomodoro Card
 struct GlassPomodoroCard: View {
     @ObservedObject var busylight: BusylightManager
-    let workTime: Int
-    let sets: Int
+    @ObservedObject var manager: PomodoroManager
     
     var body: some View {
         VStack(alignment: .leading, spacing: 10) {
             // Header
             HStack(spacing: 6) {
-                Image(systemName: "timer")
+                Image(systemName: manager.currentPhase.icon)
                     .font(.caption)
-                    .foregroundStyle(.green)
+                    .foregroundStyle(manager.currentPhase.color)
                 Text("Focus Timer")
                     .font(.system(.subheadline, design: .rounded).weight(.semibold))
                 Spacer()
+                
+                // Phase badge
+                GlassStatusBadge(
+                    text: manager.currentPhase.rawValue,
+                    isActive: manager.isRunning,
+                    icon: manager.currentPhase.icon
+                )
+                .font(.system(.caption2, design: .rounded))
             }
             
             // Timer display
             HStack {
-                Text(String(format: "%02d:00", workTime))
+                Text(manager.timeString)
                     .font(.system(size: 36, weight: .bold, design: .rounded))
                     .monospacedDigit()
+                    .foregroundStyle(manager.isRunning ? manager.currentPhase.color : .primary)
                 
                 Spacer()
                 
                 VStack(alignment: .trailing, spacing: 2) {
-                    Text("Work")
+                    Text(manager.currentPhase.rawValue)
                         .font(.caption.weight(.semibold))
-                        .foregroundStyle(.green)
-                    Text("Set 1/\(sets)")
+                        .foregroundStyle(manager.currentPhase.color)
+                    Text("Set \(manager.currentSet)/\(manager.totalSets)")
                         .font(.caption2)
                         .foregroundStyle(.secondary)
                 }
@@ -194,13 +203,17 @@ struct GlassPomodoroCard: View {
                     RoundedRectangle(cornerRadius: 3)
                         .fill(
                             LinearGradient(
-                                colors: [.green.opacity(0.8), .green],
+                                colors: [
+                                    manager.currentPhase.color.opacity(0.8),
+                                    manager.currentPhase.color
+                                ],
                                 startPoint: .leading,
                                 endPoint: .trailing
                             )
                         )
-                        .frame(width: geo.size.width * 0.3, height: 6)
-                        .shadow(color: .green.opacity(0.4), radius: 3)
+                        .frame(width: geo.size.width * manager.progress, height: 6)
+                        .shadow(color: manager.currentPhase.color.opacity(0.4), radius: 3)
+                        .animation(.linear(duration: 0.5), value: manager.progress)
                 }
             }
             .frame(height: 6)
@@ -208,22 +221,22 @@ struct GlassPomodoroCard: View {
             // Control buttons
             HStack(spacing: 8) {
                 Button {
-                    BusylightLogger.shared.info("MenuBar: Start Pomodoro")
-                    busylight.green()
+                    manager.start()
                 } label: {
                     HStack(spacing: 4) {
-                        Image(systemName: "play.fill")
+                        Image(systemName: manager.isPaused ? "play.fill" : "play.fill")
                             .font(.caption)
-                        Text("Start")
+                        Text(manager.isPaused ? "Resume" : "Start")
                             .font(.system(.caption, design: .rounded).weight(.medium))
                     }
                     .frame(maxWidth: .infinity)
                     .padding(.vertical, 8)
                 }
                 .buttonStyle(.glassButton(color: .green, prominent: true))
+                .disabled(manager.isRunning && !manager.isPaused)
                 
                 Button {
-                    BusylightLogger.shared.info("MenuBar: Pause Pomodoro")
+                    manager.pause()
                 } label: {
                     HStack(spacing: 4) {
                         Image(systemName: "pause.fill")
@@ -235,13 +248,14 @@ struct GlassPomodoroCard: View {
                     .padding(.vertical, 8)
                 }
                 .buttonStyle(.glassButton)
+                .disabled(!manager.isRunning || manager.isPaused)
             }
             
             // Config badges
             HStack(spacing: 6) {
-                GlassConfigBadge(icon: "briefcase.fill", value: workTime, color: .red)
-                GlassConfigBadge(icon: "cup.and.saucer.fill", value: 5, color: .blue)
-                GlassConfigBadge(icon: "sun.max.fill", value: 15, color: .orange)
+                GlassConfigBadge(icon: "briefcase.fill", value: manager.workTimeMinutes, color: .green)
+                GlassConfigBadge(icon: "cup.and.saucer.fill", value: manager.shortBreakMinutes, color: .blue)
+                GlassConfigBadge(icon: "sun.max.fill", value: manager.longBreakMinutes, color: .orange)
             }
         }
         .padding(12)
