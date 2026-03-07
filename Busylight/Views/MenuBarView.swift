@@ -28,7 +28,7 @@ struct MenuBarView: View {
                 GlassVisibilityCard()
                 
                 // Quick Colors
-                GlassQuickColorsCard(busylight: busylight)
+               // GlassQuickColorsCard(busylight: busylight)
                 
                 Spacer(minLength: 4)
                 
@@ -223,7 +223,7 @@ struct GlassPomodoroCard: View {
                     HStack(spacing: 2) {
                         Image(systemName: "play.fill")
                             .font(.caption2)
-                        Text(manager.isPaused ? "Resume" : "Start")
+                       // Text(manager.isPaused ? "Resume" : "Start")
                             .font(.system(.caption2, design: .rounded).weight(.medium))
                     }
                     .frame(maxWidth: .infinity)
@@ -239,7 +239,7 @@ struct GlassPomodoroCard: View {
                     HStack(spacing: 2) {
                         Image(systemName: "pause.fill")
                             .font(.caption2)
-                        Text("Pause")
+                       // Text("Pause")
                             .font(.system(.caption2, design: .rounded).weight(.medium))
                     }
                     .frame(maxWidth: .infinity)
@@ -255,7 +255,7 @@ struct GlassPomodoroCard: View {
                     HStack(spacing: 2) {
                         Image(systemName: "stop.fill")
                             .font(.caption2)
-                        Text("Stop")
+                        //Text("Stop")
                             .font(.system(.caption2, design: .rounded).weight(.medium))
                     }
                     .frame(maxWidth: .infinity)
@@ -396,65 +396,6 @@ struct GlassToggleRowMini: View {
 }
 
 // MARK: - Glass Quick Colors Card
-struct GlassQuickColorsCard: View {
-    @ObservedObject var busylight: BusylightManager
-    
-    let colors: [(color: Color, action: () -> Void)] = []
-    
-    var body: some View {
-        VStack(alignment: .leading, spacing: 6) {
-            HStack(spacing: 4) {
-                Image(systemName: "paintpalette.fill")
-                    .font(.caption2)
-                    .foregroundStyle(.orange)
-                Text("Colors")
-                    .font(.system(.caption, design: .rounded).weight(.semibold))
-            }
-            
-            LazyVGrid(columns: [
-                GridItem(.flexible()),
-                GridItem(.flexible()),
-                GridItem(.flexible())
-            ], spacing: 6) {
-                GlassQuickColorButton(color: .red) {
-                    BusylightLogger.shared.info("MenuBar: Red")
-                    busylight.red()
-                }
-                GlassQuickColorButton(color: .green) {
-                    BusylightLogger.shared.info("MenuBar: Green")
-                    busylight.green()
-                }
-                GlassQuickColorButton(color: .blue) {
-                    BusylightLogger.shared.info("MenuBar: Blue")
-                    busylight.blue()
-                }
-                GlassQuickColorButton(color: .yellow) {
-                    BusylightLogger.shared.info("MenuBar: Yellow")
-                    busylight.yellow()
-                }
-                GlassQuickColorButton(color: .purple) {
-                    BusylightLogger.shared.info("MenuBar: Purple")
-                    busylight.purple()
-                }
-                GlassQuickColorButton(color: .white) {
-                    BusylightLogger.shared.info("MenuBar: White")
-                    busylight.white()
-                }
-            }
-        }
-        .padding(8)
-        .background(
-            ZStack {
-                RoundedRectangle(cornerRadius: 10)
-                    .fill(Material.thinMaterial)
-                
-                RoundedRectangle(cornerRadius: 10)
-                    .stroke(.white.opacity(0.15), lineWidth: 1)
-            }
-        )
-    }
-}
-
 struct GlassQuickColorButton: View {
     let color: Color
     let action: () -> Void
