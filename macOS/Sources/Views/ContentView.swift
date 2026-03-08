@@ -2360,20 +2360,11 @@ struct MLConfigurationCard: View {
                                 .foregroundStyle(.primary)
                         }
                         
-                        // Barra de progreso
-                        GeometryReader { geo in
-                            ZStack(alignment: .leading) {
-                                RoundedRectangle(cornerRadius: 3)
-                                    .fill(Material.thinMaterial)
-                                    .frame(height: 6)
-                                
-                                let progress = min(1.0, Double(mlManager.trainingDaysCollected) / Double(mlManager.configuration?.minTrainingDays ?? 14))
-                                RoundedRectangle(cornerRadius: 3)
-                                    .fill(Color.blue.gradient)
-                                    .frame(width: geo.size.width * progress, height: 6)
-                            }
-                        }
-                        .frame(height: 6)
+                        // Barra de progreso (sin GeometryReader para evitar layout loop)
+                        MLProgressBar(
+                            daysCollected: mlManager.trainingDaysCollected,
+                            minDays: mlManager.configuration?.minTrainingDays ?? 14
+                        )
                         
                         if mlManager.isModelTrained {
                             HStack {
@@ -2613,6 +2604,30 @@ struct HolidayCalendarView: View {
                 MultiDatePicker(selectedDates: $selectedDates)
             }
         }
+    }
+}
+
+// MARK: - ML Progress Bar (Vista separada para evitar layout loop)
+struct MLProgressBar: View {
+    let daysCollected: Int
+    let minDays: Int
+    
+    var body: some View {
+        GeometryReader { geo in
+            ZStack(alignment: .leading) {
+                // Background
+                RoundedRectangle(cornerRadius: 3)
+                    .fill(Material.thinMaterial)
+                    .frame(height: 6)
+                
+                // Progress - calculado una sola vez
+                let progress = min(1.0, Double(daysCollected) / Double(minDays))
+                RoundedRectangle(cornerRadius: 3)
+                    .fill(Color.blue.gradient)
+                    .frame(width: max(0, geo.size.width * CGFloat(progress)), height: 6)
+            }
+        }
+        .frame(height: 6)
     }
 }
 

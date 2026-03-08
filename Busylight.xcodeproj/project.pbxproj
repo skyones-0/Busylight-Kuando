@@ -654,7 +654,7 @@
 				6896E7592F490AC30010A930 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
-			defaultConfigurationName = Release;
+			defaultConfigurationName = Debug;
 		};
 		6896E75A2F490AC30010A930 /* Build configuration list for PBXNativeTarget "Busylight" */ = {
 			isa = XCConfigurationList;
@@ -663,7 +663,7 @@
 				6896E75C2F490AC30010A930 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
-			defaultConfigurationName = Release;
+			defaultConfigurationName = Debug;
 		};
 		6896E75D2F490AC30010A930 /* Build configuration list for PBXNativeTarget "BusylightTests" */ = {
 			isa = XCConfigurationList;
@@ -672,7 +672,7 @@
 				6896E75F2F490AC30010A930 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
-			defaultConfigurationName = Release;
+			defaultConfigurationName = Debug;
 		};
 		6896E7602F490AC30010A930 /* Build configuration list for PBXNativeTarget "BusylightUITests" */ = {
 			isa = XCConfigurationList;
@@ -681,7 +681,7 @@
 				6896E7622F490AC30010A930 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
-			defaultConfigurationName = Release;
+			defaultConfigurationName = Debug;
 		};
 /* End XCConfigurationList section */
 	};
