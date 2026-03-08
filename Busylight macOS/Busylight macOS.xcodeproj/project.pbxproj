@@ -44,8 +44,6 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
-		6809FC172F5E3504000696F6 /* README.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = README.md; sourceTree = "<group>"; };
-		6809FC182F5E3504000696F6 /* SECURITY.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = SECURITY.md; sourceTree = "<group>"; };
 		683779AF2F5DDDD300F6BFA6 /* Busylight macOS.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "Busylight macOS.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 		683779BE2F5DDDD400F6BFA6 /* Busylight macOSTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = "Busylight macOSTests.xctest"; sourceTree = BUILT_PRODUCTS_DIR; };
 		683779C82F5DDDD400F6BFA6 /* Busylight macOSUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = "Busylight macOSUITests.xctest"; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -177,8 +175,6 @@
 		683779A62F5DDDD300F6BFA6 = {
 			isa = PBXGroup;
 			children = (
-				6809FC172F5E3504000696F6 /* README.md */,
-				6809FC182F5E3504000696F6 /* SECURITY.md */,
 				68A1E3EB2F5DE34300D6AA36 /* BusylightTests */,
 				68A1E3EA2F5DE33E00D6AA36 /* BusylightUITests */,
 				683779B12F5DDDD300F6BFA6 /* Busylight macOS */,
