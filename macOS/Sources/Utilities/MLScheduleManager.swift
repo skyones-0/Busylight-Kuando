@@ -177,7 +177,7 @@ class MLScheduleManager: ObservableObject {
                 BusylightLogger.shared.info("ML: ✅ Modelo entrenado automáticamente con éxito (Precisión: \(String(format: "%.1f%%", modelAccuracy * 100)))")
                 
                 // Notificar al usuario
-                await showTrainingCompletionNotification(success: true, accuracy: modelAccuracy)
+                showTrainingCompletionNotification(success: true, accuracy: modelAccuracy)
                 
                 // Si hay predicción para mañana, aplicarla
                 if let tomorrow = Calendar.current.date(byAdding: .day, value: 1, to: Date()),
@@ -187,7 +187,7 @@ class MLScheduleManager: ObservableObject {
                 }
             } catch {
                 BusylightLogger.shared.error("ML: ❌ Error en entrenamiento automático - \(error.localizedDescription)")
-                await showTrainingCompletionNotification(success: false, error: error.localizedDescription)
+                showTrainingCompletionNotification(success: false, error: error.localizedDescription)
             }
         }
     }
