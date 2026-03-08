@@ -213,6 +213,11 @@ POST /timer/stop      # Stop pomodoro
 - ✅ Deep Work countdown timer
 - ✅ Visual indicators for all smart features
 
+### Bug Fixes (Latest)
+- ✅ **Fixed layout recursion crash** in menu bar calendar card
+- ✅ **Fixed SF Symbols compatibility** for older macOS versions
+- ✅ Improved app stability and launch time
+
 ---
 
 ## 👤 Author
