@@ -51,22 +51,9 @@
 		6896E76E2F490BB90010A930 /* BusylightSDK_Swift.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; path = BusylightSDK_Swift.framework; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
-/* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
-		6882FD392F4A6A7E0012B062 /* Exceptions for "Busylight" folder in "Busylight" target */ = {
-			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
-			membershipExceptions = (
-				Info.plist,
-			);
-			target = 6896E7332F490AC10010A930 /* Busylight */;
-		};
-/* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
-
 /* Begin PBXFileSystemSynchronizedRootGroup section */
-		6896E7362F490AC10010A930 /* Busylight */ = {
+		6896E7362F490AC10010A930 /* macOS */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
-			exceptions = (
-				6882FD392F4A6A7E0012B062 /* Exceptions for "Busylight" folder in "Busylight" target */,
-			);
 			path = macOS;
 			sourceTree = "<group>";
 		};
@@ -112,7 +99,7 @@
 			isa = PBXGroup;
 			children = (
 				686E10C42F49FA4E00F8EED5 /* README.md */,
-				6896E7362F490AC10010A930 /* Busylight */,
+				6896E7362F490AC10010A930 /* macOS */,
 				6896E7492F490AC30010A930 /* BusylightTests */,
 				6896E7532F490AC30010A930 /* BusylightUITests */,
 				6896E7692F490B740010A930 /* Frameworks */,
@@ -155,7 +142,7 @@
 			dependencies = (
 			);
 			fileSystemSynchronizedGroups = (
-				6896E7362F490AC10010A930 /* Busylight */,
+				6896E7362F490AC10010A930 /* macOS */,
 			);
 			name = Busylight;
 			packageProductDependencies = (
@@ -446,11 +433,12 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				ASSETCATALOG_COMPILER_INCLUDE_ALL_APPICON_ASSETS = YES;
 				AUTOMATION_APPLE_EVENTS = YES;
 				"CODE_SIGN_IDENTITY[sdk=macosx*]" = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
-				CURRENT_PROJECT_VERSION = 10;
+				CURRENT_PROJECT_VERSION = 11;
 				DEAD_CODE_STRIPPING = YES;
 				DEVELOPMENT_TEAM = 55S9K2V3AG;
 				ENABLE_APP_SANDBOX = YES;
@@ -476,13 +464,15 @@
 				INFOPLIST_FILE = macOS/Sources/Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = Busylight;
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.productivity";
+				INFOPLIST_KEY_NSCalendarsFullAccessUsageDescription = "Busylight necesita acceso completo al calendario para detectar reuniones y cambiar automáticamente el estado de la luz.";
+				INFOPLIST_KEY_NSCalendarsUsageDescription = "Busylight necesita acceso al calendario para detectar reuniones y cambiar automáticamente el estado de la luz (rojo durante reuniones, verde cuando estás disponible).";
 				INFOPLIST_KEY_NSHumanReadableCopyright = "";
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/../Frameworks",
 				);
 				MACOSX_DEPLOYMENT_TARGET = 26.0;
-				MARKETING_VERSION = 1.0;
+				MARKETING_VERSION = 1.5;
 				PRODUCT_BUNDLE_IDENTIFIER = co.skyones.Busylight;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				REGISTER_APP_GROUPS = YES;
@@ -493,11 +483,14 @@
 				RUNTIME_EXCEPTION_DISABLE_EXECUTABLE_PAGE_PROTECTION = NO;
 				RUNTIME_EXCEPTION_DISABLE_LIBRARY_VALIDATION = NO;
 				STRING_CATALOG_GENERATE_SYMBOLS = YES;
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator macosx";
+				SUPPORTS_MACCATALYST = NO;
 				SWIFT_APPROACHABLE_CONCURRENCY = YES;
 				SWIFT_DEFAULT_ACTOR_ISOLATION = MainActor;
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
 				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = 1;
 			};
 			name = Debug;
 		};
@@ -506,11 +499,12 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				ASSETCATALOG_COMPILER_INCLUDE_ALL_APPICON_ASSETS = YES;
 				AUTOMATION_APPLE_EVENTS = YES;
 				"CODE_SIGN_IDENTITY[sdk=macosx*]" = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
-				CURRENT_PROJECT_VERSION = 10;
+				CURRENT_PROJECT_VERSION = 11;
 				DEAD_CODE_STRIPPING = YES;
 				DEVELOPMENT_TEAM = 55S9K2V3AG;
 				ENABLE_APP_SANDBOX = YES;
@@ -536,13 +530,15 @@
 				INFOPLIST_FILE = macOS/Sources/Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = Busylight;
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.productivity";
+				INFOPLIST_KEY_NSCalendarsFullAccessUsageDescription = "Busylight necesita acceso completo al calendario para detectar reuniones y cambiar automáticamente el estado de la luz.";
+				INFOPLIST_KEY_NSCalendarsUsageDescription = "Busylight necesita acceso al calendario para detectar reuniones y cambiar automáticamente el estado de la luz (rojo durante reuniones, verde cuando estás disponible).";
 				INFOPLIST_KEY_NSHumanReadableCopyright = "";
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/../Frameworks",
 				);
 				MACOSX_DEPLOYMENT_TARGET = 26.0;
-				MARKETING_VERSION = 1.0;
+				MARKETING_VERSION = 1.5;
 				PRODUCT_BUNDLE_IDENTIFIER = co.skyones.Busylight;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				REGISTER_APP_GROUPS = YES;
@@ -553,11 +549,14 @@
 				RUNTIME_EXCEPTION_DISABLE_EXECUTABLE_PAGE_PROTECTION = NO;
 				RUNTIME_EXCEPTION_DISABLE_LIBRARY_VALIDATION = NO;
 				STRING_CATALOG_GENERATE_SYMBOLS = YES;
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator macosx";
+				SUPPORTS_MACCATALYST = NO;
 				SWIFT_APPROACHABLE_CONCURRENCY = YES;
 				SWIFT_DEFAULT_ACTOR_ISOLATION = MainActor;
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
 				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = 1;
 			};
 			name = Release;
 		};

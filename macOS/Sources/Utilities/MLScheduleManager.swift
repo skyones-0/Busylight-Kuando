@@ -580,6 +580,7 @@ class MLScheduleManager: ObservableObject {
     
     // MARK: - Holiday Calendars
     
+    @discardableResult
     func createHolidayCalendar(name: String, countryCode: String, dates: [Date]) -> HolidayCalendar {
         BusylightLogger.shared.info("ML: 📅 Creando calendario de festivos '\(name)' con \(dates.count) fechas")
         

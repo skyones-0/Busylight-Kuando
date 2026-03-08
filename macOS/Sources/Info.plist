@@ -2,11 +2,7 @@
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
-    <key>NSCalendarsUsageDescription</key>
-    <string>Busylight necesita acceso al calendario para detectar reuniones y cambiar automáticamente el estado de la luz (rojo durante reuniones, verde cuando estás disponible).</string>
-    <key>NSCalendarsFullAccessUsageDescription</key>
-    <string>Busylight necesita acceso completo al calendario para detectar reuniones y cambiar automáticamente el estado de la luz.</string>
-    <key>NSUserNotificationUsageDescription</key>
-    <string>Busylight envía notificaciones para recordatorios de descanso visual (20-20-20) y cuando el timer se pausa por inactividad.</string>
+	<key>NSUserNotificationUsageDescription</key>
+	<string>Busylight envía notificaciones para recordatorios de descanso visual (20-20-20) y cuando el timer se pausa por inactividad.</string>
 </dict>
 </plist>
