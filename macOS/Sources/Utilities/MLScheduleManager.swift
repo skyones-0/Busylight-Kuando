@@ -97,6 +97,8 @@ class MLScheduleManager: ObservableObject {
     // MARK: - Data Collection & Auto-Training
     
     private func setupDataCollection() {
+        BusylightLogger.shared.info("ML: Iniciando sistema de recolección de datos")
+        
         // Recolectar datos diariamente
         Timer.publish(every: 3600, on: .main, in: .common) // Cada hora
             .autoconnect()
@@ -122,27 +124,59 @@ class MLScheduleManager: ObservableObject {
             self?.checkAndRunAutoTraining()
             self?.applyDailyPrediction()
         }
+        
+        // Log estado inicial
+        if let config = configuration {
+            BusylightLogger.shared.info("ML: Configuración cargada - Enabled: \(config.isMLEnabled), AutoTrain: \(config.autoTrainingEnabled), DaysCollected: \(trainingDaysCollected)")
+        }
     }
     
     /// Verifica si debe ejecutar entrenamiento automático
     private func checkAndRunAutoTraining() {
-        guard let config = configuration,
-              config.isMLEnabled,
-              config.autoTrainingEnabled,
-              !isTraining,
-              canTrainModel() else { return }
+        BusylightLogger.shared.debug("ML: Verificando auto-training...")
+        
+        guard let config = configuration else {
+            BusylightLogger.shared.debug("ML: No hay configuración disponible")
+            return
+        }
+        
+        guard config.isMLEnabled else {
+            BusylightLogger.shared.debug("ML: ML está deshabilitado")
+            return
+        }
+        
+        guard config.autoTrainingEnabled else {
+            BusylightLogger.shared.debug("ML: Auto-training está deshabilitado")
+            return
+        }
+        
+        guard !isTraining else {
+            BusylightLogger.shared.debug("ML: Ya hay un entrenamiento en progreso")
+            return
+        }
+        
+        guard canTrainModel() else {
+            BusylightLogger.shared.debug("ML: Datos insuficientes para entrenar (\(trainingDaysCollected)/\(minSamplesForTraining) días)")
+            return
+        }
         
         // Verificar si ya se entrenó hoy
         if let lastTraining = config.lastTrainingDate,
            Calendar.current.isDateInToday(lastTraining) {
+            BusylightLogger.shared.debug("ML: Ya se entrenó hoy")
             return
         }
+        
+        BusylightLogger.shared.info("ML: Iniciando entrenamiento automático con \(trainingDaysCollected) días de datos")
         
         // Ejecutar entrenamiento automático
         Task {
             do {
                 try await trainModel()
-                BusylightLogger.shared.info("ML: Modelo entrenado automáticamente")
+                BusylightLogger.shared.info("ML: ✅ Modelo entrenado automáticamente con éxito (Precisión: \(String(format: "%.1f%%", modelAccuracy * 100)))")
+                
+                // Notificar al usuario
+                await showTrainingCompletionNotification(success: true, accuracy: modelAccuracy)
                 
                 // Si hay predicción para mañana, aplicarla
                 if let tomorrow = Calendar.current.date(byAdding: .day, value: 1, to: Date()),
@@ -151,7 +185,8 @@ class MLScheduleManager: ObservableObject {
                     applyPrediction(prediction)
                 }
             } catch {
-                BusylightLogger.shared.error("ML: Error en entrenamiento automático - \(error)")
+                BusylightLogger.shared.error("ML: ❌ Error en entrenamiento automático - \(error.localizedDescription)")
+                await showTrainingCompletionNotification(success: false, error: error.localizedDescription)
             }
         }
     }
@@ -164,15 +199,41 @@ class MLScheduleManager: ObservableObject {
               isModelTrained else { return }
         
         let today = Date()
-        guard !isHoliday(today) else { return }
+        guard !isHoliday(today) else {
+            BusylightLogger.shared.debug("ML: Hoy es festivo, no se aplica predicción")
+            return
+        }
         
         if let prediction = predictSchedule(for: today) {
             // Solo aplicar si la confianza es suficiente
             if prediction.confidence >= config.confidenceThreshold {
                 applyPrediction(prediction)
-                BusylightLogger.shared.info("ML: Horarios ajustados automáticamente - \(prediction.formattedStartTime) a \(prediction.formattedEndTime)")
+                BusylightLogger.shared.info("ML: 📅 Horarios ajustados automáticamente - \(prediction.formattedStartTime) a \(prediction.formattedEndTime) (Confianza: \(String(format: "%.0f%%", prediction.confidence * 100)))")
+            } else {
+                BusylightLogger.shared.debug("ML: Confianza insuficiente para aplicar predicción (\(String(format: "%.0f%%", prediction.confidence * 100)))")
             }
         }
+    }
+    
+    /// Muestra notificación cuando se completa el entrenamiento
+    @MainActor
+    private func showTrainingCompletionNotification(success: Bool, accuracy: Double = 0, error: String? = nil) {
+        guard let config = configuration, config.notificationOnAutoTrain else { return }
+        
+        let content = UNMutableNotificationContent()
+        
+        if success {
+            content.title = "🧠 ML Training Complete"
+            content.body = "Work schedule model trained successfully with \(String(format: "%.0f%%", accuracy * 100)) accuracy. Your work hours have been automatically adjusted."
+            content.sound = .default
+        } else {
+            content.title = "⚠️ ML Training Failed"
+            content.body = error ?? "Could not train the model. Please try again manually."
+            content.sound = .defaultCritical
+        }
+        
+        let request = UNNotificationRequest(identifier: "ml-training-\(Date().timeIntervalSince1970)", content: content, trigger: nil)
+        UNUserNotificationCenter.current().add(request)
     }
     
     func collectDailyPattern() {
@@ -193,13 +254,20 @@ class MLScheduleManager: ObservableObject {
         if let existing = existing {
             // Actualizar patrón existente del día
             updatePattern(existing, for: now)
+            BusylightLogger.shared.debug("ML: Patrón diario actualizado - Work Hours: \(existing.startHour):00-\(existing.endHour):00")
         } else {
             // Crear nuevo patrón
             createNewPattern(for: now)
+            BusylightLogger.shared.info("ML: 📝 Nuevo patrón diario creado (Total: \(trainingDaysCollected + 1) días)")
         }
         
         try? context.save()
         updateTrainingStats()
+        
+        // Log cuando se alcanza el mínimo para entrenar
+        if trainingDaysCollected == minSamplesForTraining {
+            BusylightLogger.shared.info("ML: 🎯 Se alcanzó el mínimo de datos (\(minSamplesForTraining) días). Listo para entrenar!")
+        }
     }
     
     private func createNewPattern(for date: Date) {
@@ -259,7 +327,12 @@ class MLScheduleManager: ObservableObject {
     // MARK: - Training
     
     func trainModel() async throws {
-        guard !isTraining else { return }
+        guard !isTraining else {
+            BusylightLogger.shared.warning("ML: Intento de entrenamiento mientras ya está en progreso")
+            return
+        }
+        
+        BusylightLogger.shared.info("ML: 🚀 Iniciando entrenamiento manual del modelo")
         
         await MainActor.run {
             isTraining = true
@@ -279,15 +352,24 @@ class MLScheduleManager: ObservableObject {
         
         guard let patterns = try? context.fetch(descriptor),
               patterns.count >= minSamplesForTraining else {
+            BusylightLogger.shared.error("ML: ❌ Datos insuficientes para entrenar (\(trainingDaysCollected) días recolectados)")
             throw MLError.insufficientData
         }
+        
+        BusylightLogger.shared.info("ML: 📊 Entrenando con \(patterns.count) patrones de trabajo")
         
         // Preparar datos para Create ML
         let data = prepareTrainingData(from: patterns)
         
+        // Log estadísticas de los datos
+        let avgStart = data.map { $0["startHour"]! }.reduce(0, +) / Double(data.count)
+        let avgEnd = data.map { $0["endHour"]! }.reduce(0, +) / Double(data.count)
+        BusylightLogger.shared.debug("ML: Promedios históricos - Inicio: \(String(format: "%.1f", avgStart)):00, Fin: \(String(format: "%.1f", avgEnd)):00")
+        
         // Entrenar modelo de regresión
         // Nota: En una implementación real, usaríamos CreateML
         // Por ahora simulamos el entrenamiento
+        BusylightLogger.shared.info("ML: ⏳ Entrenando modelo (esto puede tomar unos segundos)...")
         try await simulateTraining(with: data)
         
         // Guardar modelo
@@ -300,6 +382,8 @@ class MLScheduleManager: ObservableObject {
             isModelTrained = true
             try? context.save()
         }
+        
+        BusylightLogger.shared.info("ML: ✅ Entrenamiento completado - Precisión: \(String(format: "%.1f%%", modelAccuracy * 100))")
     }
     
     private func prepareTrainingData(from patterns: [MLWorkPattern]) -> [[String: Double]] {
@@ -360,11 +444,24 @@ class MLScheduleManager: ObservableObject {
     // MARK: - Prediction
     
     func predictSchedule(for date: Date) -> SchedulePrediction? {
-        guard isModelTrained,
-              modelAccuracy >= (configuration?.confidenceThreshold ?? 0.75),
-              !isHoliday(date) else {
+        guard isModelTrained else {
+            BusylightLogger.shared.debug("ML: No hay modelo entrenado para predecir")
             return nil
         }
+        
+        guard modelAccuracy >= (configuration?.confidenceThreshold ?? 0.75) else {
+            BusylightLogger.shared.debug("ML: Precisión del modelo (\(String(format: "%.0f%%", modelAccuracy * 100))) por debajo del umbral")
+            return nil
+        }
+        
+        guard !isHoliday(date) else {
+            BusylightLogger.shared.debug("ML: Fecha es festivo, no se predice")
+            return nil
+        }
+        
+        let dateFormatter = DateFormatter()
+        dateFormatter.dateStyle = .short
+        let dateString = dateFormatter.string(from: date)
         
         let calendar = Calendar.current
         let components = calendar.dateComponents([.weekday], from: date)
@@ -394,18 +491,51 @@ class MLScheduleManager: ObservableObject {
             basedOnDays: patterns.count
         )
         
+        BusylightLogger.shared.info("ML: 🔮 Predicción generada para \(dateString) - \(prediction.formattedStartTime) a \(prediction.formattedEndTime) (basado en \(patterns.count) días)")
+        
         self.lastPrediction = prediction
         return prediction
     }
     
     func applyPrediction(_ prediction: SchedulePrediction) {
-        guard configuration?.autoAdjustSchedule == true else { return }
+        guard configuration?.autoAdjustSchedule == true else {
+            BusylightLogger.shared.debug("ML: Auto-ajuste deshabilitado, no se aplica predicción")
+            return
+        }
+        
+        // Verificar si hay cambios significativos
+        let currentStart = SmartFeaturesManager.shared.workStartTime
+        let currentEnd = SmartFeaturesManager.shared.workEndTime
+        
+        guard prediction.predictedStartHour != currentStart || prediction.predictedEndHour != currentEnd else {
+            BusylightLogger.shared.debug("ML: Predicción coincide con horarios actuales, no se requiere cambio")
+            return
+        }
+        
+        BusylightLogger.shared.info("ML: 🔄 Aplicando predicción - Cambio: \(currentStart):00-\(currentEnd):00 → \(prediction.predictedStartHour):00-\(prediction.predictedEndHour):00")
         
         // Aplicar predicción a SmartFeaturesManager
         SmartFeaturesManager.shared.updateWorkHours(
             start: prediction.predictedStartHour,
             end: prediction.predictedEndHour
         )
+        
+        // Notificar al usuario del cambio
+        if let config = configuration, config.notificationOnAutoTrain {
+            showPredictionAppliedNotification(prediction: prediction)
+        }
+    }
+    
+    /// Muestra notificación cuando se aplica una predicción
+    @MainActor
+    private func showPredictionAppliedNotification(prediction: SchedulePrediction) {
+        let content = UNMutableNotificationContent()
+        content.title = "📅 Work Hours Updated"
+        content.body = "ML adjusted your schedule to \(prediction.formattedStartTime) - \(prediction.formattedEndTime) based on your patterns."
+        content.sound = .default
+        
+        let request = UNNotificationRequest(identifier: "ml-prediction-\(Date().timeIntervalSince1970)", content: content, trigger: nil)
+        UNUserNotificationCenter.current().add(request)
     }
     
     // MARK: - Stats
@@ -425,11 +555,15 @@ class MLScheduleManager: ObservableObject {
     }
     
     func clearAllData() {
+        BusylightLogger.shared.info("ML: 🗑️ Limpiando todos los datos de entrenamiento")
+        
         let patternDescriptor = FetchDescriptor<MLWorkPattern>()
         if let patterns = try? context.fetch(patternDescriptor) {
+            let count = patterns.count
             for pattern in patterns {
                 context.delete(pattern)
             }
+            BusylightLogger.shared.info("ML: \(count) patrones eliminados")
         }
         
         configuration?.lastTrainingDate = nil
@@ -439,11 +573,15 @@ class MLScheduleManager: ObservableObject {
         
         try? context.save()
         updateTrainingStats()
+        
+        BusylightLogger.shared.info("ML: ✅ Datos de ML reiniciados completamente")
     }
     
     // MARK: - Holiday Calendars
     
     func createHolidayCalendar(name: String, countryCode: String, dates: [Date]) -> HolidayCalendar {
+        BusylightLogger.shared.info("ML: 📅 Creando calendario de festivos '\(name)' con \(dates.count) fechas")
+        
         let calendar = HolidayCalendar(name: name, countryCode: countryCode, customDates: dates)
         context.insert(calendar)
         try? context.save()
