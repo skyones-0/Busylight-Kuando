@@ -460,7 +460,7 @@
 					"$(PROJECT_DIR)",
 				);
 				GENERATE_INFOPLIST_FILE = YES;
-				INFOPLIST_FILE = Busylight/Info.plist;
+				INFOPLIST_FILE = macOS/Sources/Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = Busylight;
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.productivity";
 				INFOPLIST_KEY_NSHumanReadableCopyright = "";
@@ -520,7 +520,7 @@
 					"$(PROJECT_DIR)",
 				);
 				GENERATE_INFOPLIST_FILE = YES;
-				INFOPLIST_FILE = Busylight/Info.plist;
+				INFOPLIST_FILE = macOS/Sources/Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = Busylight;
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.productivity";
 				INFOPLIST_KEY_NSHumanReadableCopyright = "";
