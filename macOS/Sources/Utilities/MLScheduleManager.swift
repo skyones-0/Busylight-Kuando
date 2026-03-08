@@ -121,7 +121,7 @@ class MLScheduleManager: ObservableObject {
         */
         
         // También recolectar al iniciar (solo una vez)
-        // collectDailyPattern()
+        collectDailyPattern()
         
         // Log estado inicial
         if let config = configuration {

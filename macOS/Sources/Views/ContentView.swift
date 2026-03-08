@@ -41,8 +41,8 @@ struct ContentView: View {
         NavigationSplitView {
             // Sidebar con glassmorphism
             ZStack {
-                // Background (simplificado para evitar layout issues)
-                Color(NSColor.windowBackgroundColor)
+                // Background
+                MeshGradientBackground()
                 
                 // Sidebar content
                 VStack(spacing: 0) {
@@ -2503,18 +2503,23 @@ struct HolidayCalendarView: View {
     @State private var showingDatePicker = false
     
     var body: some View {
-        NavigationView {
+        VStack(spacing: 16) {
+            // Header
+            HStack {
+                Text("Holiday Calendars")
+                    .font(.title2.bold())
+                Spacer()
+                Button("Close") { dismiss() }
+            }
+            .padding(.horizontal)
+            .padding(.top)
+            
             List {
                 Section("Add Holiday Calendar") {
-                    TextField("Calendar Name (e.g., US Holidays)", text: $newCalendarName)
+                    TextField("Calendar Name", text: $newCalendarName)
                     
-                    Button("Add Selected Dates") {
+                    Button("Select Dates (\(selectedDates.count) selected)") {
                         showingDatePicker = true
-                    }
-                    
-                    if !selectedDates.isEmpty {
-                        Text("\(selectedDates.count) dates selected")
-                            .foregroundStyle(.secondary)
                     }
                     
                     Button("Create Calendar") {
@@ -2550,21 +2555,16 @@ struct HolidayCalendarView: View {
                     }
                 }
                 
-                Section("Info") {
-                    Text("Holidays are excluded from ML training. The model will not learn patterns from holiday days.")
+                Section {
+                    Text("Holidays are excluded from ML training.")
                         .font(.caption)
                         .foregroundStyle(.secondary)
                 }
             }
-            .navigationTitle("Holiday Calendars")
-            .toolbar {
-                ToolbarItem(placement: .cancellationAction) {
-                    Button("Close") { dismiss() }
-                }
-            }
-            .sheet(isPresented: $showingDatePicker) {
-                MultiDatePicker(selectedDates: $selectedDates)
-            }
+        }
+        .frame(width: 400, height: 500)
+        .sheet(isPresented: $showingDatePicker) {
+            MultiDatePicker(selectedDates: $selectedDates)
         }
     }
 }
@@ -2593,48 +2593,52 @@ struct MultiDatePicker: View {
     @State private var currentSelection = Date()
     
     var body: some View {
-        NavigationView {
-            VStack {
-                DatePicker(
-                    "Select Date",
-                    selection: $currentSelection,
-                    displayedComponents: .date
-                )
-                .datePickerStyle(.graphical)
-                .padding()
-                
-                List {
-                    Section("Selected Dates") {
-                        ForEach(selectedDates.sorted(), id: \.self) { date in
-                            HStack {
-                                Text(date, style: .date)
-                                Spacer()
-                                Button(action: {
-                                    selectedDates.removeAll { $0 == date }
-                                }) {
-                                    Image(systemName: "xmark.circle.fill")
-                                        .foregroundStyle(.red)
-                                }
-                                .buttonStyle(.plain)
-                            }
-                        }
-                    }
+        VStack(spacing: 16) {
+            // Header
+            HStack {
+                Text("Select Dates")
+                    .font(.title2.bold())
+                Spacer()
+                Button("Done") { dismiss() }
+            }
+            .padding(.horizontal)
+            .padding(.top)
+            
+            DatePicker(
+                "Select Date",
+                selection: $currentSelection,
+                displayedComponents: .date
+            )
+            .datePickerStyle(.graphical)
+            .padding()
+            
+            Button("Add Date") {
+                if !selectedDates.contains(currentSelection) {
+                    selectedDates.append(currentSelection)
                 }
             }
-            .navigationTitle("Select Holidays")
-            .toolbar {
-                ToolbarItem(placement: .cancellationAction) {
-                    Button("Cancel") { dismiss() }
-                }
-                ToolbarItem(placement: .confirmationAction) {
-                    Button("Add") {
-                        if !selectedDates.contains(currentSelection) {
-                            selectedDates.append(currentSelection)
+            .buttonStyle(.borderedProminent)
+            .padding(.horizontal)
+            
+            List {
+                Section("Selected Dates") {
+                    ForEach(selectedDates.sorted(), id: \.self) { date in
+                        HStack {
+                            Text(date, style: .date)
+                            Spacer()
+                            Button(action: {
+                                selectedDates.removeAll { $0 == date }
+                            }) {
+                                Image(systemName: "xmark.circle.fill")
+                                    .foregroundStyle(.red)
+                            }
+                            .buttonStyle(.plain)
                         }
                     }
                 }
             }
         }
+        .frame(width: 400, height: 500)
     }
 }
 
