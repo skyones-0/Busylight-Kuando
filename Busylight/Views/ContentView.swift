@@ -1081,7 +1081,7 @@ struct SettingsView: View {
                     VStack(spacing: 12) {
                         // Status indicator
                         HStack(spacing: 12) {
-                            Image(systemName: webhookServer.isRunning ? "server.rack" : "server.rack.slash")
+                            Image(systemName: webhookServer.isRunning ? "server.rack" : "xmark.circle.fill")
                                 .font(.title2)
                                 .foregroundStyle(webhookServer.isRunning ? .green : .secondary)
                             
@@ -1647,7 +1647,7 @@ struct StatusTab: View {
     ]
     
     var body: some View {
-        GlassCard(title: "Presence Status", icon: "status") {
+        GlassCard(title: "Presence Status", icon: "person.circle") {
             if isConnected {
                 LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: 8) {
                     ForEach(statuses, id: \.0) { item in
