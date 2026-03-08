@@ -534,7 +534,8 @@ struct CompactProgressBar: View {
 
 // MARK: - Glass Calendar Card (Nuevo)
 struct GlassCalendarCard: View {
-    @ObservedObject private var smartFeatures = SmartFeaturesManager.shared
+    @State private var calendarStatus: CalendarStatus = .none
+    @State private var hasCalendarAccess: Bool = false
     
     var body: some View {
         VStack(alignment: .leading, spacing: 6) {
@@ -548,13 +549,54 @@ struct GlassCalendarCard: View {
                 Spacer()
             }
             
-            // Current Status
+            // Status View
+            CalendarStatusView(status: calendarStatus, hasCalendarAccess: hasCalendarAccess)
+        }
+        .padding(8)
+        .background(
+            ZStack {
+                RoundedRectangle(cornerRadius: 8)
+                    .fill(Material.thinMaterial)
+                
+                RoundedRectangle(cornerRadius: 8)
+                    .stroke(calendarColor.opacity(0.3), lineWidth: 1)
+            }
+        )
+        .onAppear {
+            // Leer valores iniciales sin observar
+            calendarStatus = SmartFeaturesManager.shared.calendarStatus
+            hasCalendarAccess = SmartFeaturesManager.shared.calendarAccessGranted
+        }
+        .onReceive(NotificationCenter.default.publisher(for: NSNotification.Name("CalendarStatusChanged"))) { _ in
+            calendarStatus = SmartFeaturesManager.shared.calendarStatus
+            hasCalendarAccess = SmartFeaturesManager.shared.calendarAccessGranted
+        }
+    }
+    
+    var calendarColor: Color {
+        switch calendarStatus {
+        case .inMeeting: return .red
+        case .preparing: return .yellow
+        case .available: return .green
+        case .none: return .gray
+        }
+    }
+}
+
+// Componente separado para evitar recursion
+struct CalendarStatusView: View {
+    let status: CalendarStatus
+    let hasCalendarAccess: Bool
+    
+    var body: some View {
+        VStack(alignment: .leading, spacing: 4) {
+            // Status Row
             HStack(spacing: 6) {
                 Circle()
                     .fill(calendarColor)
                     .frame(width: 8, height: 8)
                 
-                switch smartFeatures.calendarStatus {
+                switch status {
                 case .inMeeting(let title):
                     Text("In meeting: \(title.prefix(25))")
                         .font(.caption2)
@@ -578,9 +620,8 @@ struct GlassCalendarCard: View {
                 Spacer()
             }
             
-            // Next Event Preview (si está disponible)
-            if case .available = smartFeatures.calendarStatus,
-               smartFeatures.calendarAccessGranted {
+            // Next Event Preview
+            if hasCalendarAccess, case .available = status {
                 Divider().opacity(0.3)
                 
                 HStack(spacing: 4) {
@@ -608,7 +649,7 @@ struct GlassCalendarCard: View {
     }
     
     var calendarColor: Color {
-        switch smartFeatures.calendarStatus {
+        switch status {
         case .inMeeting: return .red
         case .preparing: return .yellow
         case .available: return .green

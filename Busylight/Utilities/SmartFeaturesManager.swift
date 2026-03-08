@@ -94,6 +94,7 @@ class SmartFeaturesManager: ObservableObject {
         
         if status == .fullAccess {
             calendarAccessGranted = true
+            NotificationCenter.default.post(name: NSNotification.Name("CalendarStatusChanged"), object: nil)
             startCalendarMonitoring()
             return
         }
@@ -102,6 +103,7 @@ class SmartFeaturesManager: ObservableObject {
         eventStore.requestFullAccessToEvents { [weak self] granted, error in
             DispatchQueue.main.async {
                 self?.calendarAccessGranted = granted
+                NotificationCenter.default.post(name: NSNotification.Name("CalendarStatusChanged"), object: nil)
                 if granted {
                     self?.startCalendarMonitoring()
                 } else if let error = error {
@@ -120,6 +122,7 @@ class SmartFeaturesManager: ObservableObject {
         switch status {
         case .fullAccess, .writeOnly:
             calendarAccessGranted = true
+            NotificationCenter.default.post(name: NSNotification.Name("CalendarStatusChanged"), object: nil)
             startCalendarMonitoring()
         case .notDetermined:
             // Delay request to avoid sandbox issues at startup
@@ -128,9 +131,11 @@ class SmartFeaturesManager: ObservableObject {
             }
         case .denied, .restricted:
             calendarAccessGranted = false
+            NotificationCenter.default.post(name: NSNotification.Name("CalendarStatusChanged"), object: nil)
             print("Calendar access denied. Enable in System Settings > Privacy & Security > Calendars")
         @unknown default:
             calendarAccessGranted = false
+            NotificationCenter.default.post(name: NSNotification.Name("CalendarStatusChanged"), object: nil)
             break
         }
     }
@@ -189,6 +194,9 @@ class SmartFeaturesManager: ObservableObject {
         } else {
             calendarStatus = .available
         }
+        
+        // Notificar cambio para UI no-observable
+        NotificationCenter.default.post(name: NSNotification.Name("CalendarStatusChanged"), object: nil)
         
         updateLightFromCalendar()
     }
