@@ -41,8 +41,8 @@ struct ContentView: View {
         NavigationSplitView {
             // Sidebar con glassmorphism
             ZStack {
-                // Background
-                MeshGradientBackground()
+                // Background (simplificado para evitar layout issues)
+                Color(NSColor.windowBackgroundColor)
                 
                 // Sidebar content
                 VStack(spacing: 0) {
@@ -100,7 +100,7 @@ struct ContentView: View {
         } detail: {
             // Detail view con glassmorphism background
             ZStack {
-                MeshGradientBackground()
+                Color(NSColor.windowBackgroundColor)
                 
                 ScrollView {
                     switch selectedItem {
@@ -2228,19 +2228,10 @@ struct GlassActionButton: View {
 
 // Pulsing Circle Component - separado para evitar layout recursion
 struct PulsingCircle: View {
-    @State private var isAnimating = false
-    
     var body: some View {
         Circle()
-            .fill(Color.green)
+            .fill(Color.green.opacity(0.6))
             .frame(width: 10, height: 10)
-            .opacity(isAnimating ? 0.3 : 0.6)
-            .scaleEffect(isAnimating ? 1.8 : 1.0)
-            .onAppear {
-                withAnimation(.easeInOut(duration: 1).repeatForever(autoreverses: true)) {
-                    isAnimating = true
-                }
-            }
     }
 }
 

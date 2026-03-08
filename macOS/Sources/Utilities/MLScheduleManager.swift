@@ -100,6 +100,8 @@ class MLScheduleManager: ObservableObject {
     private func setupDataCollection() {
         BusylightLogger.shared.info("ML: Iniciando sistema de recolección de datos")
         
+        // TEMPORALMENTE DESHABILITADO para debugging
+        /*
         // Recolectar datos diariamente
         Timer.publish(every: 3600, on: .main, in: .common) // Cada hora
             .autoconnect()
@@ -116,15 +118,10 @@ class MLScheduleManager: ObservableObject {
                 self?.applyDailyPrediction()
             }
             .store(in: &cancellables)
+        */
         
-        // También recolectar al iniciar
-        collectDailyPattern()
-        
-        // Verificar auto-training al iniciar (con delay)
-        DispatchQueue.main.asyncAfter(deadline: .now() + 5) { [weak self] in
-            self?.checkAndRunAutoTraining()
-            self?.applyDailyPrediction()
-        }
+        // También recolectar al iniciar (solo una vez)
+        // collectDailyPattern()
         
         // Log estado inicial
         if let config = configuration {

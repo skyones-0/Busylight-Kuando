@@ -146,10 +146,13 @@ class SmartFeaturesManager: ObservableObject {
         // Load available calendars
         loadAvailableCalendars()
         
-        Timer.publish(every: 60, on: .main, in: .common)
+        // TEMPORALMENTE DESHABILITADO para debugging
+        /*
+        Timer.publish(every: 300, on: .main, in: .common) // Cada 5 minutos
             .autoconnect()
             .sink { _ in self.checkCalendarStatus() }
             .store(in: &cancellables)
+        */
         checkCalendarStatus()
     }
     
@@ -469,10 +472,13 @@ class SmartFeaturesManager: ObservableObject {
     private func setupPresentationDetection() {
         guard presentationModeEnabled else { return }
         
-        Timer.publish(every: 5, on: .main, in: .common)
+        // TEMPORALMENTE DESHABILITADO para debugging
+        /*
+        Timer.publish(every: 30, on: .main, in: .common)
             .autoconnect()
             .sink { _ in self.checkPresentationMode() }
             .store(in: &cancellables)
+        */
     }
     
     private func checkPresentationMode() {
