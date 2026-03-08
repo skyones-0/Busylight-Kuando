@@ -514,14 +514,14 @@ struct ConfigItem: View {
     }
 }
 
-// Elegant Stepper
+// Elegant Stepper - Aumentado 15% para mejor interactividad
 struct ElegantStepper: View {
     let icon: String
     @Binding var value: Int
     let range: ClosedRange<Int>
     
     var body: some View {
-        HStack(spacing: 10) {
+        HStack(spacing: 12) {
             Button {
                 if value > range.lowerBound {
                     value -= 1
@@ -530,7 +530,7 @@ struct ElegantStepper: View {
             } label: {
                 Image(systemName: "minus")
                     .font(.callout.weight(.bold))
-                    .frame(width: 32, height: 32)
+                    .frame(width: 37, height: 37)
             }
             .buttonStyle(ElegantStepperButtonStyle())
             
@@ -541,7 +541,7 @@ struct ElegantStepper: View {
                 Text("\(value)")
                     .font(.system(.body, design: .rounded).weight(.semibold))
             }
-            .frame(minWidth: 40)
+            .frame(minWidth: 46)
             
             Button {
                 if value < range.upperBound {
@@ -551,11 +551,11 @@ struct ElegantStepper: View {
             } label: {
                 Image(systemName: "plus")
                     .font(.callout.weight(.bold))
-                    .frame(width: 24, height: 24)
+                    .frame(width: 37, height: 37)
             }
             .buttonStyle(ElegantStepperButtonStyle())
         }
-        .padding(8)
+        .padding(10)
         .background(
             RoundedRectangle(cornerRadius: 12)
                 .fill(.ultraThinMaterial)
@@ -579,13 +579,14 @@ struct ElegantStepperButtonStyle: ButtonStyle {
     }
 }
 
-// Control Button with Prolonged Haptic
+// Control Button with Prolonged Haptic - Ahora con soporte para estado deshabilitado
 struct ControlButton: View {
     let title: String
     let icon: String
     let color: Color
     let isProminent: Bool
     let action: () -> Void
+    @Environment(\.isEnabled) private var isEnabled
     
     var body: some View {
         Button(action: {
@@ -601,7 +602,7 @@ struct ControlButton: View {
             .frame(maxWidth: .infinity)
             .padding(.vertical, 12)
         }
-        .buttonStyle(ControlButtonStyle(color: color, isProminent: isProminent))
+        .buttonStyle(ControlButtonStyle(color: isEnabled ? color : .gray, isProminent: isEnabled && isProminent))
     }
 }
 

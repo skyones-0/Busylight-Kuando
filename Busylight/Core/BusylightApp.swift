@@ -86,7 +86,7 @@ func bringWindowToFront() {
         
         // Primero buscar entre todas las ventanas de la aplicación
         for window in NSApp.windows {
-            BusylightLogger.shared.debug("Revisando ventana: level=\(window.level.rawValue), isVisible=\(window.isVisible), isMiniaturized=\(window.isMiniaturized), title=\(window.title ?? "sin título")")
+            BusylightLogger.shared.debug("Revisando ventana: level=\(window.level.rawValue), isVisible=\(window.isVisible), isMiniaturized=\(window.isMiniaturized), title=\(window.title)")
             
             // Ignorar ventanas de tipo popover, menú, etc.
             guard window.level == .normal || window.level == .floating || window.level == .modalPanel else {

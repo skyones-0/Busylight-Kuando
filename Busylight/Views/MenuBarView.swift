@@ -176,9 +176,11 @@ struct GlassPomodoroCard: View {
                 Spacer()
                 
                 VStack(alignment: .trailing, spacing: 0) {
+                    // Phase label - verde brillante cuando está corriendo, gris cuando no
                     Text(manager.currentPhase.rawValue)
                         .font(.caption2.weight(.semibold))
-                        .foregroundStyle(manager.currentPhase.color)
+                        .foregroundStyle(manager.isRunning ? manager.currentPhase.color : .gray.opacity(0.6))
+                        .brightness(manager.isRunning ? 0.1 : 0)
                     Text("Set \(manager.currentSet)/\(manager.totalSets)")
                         .font(.caption2)
                         .foregroundStyle(.secondary)
@@ -194,51 +196,59 @@ struct GlassPomodoroCard: View {
             
             // Control buttons - más compactos
             HStack(spacing: 6) {
+                // Play button - activo solo cuando no está corriendo o está pausado
                 Button {
+                    HapticFeedback.prolonged()
                     manager.start()
                 } label: {
                     HStack(spacing: 2) {
                         Image(systemName: "play.fill")
                             .font(.caption2)
-                       // Text(manager.isPaused ? "Resume" : "Start")
-                            .font(.system(.caption2, design: .rounded).weight(.medium))
                     }
                     .frame(maxWidth: .infinity)
                     .padding(.vertical, 5)
                 }
-                .buttonStyle(.smallGradient(color: .green, prominent: true))
+                .buttonStyle(.smallGradient(
+                    color: (manager.isRunning && !manager.isPaused) ? .gray : .green,
+                    prominent: !(manager.isRunning && !manager.isPaused)
+                ))
                 .disabled(manager.isRunning && !manager.isPaused)
-                .opacity(manager.isRunning && !manager.isPaused ? 0.5 : 1)
                 
+                // Pause button - activo solo cuando está corriendo y no pausado
                 Button {
+                    HapticFeedback.prolonged()
                     manager.pause()
                 } label: {
                     HStack(spacing: 2) {
                         Image(systemName: "pause.fill")
                             .font(.caption2)
-                       // Text("Pause")
-                            .font(.system(.caption2, design: .rounded).weight(.medium))
                     }
                     .frame(maxWidth: .infinity)
                     .padding(.vertical, 5)
                 }
-                .buttonStyle(.smallGradient)
+                .buttonStyle(.smallGradient(
+                    color: (!manager.isRunning || manager.isPaused) ? .gray : .orange,
+                    prominent: manager.isRunning && !manager.isPaused
+                ))
                 .disabled(!manager.isRunning || manager.isPaused)
-                .opacity(!manager.isRunning || manager.isPaused ? 0.5 : 1)
                 
+                // Stop button - activo solo cuando está corriendo o pausado
                 Button {
+                    HapticFeedback.prolonged()
                     manager.stop()
                 } label: {
                     HStack(spacing: 2) {
                         Image(systemName: "stop.fill")
                             .font(.caption2)
-                        //Text("Stop")
-                            .font(.system(.caption2, design: .rounded).weight(.medium))
                     }
                     .frame(maxWidth: .infinity)
                     .padding(.vertical, 5)
                 }
-                .buttonStyle(.smallGradient(color: .red))
+                .buttonStyle(.smallGradient(
+                    color: (!manager.isRunning && !manager.isPaused) ? .gray : .red,
+                    prominent: manager.isRunning || manager.isPaused
+                ))
+                .disabled(!manager.isRunning && !manager.isPaused)
             }
             
             // Config badges - más pequeños
@@ -378,6 +388,7 @@ struct GlassQuickColorButton: View {
     let action: () -> Void
     
     @State private var isHovered = false
+    @State private var scale: CGFloat = 1.0
     
     var body: some View {
         Button(action: action) {
@@ -406,13 +417,15 @@ struct GlassQuickColorButton: View {
                     )
                     .shadow(color: color.opacity(0.5), radius: isHovered ? 4 : 2, x: 0, y: 1)
             }
-            .scaleEffect(isHovered ? 1.1 : 1)
+            .scaleEffect(scale)
         }
         .buttonStyle(.plain)
         .frame(height: 26)
-        .animation(.easeOut(duration: 0.15), value: isHovered)
         .onHover { hovering in
             isHovered = hovering
+            withAnimation(.easeOut(duration: 0.15)) {
+                scale = hovering ? 1.1 : 1.0
+            }
         }
     }
 }
