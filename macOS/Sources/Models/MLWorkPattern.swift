@@ -127,18 +127,29 @@ class MLConfiguration {
     var selectedHolidayCalendarId: UUID?
     var autoAdjustSchedule: Bool // Ajustar automáticamente work hours
     var confidenceThreshold: Double // Umbral de confianza para aplicar predicciones
-    var autoTrainingEnabled: Bool // Entrenar modelo automáticamente cuando hay suficientes datos
+    
+    // Nuevas propiedades con valores por defecto para migración
+    var autoTrainingEnabled: Bool? // Entrenar modelo automáticamente - optional para migración
     var lastAutoTrainingCheck: Date? // Última vez que se verificó auto-training
-    var notificationOnAutoTrain: Bool // Notificar cuando se entrena automáticamente
+    var notificationOnAutoTrain: Bool? // Notificar cuando se entrena automáticamente
     
     init() {
         self.id = UUID()
         self.isMLEnabled = false
         self.minTrainingDays = 14
         self.modelAccuracy = 0.0
-        self.autoAdjustSchedule = true // Por defecto activado
+        self.autoAdjustSchedule = true
         self.confidenceThreshold = 0.75
-        self.autoTrainingEnabled = true // Por defecto activado
+        self.autoTrainingEnabled = true
         self.notificationOnAutoTrain = true
+    }
+    
+    // Helper para obtener valores con defaults
+    var isAutoTrainingEnabled: Bool {
+        autoTrainingEnabled ?? true
+    }
+    
+    var shouldNotifyOnAutoTrain: Bool {
+        notificationOnAutoTrain ?? true
     }
 }

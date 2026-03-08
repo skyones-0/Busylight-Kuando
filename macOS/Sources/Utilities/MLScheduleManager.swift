@@ -128,7 +128,7 @@ class MLScheduleManager: ObservableObject {
         
         // Log estado inicial
         if let config = configuration {
-            BusylightLogger.shared.info("ML: Configuración cargada - Enabled: \(config.isMLEnabled), AutoTrain: \(config.autoTrainingEnabled), DaysCollected: \(trainingDaysCollected)")
+            BusylightLogger.shared.info("ML: Configuración cargada - Enabled: \(config.isMLEnabled), AutoTrain: \(config.isAutoTrainingEnabled), DaysCollected: \(trainingDaysCollected)")
         }
     }
     
@@ -146,7 +146,7 @@ class MLScheduleManager: ObservableObject {
             return
         }
         
-        guard config.autoTrainingEnabled else {
+        guard config.isAutoTrainingEnabled else {
             BusylightLogger.shared.debug("ML: Auto-training está deshabilitado")
             return
         }
@@ -219,7 +219,7 @@ class MLScheduleManager: ObservableObject {
     /// Muestra notificación cuando se completa el entrenamiento
     @MainActor
     private func showTrainingCompletionNotification(success: Bool, accuracy: Double = 0, error: String? = nil) {
-        guard let config = configuration, config.notificationOnAutoTrain else { return }
+        guard let config = configuration, config.shouldNotifyOnAutoTrain else { return }
         
         let content = UNMutableNotificationContent()
         
@@ -522,7 +522,7 @@ class MLScheduleManager: ObservableObject {
         )
         
         // Notificar al usuario del cambio
-        if let config = configuration, config.notificationOnAutoTrain {
+        if let config = configuration, config.shouldNotifyOnAutoTrain {
             showPredictionAppliedNotification(prediction: prediction)
         }
     }
