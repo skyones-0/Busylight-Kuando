@@ -1,65 +1,51 @@
-# Busylight
+# Busylight for Kuando
 
 <p align="center">
-  <img src="icon Exports/BL Icon.png" alt="Busylight Logo" width="120" height="120">
+  <img src="Busylight%20macOS/icon%20Exports/icon-macOS-Dark-256x256@1x.png" alt="Busylight Logo" width="120" height="120">
 </p>
 
 <p align="center">
-  <b>Professional USB status light control with 15+ productivity features</b>
+  <b>Professional USB status light control with ML-powered schedule prediction</b>
 </p>
 
 <p align="center">
   <a href="#"><img src="https://img.shields.io/badge/macOS-26.2%2B-000000?logo=apple&logoColor=white" alt="macOS"></a>
-  <a href="#"><img src="https://img.shields.io/badge/iOS-18.0%2B-000000?logo=apple&logoColor=white" alt="iOS"></a>
-  <a href="#"><img src="https://img.shields.io/badge/watchOS-11.0%2B-000000?logo=apple&logoColor=white" alt="watchOS"></a>
   <a href="#"><img src="https://img.shields.io/badge/Swift-5.9-F05138?logo=swift&logoColor=white" alt="Swift"></a>
   <a href="#"><img src="https://img.shields.io/badge/SwiftUI-Yes-007AFF?logo=swift&logoColor=white" alt="SwiftUI"></a>
-  <a href="#"><img src="https://img.shields.io/badge/Architecture-ARM64-FF6B6B" alt="ARM64"></a>
-  <a href="#"><img src="https://img.shields.io/badge/Features-15%2B-95E1D3" alt="Features"></a>
   <a href="#"><img src="https://img.shields.io/badge/Core%20ML-Enabled-FF6B6B" alt="CoreML"></a>
+  <a href="#"><img src="https://img.shields.io/badge/Localization-Spanish%20100%25-blue" alt="Spanish"></a>
+</p>
+
+<p align="center">
+  <img src="https://github.com/skyones-0/Busylight-Kuando/workflows/Validate%20Project/badge.svg" alt="Validate Project">
 </p>
 
 ---
 
-## ✨ What's New in Super App 1.0
+## ✨ Features
 
-### 🚀 Reorganized Navigation
-- **7 Main Sections** in sidebar: Pomodoro, Deep Work, Profiles, Teams, Dashboard, Settings, Device
-- **Deep Work** is now a dedicated section with full-screen focus mode
-- **Work Profiles** moved to sidebar for quick access
-- **Microsoft Teams** integrated as main section with 3 tabs
+### Core Features
+- **💡 Light Control** - 10 colors + pulse, blink, and audio effects
+- **⏱️ Pomodoro Timer** - Phase management with work/break cycles
+- **🔥 Deep Work Mode** - Distraction-free sessions with auto-pause Pomodoro
+- **🔊 Audio Integration** - 16 jingles and alert sounds
 
-### 📅 Enhanced Calendar Integration
-- **Real-time calendar status** in menu bar (Current meeting, Available, Next event)
-- **Calendar selector** in Settings - choose which calendars to monitor
-- **Smart status** - Red during meetings, Yellow 5min before, Green when free
-- **Visual indicator** with color-coded status dot
+### ML & AI Features
+- **🧠 Smart Schedule Learning** - CoreML models learn your work patterns
+- **📈 Work Hour Prediction** - Predicts optimal start/end hours for each day
+- **🎯 Holiday Exclusion** - Mark holidays to exclude from ML training
+- **⚡ Auto-Configuration** - Automatically adjusts settings based on predictions
 
-### 🔥 Improved Deep Work Mode
-- **Full-screen dedicated view** with countdown timer
-- **Auto-pauses Pomodoro** when starting Deep Work
-- **3 duration options**: 60, 90, 120 minutes
-- **Progress indicator** showing remaining time
-- **Visual warning** in Pomodoro view when Deep Work is active
+### Productivity Features
+- **📅 Calendar Sync** - Auto-detect meetings and sync status
+- **🌙 Focus Mode Sync** - macOS Focus integration
+- **🕐 Smart Work Hours** - Schedule reminders and automatic adjustments
+- **🎨 Glassmorphism UI** - Modern design with blur effects
 
-### 👔 Microsoft Teams Integration (New)
-- **3 dedicated tabs**: Status, Credentials, Activities
-- **Real-time presence sync** with Teams status
-- **Today's activities** view showing scheduled meetings
-- **Quick status change**: Available, Busy, DND, Away
-- **Credential management** with secure storage
-
-### ⏱️ Smart Work Hours (Redesigned)
-- **Compact stepper UI** - no more large sliders
-- **Quick time selection** with +/- buttons
-- **Work schedule display** in Settings toggle
-- **Automatic reminders** when working outside hours
-
-### 🌐 Local API (Fixed)
-- **Visual status indicator** - Green when running, Gray when stopped
-- **Real-time request counter**
-- **Endpoint documentation** built into UI
-- **Toggle with immediate feedback**
+### Integrations
+- **🌐 Local API Server** - HTTP endpoints at localhost:8080
+- **👔 Microsoft Teams** - Presence sync support
+- **📊 Productivity Dashboard** - Stats and insights
 
 ---
 
@@ -68,101 +54,63 @@
 | Component | Minimum Version |
 |-----------|----------------|
 | macOS | 26.2+ |
-| Xcode | 15.0+ |
+| Xcode | 16.0+ |
 | Swift | 5.9+ |
 | Hardware | Apple Silicon (ARM64) |
-| Device | Busylight Omega series |
+| Device | Kuando Busylight Omega series |
 
 ---
 
-## 🎮 Features Overview
+## 🏗️ Project Structure
 
-### Core Features
-- **💡 Light Control** - 10 colors, pulse, blink patterns
-- **⏱️ Pomodoro Timer** - Phase management, visual progress
-- **🔊 Audio Integration** - 16 jingles, volume control
-- **🎨 Glassmorphism UI** - Modern design with blur effects
-
-### Smart Automation (8 Features)
-1. **📅 Calendar Sync** - Auto-detect meetings
-2. **🌙 Focus Mode Sync** - macOS Focus integration
-3. **⏸️ Idle Detection** - Pauses timer on inactivity
-4. **👁️ 20-20-20 Breaks** - Eye health reminders
-5. **📹 Video Call Detection** - Auto-detect Zoom/Teams
-6. **🎯 Presentation Mode** - Keynote/PowerPoint detection
-7. **🕐 Smart Work Hours** - Schedule reminders
-8. **🔥 Deep Work Mode** - Distraction-free sessions
-
-### ML & AI Features (NEW)
-- **🧠 Smart Schedule Learning** - ML model learns your work patterns
-- **📈 Work Hour Prediction** - Auto-suggests optimal work hours
-- **🎯 Holiday Exclusion** - Mark holidays to exclude from training
-- **⚡ Auto-Configuration** - Automatically adjust settings based on patterns
-
-### Integrations
-- **🌐 Local API** - HTTP endpoints at localhost:8080
-- **👔 Microsoft Teams** - Presence sync & activities
-- **📊 Dashboard** - Productivity stats & streaks
-- **🎨 Light Themes** - Aurora, Minimal, Nature, Cyber, Calm
-
----
-
-## 🏗️ Architecture
-
-### Project Structure (Multi-Platform)
 ```
-Busylight/
+Busylight macOS/
 │
-├── 📁 macOS/                        # macOS App
-│   └── Sources/
-│       ├── Core/                    # App entry, device control
-│       ├── Views/                   # Main UI, Menu bar, Timer
-│       ├── Models/                  # ML patterns, Sessions
-│       ├── Utilities/               # Smart features, Webhook
-│       └── Styles/                  # Glassmorphism UI
+├── 📁 Busylight macOS/              # Main App
+│   ├──
+│   │   ├── BusylightApp.swift       # App entry point
+│   │   ├── BusylightManager.swift   # Device control (USB)
+│   │   ├── PomodoroManager.swift    # Timer logic
+│   │   └── Persistence.swift        # SwiftData
+│   │
+│   ├── 📁 Views/                    # SwiftUI Views
+│   │   ├── ContentView.swift        # Main UI
+│   │   ├── MenuBarView.swift        # Menu bar popover
+│   │   └── TimerView.swift          # Timer overlay
+│   │
+│   ├── 📁 CoreML/                   # ML Models & Logic
+│   │   ├── TrainedModelLoader.swift # Load Create ML models
+│   │   ├── WorkSchedulePredictor.swift # In-app training
+│   │   └── 📁 ML Model/             # Pre-trained models
+│   │       ├── StartHours.mlpackage
+│   │       └── EndHours.mlpackage
+│   │
+│   ├── 📁 Utilities/                # Managers
+│   │   ├── MLScheduleManager.swift  # ML orchestration
+│   │   ├── SmartFeaturesManager.swift
+│   │   ├── WebhookServer.swift      # Local API
+│   │   ├── BusylightLogger.swift
+│   │   └── UserInteractionLogger.swift
+│   │
+│   ├── 📁 Models/                   # SwiftData Models
+│   │   ├── MLWorkPattern.swift
+│   │   └── PomodoroSession.swift
+│   │
+│   ├── 📁 Resources/                # Assets & Localization
+│   │   └── Localizable.xcstrings    # 100% Spanish translated
+│   │
+│   └── 📁 Styles/                   # UI Styles
+│       └── GlassmorphismStyles.swift
 │
-├── 📁 iOS/                          # iOS App
-│   └── Sources/
-│       ├── Core/                    # iOS entry point
-│       ├── Views/                   # iOS UI
-│       └── LiveActivity/            # Live Activities
+├── 📁 BusylightTests/               # Unit Tests
+│   └── MLModelTests.swift           # CoreML model tests
 │
-├── 📁 watchOS/                      # watchOS App
-│   └── Sources/
-│       ├── Core/                    # watchOS entry
-│       └── Views/                   # Watch UI
+├── 📁 ML Training Data/             # Training datasets
+│   ├── work_schedule_training_data.csv
+│   ├── testing_data.csv
+│   └── 📁 predict_hours.mlproj/     # Create ML project
 │
-└── 📁 Shared/                       # Shared Framework
-    └── Sources/
-        ├── CloudKit/                # Sync
-        ├── Managers/                # Unified manager
-        ├── Models/                  # Shared models
-        └── Styles/                  # Shared UI
-```
-
-### macOS App Structure (macOS/Sources/)
-```
-Core/
-├── BusylightApp.swift          # App entry point
-├── AppDelegate.swift           # Menu bar, dock control
-├── BusylightManager.swift      # Device control
-├── Persistence.swift           # SwiftData
-└── PomodoroManager.swift       # Timer logic
-
-Views/
-├── ContentView.swift           # Main UI
-├── MenuBarView.swift           # Menu bar popover
-└── TimerView.swift             # Standalone timer
-
-Utilities/
-├── SmartFeaturesManager.swift  # 15 smart features
-├── WebhookServer.swift         # Local API
-├── MLScheduleManager.swift     # ML scheduling
-└── BusylightLogger.swift       # Logging
-
-Models/
-├── PomodoroSession.swift       # SwiftData model
-└── MLWorkPattern.swift         # ML patterns
+└── 📁 BusylightSDK_Swift.framework/ # Hardware SDK
 ```
 
 ---
@@ -172,30 +120,44 @@ Models/
 ### Build & Run
 ```bash
 # Clone repository
-git clone https://github.com/skyones-0/kuando_macos.git
-cd kuando_macos
+git clone https://github.com/skyones-0/Busylight-Kuando.git
+cd Busylight-Kuando
 
 # Open in Xcode
-open Busylight.xcodeproj
+open "Busylight macOS/Busylight macOS.xcodeproj"
 
-# Or build via command line
-xcodebuild -project Busylight.xcodeproj -scheme macOS -configuration Release
+# Build and run (Cmd+R)
+```
+
+### Running Tests
+```bash
+# Run unit tests (Cmd+U in Xcode)
+# or via command line:
+xcodebuild test -project "Busylight mac OS/Busylight mac OS.xcodeproj" \
+  -scheme "Busylight mac OS" \
+  -destination 'platform=macOS'
 ```
 
 ---
 
 ## 📖 Usage Guide
 
-### Sidebar Navigation
-| Icon | Section | Description |
-|------|---------|-------------|
-| ⏱️ | **Pomodoro** | Timer with phases (Work/Break/Long Break) |
-| 🔥 | **Deep Work** | Focus mode with countdown |
-| 👔 | **Profiles** | Work presets (Coding/Meetings/Learning) |
-| 👥 | **Teams** | MS Teams integration |
-| 📊 | **Dashboard** | Productivity stats |
-| ⚙️ | **Settings** | App configuration |
-| 💡 | **Device** | Light control & testing |
+### First Launch
+1. Connect your Kuando Busylight via USB
+2. Grant USB permissions when prompted
+3. The app will automatically detect the device
+
+### Light Control
+- **Solid Colors**: Red, Green, Blue, Yellow, Cyan, Magenta, White, Orange, Purple, Pink
+- **Pulse Effects**: Slow breathing effect in any color
+- **Blink Patterns**: Slow, Medium, Fast blinking
+- **Audio**: 16 different jingles and alert sounds
+
+### Pomodoro Timer
+1. Select duration (15, 25, or 45 minutes)
+2. Click **Start** to begin
+3. Light shows work status automatically
+4. Auto-switches to break phase
 
 ### Deep Work Mode
 1. Click **Deep Work** in sidebar
@@ -204,147 +166,152 @@ xcodebuild -project Busylight.xcodeproj -scheme macOS -configuration Release
 4. Light turns red (busy status)
 5. Timer counts down with progress bar
 
-### Calendar Integration
-1. Go to **Settings > Smart Features**
-2. Enable **Calendar Sync**
-3. Grant calendar permissions
-4. Select specific calendar (or "All")
-5. Status shows in menu bar automatically
+### ML Schedule Learning
 
-### ML Autoconfiguration (NEW)
-1. Go to **Settings > ML Autoconfiguration**
+#### Setup
+1. Go to **Settings > Smart Schedule Learning**
 2. Enable **Smart Schedule Learning**
-3. The app automatically collects your daily work patterns
-4. After 14+ days, the model **trains automatically**
-5. Work hours are **automatically adjusted** based on predictions
+3. Enable **Auto-train model** for automatic training
+4. Enable **Auto-apply predictions** to auto-adjust work hours
 
-**Features:**
-- **Fully Automatic**: Trains and applies predictions without user intervention
-- Learns your actual work patterns vs configured hours
-- Predicts optimal work hours for each day
-- Excludes holidays from training data
-- Shows model accuracy and confidence
-- Manual training available anytime via "Train Now"
+#### How It Works
+- The app collects your daily work patterns automatically
+- After **3+ days** of data, the model can train
+- Training happens automatically (or manually via "Train Now")
+- Predictions are made for tomorrow's optimal work hours
+- Work hours are adjusted automatically (if enabled)
 
-### Managing Holidays
-1. Go to **Settings > ML Autoconfiguration > Holidays**
-2. Create a holiday calendar (e.g., "US Holidays")
-3. Select dates to exclude from ML training
+#### Managing Holidays
+1. Go to **Settings > Holiday Calendars**
+2. Add a holiday calendar (e.g., "US Holidays 2026")
+3. Select dates that should be excluded from ML training
 4. ML model will ignore these days when learning patterns
 
-### ML Logging & Notifications
-The app provides detailed logs for ML operations:
+#### ML Console Log Indicators
+- 🚀 `ML: Starting training` - Training started
+- ⏳ `ML: Training model` - Training in progress  
+- ✅ `ML: Training completed` - Training finished
+- ❌ `ML: Training error` - Training failed
+- 📝 `ML: New daily pattern created` - New pattern collected
+- 🎯 `ML: Minimum data reached` - Ready to train
+- 🔮 `ML: Prediction generated` - Prediction created
+- 🔄 `ML: Hours auto-adjusted` - Hours updated
 
-**Console Log Indicators:**
-- 🚀 `ML: Iniciando entrenamiento manual` - Training started
-- ⏳ `ML: Entrenando modelo` - Training in progress
-- ✅ `ML: Entrenamiento completado` - Training finished with accuracy
-- ❌ `ML: Error en entrenamiento` - Training failed
-- 📝 `ML: Nuevo patrón diario creado` - New daily pattern collected
-- 🎯 `ML: Se alcanzó el mínimo de datos` - Ready to train
-- 🔮 `ML: Predicción generada` - Prediction created for a date
-- 🔄 `ML: Horarios ajustados automáticamente` - Work hours updated
-- 📅 `ML: Creando calendario de festivos` - Holiday calendar created
-- 🗑️ `ML: Limpiando todos los datos` - ML data reset
-
-**User Notifications:**
-- Training completion notification with accuracy percentage
-- Training failure notification with error details
-- Work hours update notification with new schedule
-
-Enable/disable notifications in ML Settings.
-
-### Local API
-1. Go to **Settings > API & Integrations**
+### Local API Server
+1. Go to **Settings > Local API Server**
 2. Toggle **Local API Server**
-3. Access endpoints at `http://localhost:8080`
+3. Server runs on `http://localhost:8080`
 
 **Available endpoints:**
 ```bash
-GET  /status          # Get current status
-POST /color           # Set light color
-POST /status          # Set presence status
-POST /timer/start     # Start pomodoro
-POST /timer/pause     # Pause pomodoro
-POST /timer/stop      # Stop pomodoro
+GET  /status              # Get current status
+POST /color               # Set light color {r,g,b}
+POST /status              # Set presence status
+POST /timer/start         # Start pomodoro
+POST /timer/pause         # Pause pomodoro
+POST /timer/stop          # Stop pomodoro
 ```
 
 ---
 
-## 🌐 Multiplatform Support
+## 🧪 Testing
 
-Busylight now supports **macOS, iOS, and watchOS** with shared ML capabilities:
+### Unit Tests
+The project includes comprehensive unit tests for ML models:
 
-### macOS (Primary)
-- Full feature set including USB device control
-- Menu bar integration
-- Local API server
-- All ML features with background training
+```swift
+// MLModelTests.swift includes:
+- testModelLoaderExists()           // Verify loader initialization
+- testModelsLoadedSuccessfully()    // Verify CoreML models load
+- testStartHourPredictionWeekday()  // Test weekday predictions
+- testStartHourPredictionWeekend()  // Test weekend predictions
+- testStartHourPredictionHoliday()  // Test holiday handling
+- testPredictionConsistency()       // Verify deterministic output
+- testEndHourAfterStartHour()       // Verify logical time ranges
+- testPredictionPerformance()       // Measure prediction speed
+```
 
-### iOS
-- Pomodoro timer with notifications
-- Calendar sync
-- ML schedule prediction
-- Widget support
-- All ML features with cloud sync
-
-### watchOS
-- Quick timer controls
-- Complications
-- Haptic feedback
-- Synced with iPhone
-
-**Shared ML Data:**
-- Work patterns sync across devices via CloudKit
-- Model training happens on the most used device
-- Predictions available on all platforms
-- Holiday calendars sync across devices
+Run tests with **Cmd+U** in Xcode.
 
 ---
 
-## 🔄 Recent Changes (Super App 2.0)
+## 🧠 ML Model Details
 
-### Navigation Reorganization
-- ✅ Moved Deep Work to dedicated sidebar section
-- ✅ Moved Work Profiles to sidebar
-- ✅ Moved Teams to sidebar with 3 tabs
-- ✅ Created standalone Dashboard view
-- ✅ Simplified Settings layout
+### Pre-trained Models (Create ML)
+The app uses two CoreML models trained in Create ML:
 
-### UI Improvements
-- ✅ Compact Calendar Sync with inline selector
-- ✅ Redesigned Work Hours with steppers (no sliders)
-- ✅ Fixed Local API status display
-- ✅ Added Calendar activity to menu bar
-- ✅ Deep Work banner in Pomodoro view
+- **StartHours.mlmodel** - Predicts optimal start hour (0-23)
+- **EndHours.mlmodel** - Predicts optimal end hour (0-23)
 
-### New Features
-- ✅ Teams integration with 3 tabs (Status/Credentials/Activities)
-- ✅ Calendar selector (choose specific calendars)
-- ✅ Next event preview in menu bar
-- ✅ Deep Work countdown timer
-- ✅ Visual indicators for all smart features
+### Input Features
+- `dayOfWeek` - Day of week (1=Sunday, 7=Saturday)
+- `isWeekend` - 0 or 1
+- `isHoliday` - 0 or 1
+- `sessionCount` - Number of work sessions
+- `deepWorkMinutes` - Deep work duration
+- `calendarEventCount` - Number of calendar events
 
-### ML Autoconfiguration (NEW)
-- ✅ **Smart Schedule Learning** - ML model learns work patterns automatically
-- ✅ **Auto-Training** - Model trains automatically when enough data is collected
-- ✅ **Work Hour Prediction** - Predicts optimal hours based on history
-- ✅ **Holiday Exclusion** - Exclude holidays from training
-- ✅ **Auto-apply** - Automatically adjust settings every day
-- ✅ **Manual Override** - Train manually anytime with "Train Now"
-
-### Bug Fixes (Latest)
-- ✅ **Fixed layout recursion crash** in menu bar calendar card
-- ✅ **Fixed SF Symbols compatibility** for older macOS versions
-- ✅ Improved app stability and launch time
+### Fallback Training
+If pre-trained models are not available, the app can train models in-app using CreateML framework with collected work patterns.
 
 ---
 
-## 👤 Develpment by
+## 🌐 Localization
+
+The app is fully localized in Spanish (100%):
+- All UI strings translated
+- Proper pluralization support
+- Region-appropriate formatting
+
+---
+
+## 🛠️ Technical Details
+
+### Frameworks Used
+- **SwiftUI** - Modern declarative UI
+- **SwiftData** - Local data persistence
+- **CoreML** - Machine learning models
+- **CreateML** - In-app model training
+- **Combine** - Reactive programming
+- **UserNotifications** - Local notifications
+
+### Hardware Integration
+- **BusylightSDK_Swift** - Official Kuando SDK
+- USB HID communication
+- Real-time device status
+
+---
+
+## 🔄 Recent Updates
+
+### Latest Changes
+- ✅ **100% Spanish Localization** - Complete translation
+- ✅ **Unit Tests** - ML model validation tests
+- ✅ **Pre-trained Models** - Create ML StartHours/EndHours models
+- ✅ **Auto-training** - Automatic model retraining
+- ✅ **Holiday Calendars** - Exclude holidays from training
+- ✅ **Local API** - HTTP server for integrations
+
+### Architecture Improvements
+- ✅ Conditional compilation for testing (`#if !TESTING`)
+- ✅ Modular ML architecture with fallback training
+- ✅ SwiftData for local persistence
+- ✅ Proper error handling and logging
+
+---
+
+## 👤 Author
 
 **Jose Araujo** - Sky One, 2026
 
 ---
+
+## 📄 License
+
+This project is proprietary software.
+
+---
+
 <p align="center">
   Made with ❤️ for macOS
 </p>
