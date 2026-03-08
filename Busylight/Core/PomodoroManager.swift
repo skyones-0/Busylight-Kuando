@@ -66,7 +66,9 @@ class PomodoroManager: ObservableObject {
     
     var progress: Double {
         let totalSeconds = totalSecondsForPhase(currentPhase)
-        return Double(totalSeconds - remainingSeconds) / Double(totalSeconds)
+        guard totalSeconds > 0 else { return 0 }
+        let progress = Double(totalSeconds - remainingSeconds) / Double(totalSeconds)
+        return max(0, min(1, progress)) // Clamp between 0 and 1
     }
     
     private func totalSecondsForPhase(_ phase: PomodoroPhase) -> Int {
