@@ -71,11 +71,11 @@ class SmartFeaturesManager: ObservableObject {
     private func setupFeatures() {
         loadWorkProfile()
         loadTheme()
-        // Todos habilitados excepto visualBreakTimer que causa freeze
+        // Todos habilitados excepto idleDetection y visualBreakTimer
         setupCalendarSync()
         setupFocusModeSync()
-        setupIdleDetection()
-        // setupVisualBreakTimer()  // ← DESHABILITADO: Causa freeze por @Published updates cada 60s
+        // setupIdleDetection()         // ← DESHABILITADO: addGlobalMonitorForEvents causa freeze
+        // setupVisualBreakTimer()      // ← DESHABILITADO: @Published updates cada 60s causan freeze
         setupWorkHoursChecker()
         setupMeetingDetection()
         setupPresentationDetection()
