@@ -673,37 +673,24 @@ struct AnimatedGradientBackground: View {
 }
 
 // MARK: - Mesh Gradient Background (macOS 14+)
+// Versión segura sin GeometryReader para evitar layout loops
 struct MeshGradientBackground: View {
     var body: some View {
-        GeometryReader { geometry in
-            ZStack {
-                Color(NSColor.windowBackgroundColor)
-                
-                Circle()
-                    .fill(Color.purple.opacity(0.2))
-                    .blur(radius: 60)
-                    .frame(width: 300, height: 300)
-                    .offset(x: -geometry.size.width * 0.2, y: -geometry.size.height * 0.2)
-                
-                Circle()
-                    .fill(Color.blue.opacity(0.15))
-                    .blur(radius: 80)
-                    .frame(width: 400, height: 400)
-                    .offset(x: geometry.size.width * 0.3, y: geometry.size.height * 0.1)
-                
-                Circle()
-                    .fill(Color.cyan.opacity(0.12))
-                    .blur(radius: 50)
-                    .frame(width: 250, height: 250)
-                    .offset(x: geometry.size.width * 0.1, y: geometry.size.height * 0.4)
-                
-                Circle()
-                    .fill(Color.pink.opacity(0.1))
-                    .blur(radius: 70)
-                    .frame(width: 350, height: 350)
-                    .offset(x: -geometry.size.width * 0.1, y: geometry.size.height * 0.3)
-            }
+        ZStack {
+            // Base color
+            Color(NSColor.windowBackgroundColor)
+            
+            // Gradient background estático (sin GeometryReader)
+            LinearGradient(
+                colors: [
+                    Color.purple.opacity(0.1),
+                    Color.blue.opacity(0.08),
+                    Color.cyan.opacity(0.05)
+                ],
+                startPoint: .topLeading,
+                endPoint: .bottomTrailing
+            )
+            .ignoresSafeArea()
         }
-        .ignoresSafeArea()
     }
 }

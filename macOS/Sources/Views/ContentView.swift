@@ -41,7 +41,7 @@ struct ContentView: View {
         NavigationSplitView {
             // Sidebar con glassmorphism
             ZStack {
-                // Background
+                // Background (versión segura sin GeometryReader)
                 MeshGradientBackground()
                 
                 // Sidebar content
