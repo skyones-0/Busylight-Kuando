@@ -1,4 +1,4 @@
-# Busylight for macOS
+# Busylight
 
 <p align="center">
   <img src="icon Exports/BL Icon.png" alt="Busylight Logo" width="120" height="120">
@@ -10,10 +10,13 @@
 
 <p align="center">
   <a href="#"><img src="https://img.shields.io/badge/macOS-26.2%2B-000000?logo=apple&logoColor=white" alt="macOS"></a>
+  <a href="#"><img src="https://img.shields.io/badge/iOS-18.0%2B-000000?logo=apple&logoColor=white" alt="iOS"></a>
+  <a href="#"><img src="https://img.shields.io/badge/watchOS-11.0%2B-000000?logo=apple&logoColor=white" alt="watchOS"></a>
   <a href="#"><img src="https://img.shields.io/badge/Swift-5.9-F05138?logo=swift&logoColor=white" alt="Swift"></a>
   <a href="#"><img src="https://img.shields.io/badge/SwiftUI-Yes-007AFF?logo=swift&logoColor=white" alt="SwiftUI"></a>
   <a href="#"><img src="https://img.shields.io/badge/Architecture-ARM64-FF6B6B" alt="ARM64"></a>
   <a href="#"><img src="https://img.shields.io/badge/Features-15%2B-95E1D3" alt="Features"></a>
+  <a href="#"><img src="https://img.shields.io/badge/Core%20ML-Enabled-FF6B6B" alt="CoreML"></a>
 </p>
 
 ---
@@ -229,6 +232,28 @@ xcodebuild -project Busylight.xcodeproj -scheme macOS -configuration Release
 3. Select dates to exclude from ML training
 4. ML model will ignore these days when learning patterns
 
+### ML Logging & Notifications
+The app provides detailed logs for ML operations:
+
+**Console Log Indicators:**
+- 🚀 `ML: Iniciando entrenamiento manual` - Training started
+- ⏳ `ML: Entrenando modelo` - Training in progress
+- ✅ `ML: Entrenamiento completado` - Training finished with accuracy
+- ❌ `ML: Error en entrenamiento` - Training failed
+- 📝 `ML: Nuevo patrón diario creado` - New daily pattern collected
+- 🎯 `ML: Se alcanzó el mínimo de datos` - Ready to train
+- 🔮 `ML: Predicción generada` - Prediction created for a date
+- 🔄 `ML: Horarios ajustados automáticamente` - Work hours updated
+- 📅 `ML: Creando calendario de festivos` - Holiday calendar created
+- 🗑️ `ML: Limpiando todos los datos` - ML data reset
+
+**User Notifications:**
+- Training completion notification with accuracy percentage
+- Training failure notification with error details
+- Work hours update notification with new schedule
+
+Enable/disable notifications in ML Settings.
+
 ### Local API
 1. Go to **Settings > API & Integrations**
 2. Toggle **Local API Server**
@@ -243,6 +268,37 @@ POST /timer/start     # Start pomodoro
 POST /timer/pause     # Pause pomodoro
 POST /timer/stop      # Stop pomodoro
 ```
+
+---
+
+## 🌐 Multiplatform Support
+
+Busylight now supports **macOS, iOS, and watchOS** with shared ML capabilities:
+
+### macOS (Primary)
+- Full feature set including USB device control
+- Menu bar integration
+- Local API server
+- All ML features with background training
+
+### iOS
+- Pomodoro timer with notifications
+- Calendar sync
+- ML schedule prediction
+- Widget support
+- All ML features with cloud sync
+
+### watchOS
+- Quick timer controls
+- Complications
+- Haptic feedback
+- Synced with iPhone
+
+**Shared ML Data:**
+- Work patterns sync across devices via CloudKit
+- Model training happens on the most used device
+- Predictions available on all platforms
+- Holiday calendars sync across devices
 
 ---
 
