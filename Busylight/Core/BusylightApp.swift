@@ -1,5 +1,6 @@
 import SwiftUI
 import AppKit
+import SwiftData
 
 @main
 struct BusylightApp: App {
@@ -7,8 +8,25 @@ struct BusylightApp: App {
     @Environment(\.scenePhase) var scenePhase
     @AppStorage("appearanceMode") private var appearanceMode = 0
     
+    // SwiftData container
+    let container: ModelContainer
+    
     init() {
         BusylightLogger.shared.info("=== Busylight App Iniciada ===")
+        
+        // Initialize SwiftData container
+        let schema = Schema([PomodoroSession.self])
+        let configuration = ModelConfiguration(
+            schema: schema,
+            isStoredInMemoryOnly: false
+        )
+        
+        do {
+            container = try ModelContainer(for: schema, configurations: [configuration])
+            BusylightLogger.shared.info("SwiftData container initialized")
+        } catch {
+            fatalError("Failed to initialize SwiftData: \(error)")
+        }
         
         // Escuchar notificación para traer ventana al frente
         NotificationCenter.default.addObserver(
@@ -25,6 +43,7 @@ struct BusylightApp: App {
             ContentView()
                 .environmentObject(appDelegate)
                 .preferredColorScheme(colorScheme)
+                .modelContainer(container)
         }
         .windowStyle(.hiddenTitleBar)
         .defaultSize(width: 800, height: 600)
