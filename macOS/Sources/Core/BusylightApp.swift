@@ -1,6 +1,7 @@
 import SwiftUI
 import AppKit
 import SwiftData
+import BusylightShared
 
 @main
 struct BusylightApp: App {
@@ -8,30 +9,39 @@ struct BusylightApp: App {
     @Environment(\.scenePhase) var scenePhase
     @AppStorage("appearanceMode") private var appearanceMode = 0
     
-    // SwiftData container
+    // SwiftData container with CloudKit
     let container: ModelContainer
     
     init() {
         BusylightLogger.shared.info("=== Busylight App Iniciada ===")
         
-        // Initialize SwiftData container
+        // Initialize SwiftData container with shared models + CloudKit
         let schema = Schema([
             PomodoroSession.self,
             MLWorkPattern.self,
             MLConfiguration.self,
-            HolidayCalendar.self
+            HolidayCalendar.self,
+            UserSettings.self,
+            WorkProfile.self
         ])
+        
+        // Private CloudKit database for user data
         let configuration = ModelConfiguration(
             schema: schema,
-            isStoredInMemoryOnly: false
+            isStoredInMemoryOnly: false,
+            cloudKitDatabase: .automatic
         )
         
         do {
             container = try ModelContainer(for: schema, configurations: [configuration])
-            BusylightLogger.shared.info("SwiftData container initialized")
+            BusylightLogger.shared.info("SwiftData container initialized with CloudKit")
             
             // Initialize ML Manager
             _ = MLScheduleManager.shared
+            
+            // Initialize default settings if needed
+            initializeDefaultSettings()
+            
         } catch {
             fatalError("Failed to initialize SwiftData: \(error)")
         }
@@ -204,4 +214,12 @@ private func tryMenuNewWindow() -> Bool {
 
 extension Notification.Name {
     static let openMainWindow = Notification.Name("OpenMainWindow")
+}
+
+// MARK: - Default Settings
+
+private func initializeDefaultSettings() {
+    // This runs after container is created
+    // Settings will be created on-demand when accessed
+    BusylightLogger.shared.info("Default settings initialization ready")
 }

@@ -6,6 +6,7 @@
 //
 
 import SwiftUI
+import SwiftData
 import EventKit
 
 enum SidebarItem: String, CaseIterable, Identifiable {
@@ -793,24 +794,6 @@ struct SettingsView: View {
                         
                         Divider().opacity(0.5)
                         
-                        // 14. Light Themes
-                        Text("Light Theme")
-                            .font(.caption)
-                            .foregroundStyle(.secondary)
-                            .frame(maxWidth: .infinity, alignment: .leading)
-                        
-                        ScrollView(.horizontal, showsIndicators: false) {
-                            HStack(spacing: 8) {
-                                ForEach(LightTheme.allCases, id: \.self) { theme in
-                                    ThemeButton(
-                                        theme: theme,
-                                        isSelected: smartFeatures.currentTheme == theme
-                                    ) {
-                                        smartFeatures.setTheme(theme)
-                                    }
-                                }
-                            }
-                        }
                     }
                 }
                 .padding(.horizontal, 20)
@@ -1831,52 +1814,6 @@ struct ProfileButton: View {
     }
 }
 
-// MARK: - Theme Button
-struct ThemeButton: View {
-    let theme: LightTheme
-    let isSelected: Bool
-    let action: () -> Void
-    
-    var themeColor: Color {
-        switch theme {
-        case .minimal: return .gray
-        case .aurora: return .green
-        case .nature: return Color(red: 0.4, green: 0.7, blue: 0.4)
-        case .cyber: return .cyan
-        case .calm: return Color(red: 0.5, green: 0.6, blue: 0.5)
-        }
-    }
-    
-    var body: some View {
-        Button(action: action) {
-            VStack(spacing: 4) {
-                Circle()
-                    .fill(themeColor)
-                    .frame(width: 24, height: 24)
-                    .overlay(
-                        Circle()
-                            .stroke(isSelected ? .white : Color.clear, lineWidth: 2)
-                    )
-                
-                Text(theme.displayName)
-                    .font(.system(.caption2, design: .rounded))
-                    .foregroundStyle(isSelected ? .primary : .secondary)
-            }
-            .padding(.horizontal, 12)
-            .padding(.vertical, 8)
-            .background(
-                RoundedRectangle(cornerRadius: 8)
-                    .fill(isSelected ? themeColor.opacity(0.15) : Color.clear)
-                    .overlay(
-                        RoundedRectangle(cornerRadius: 8)
-                            .stroke(isSelected ? themeColor.opacity(0.4) : Color.clear, lineWidth: 1)
-                    )
-            )
-        }
-        .buttonStyle(.plain)
-    }
-}
-
 // MARK: - Deep Work Button
 struct DeepWorkButton: View {
     let minutes: Int
@@ -2321,8 +2258,11 @@ struct MLConfigurationCard: View {
                         // Botón Entrenar
                         Button(action: {
                             Task {
+                                trainingError = nil
                                 do {
                                     try await mlManager.trainModel()
+                                } catch MLError.insufficientData {
+                                    trainingError = "Need 3+ days of work data (have \(mlManager.trainingDaysCollected))"
                                 } catch {
                                     trainingError = error.localizedDescription
                                 }
@@ -2334,7 +2274,7 @@ struct MLConfigurationCard: View {
                                         .controlSize(.small)
                                         .scaleEffect(0.6)
                                 } else {
-                                    Image(systemName: "play.fill")
+                                    Image(systemName: mlManager.canTrainModel() ? "play.fill" : "lock.fill")
                                         .font(.caption)
                                 }
                                 Text(mlManager.isModelTrained ? "Retrain" : "Train Now")
@@ -2345,8 +2285,29 @@ struct MLConfigurationCard: View {
                         }
                         .buttonStyle(.borderedProminent)
                         .controlSize(.small)
-                        .tint(.blue)
+                        .tint(mlManager.canTrainModel() ? .blue : .gray)
                         .disabled(!mlManager.canTrainModel() || mlManager.isTraining)
+                        
+                        // Botón Demo Data (solo cuando no hay suficientes datos)
+                        if !mlManager.canTrainModel() && !mlManager.isTraining {
+                            Button(action: {
+                                mlManager.generateDemoData()
+                                trainingError = nil
+                            }) {
+                                HStack(spacing: 4) {
+                                    Image(systemName: "wand.and.stars")
+                                        .font(.caption)
+                                    Text("Add Demo Data")
+                                        .font(.caption)
+                                }
+                                .padding(.horizontal, 12)
+                                .padding(.vertical, 6)
+                            }
+                            .buttonStyle(.bordered)
+                            .controlSize(.small)
+                            .tint(.purple)
+                            .help("Generate sample work patterns for testing")
+                        }
                         
                         // Botón Calendario Festivos
                         Button(action: { showingHolidaySheet = true }) {
@@ -2472,74 +2433,415 @@ struct MLConfigurationCard: View {
 // MARK: - Holiday Calendar View
 struct HolidayCalendarView: View {
     @Environment(\.dismiss) private var dismiss
-    @StateObject private var mlManager = MLScheduleManager.shared
-    @State private var newCalendarName = ""
+    @Environment(\.modelContext) private var modelContext
+    
+    // Use @Query for reactive updates
+    @Query(sort: \HolidayCalendar.createdAt, order: .reverse) private var calendars: [HolidayCalendar]
+    
+    @State private var selectedTab = 0 // 0 = Predefined, 1 = Custom Dates
+    @State private var selectedCountry = "US"
+    @State private var customCalendarName = ""
     @State private var selectedDates: [Date] = []
     @State private var showingDatePicker = false
+    @State private var showingDeleteConfirmation = false
+    @State private var calendarToDelete: HolidayCalendar?
+    
+    private var activeCalendarsCount: Int {
+        calendars.filter { $0.isEnabled }.count
+    }
     
     var body: some View {
-        VStack(spacing: 16) {
+        VStack(spacing: 0) {
             // Header
             HStack {
-                Text("Holiday Calendars")
-                    .font(.title2.bold())
+                VStack(alignment: .leading, spacing: 4) {
+                    Text("Holiday Calendars")
+                        .font(.title2.bold())
+                    Text("\(activeCalendarsCount) active · Excluded from ML training")
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                }
                 Spacer()
-                Button("Close") { dismiss() }
+                Button("Done") { dismiss() }
+                    .buttonStyle(.borderedProminent)
+                    .controlSize(.small)
+            }
+            .padding()
+            
+            // Tab Selector
+            Picker("Type", selection: $selectedTab) {
+                Text("Predefined").tag(0)
+                Text("Custom Dates").tag(1)
+            }
+            .pickerStyle(.segmented)
+            .padding(.horizontal)
+            
+            // Content based on tab
+            if selectedTab == 0 {
+                predefinedCalendarsView
+            } else {
+                customDatesView
+            }
+            
+            Divider()
+            
+            // Active Calendars List
+            List {
+                Section {
+                    if calendars.isEmpty {
+                        VStack(spacing: 8) {
+                            Image(systemName: "calendar.badge.plus")
+                                .font(.largeTitle)
+                                .foregroundStyle(.secondary)
+                            Text("No holiday calendars")
+                                .font(.callout)
+                                .foregroundStyle(.secondary)
+                            Text("Add holidays to exclude them from ML training")
+                                .font(.caption)
+                                .foregroundStyle(.secondary)
+                        }
+                        .frame(maxWidth: .infinity)
+                        .padding(.vertical, 20)
+                    } else {
+                        ForEach(calendars) { calendar in
+                            HolidayCalendarRow(
+                                calendar: calendar,
+                                onToggle: { toggleCalendar(calendar) },
+                                onDelete: { calendarToDelete = calendar; showingDeleteConfirmation = true }
+                            )
+                        }
+                    }
+                } header: {
+                    Text("\(calendars.count) Calendars")
+                }
+            }
+            .listStyle(.plain)
+        }
+        .frame(width: 450, height: 550)
+        .sheet(isPresented: $showingDatePicker) {
+            MultiDatePicker(selectedDates: $selectedDates)
+        }
+        .alert("Delete calendar?", isPresented: $showingDeleteConfirmation, presenting: calendarToDelete) { calendar in
+            Button("Cancel", role: .cancel) { }
+            Button("Delete", role: .destructive) {
+                deleteCalendar(calendar)
+            }
+        } message: { calendar in
+            Text("'\(calendar.name)' will be permanently removed.")
+        }
+    }
+    
+    // MARK: - Predefined Calendars View
+    private var predefinedCalendarsView: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            Text("Select Country")
+                .font(.headline)
+                .padding(.horizontal)
+            
+            LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: 10) {
+                ForEach(HolidayCalendar.availableCountries, id: \.code) { country in
+                    CountryButton(
+                        country: country,
+                        isSelected: selectedCountry == country.code,
+                        isAdded: calendars.contains { $0.countryCode == country.code && $0.isSystemCalendar },
+                        onTap: { selectedCountry = country.code },
+                        onAdd: { addPredefinedCalendar(country: country) }
+                    )
+                }
             }
             .padding(.horizontal)
-            .padding(.top)
             
-            List {
-                Section("Add Holiday Calendar") {
-                    TextField("Calendar Name", text: $newCalendarName)
-                    
-                    Button("Select Dates (\(selectedDates.count) selected)") {
+            // Preview of holidays for selected country
+            VStack(alignment: .leading, spacing: 8) {
+                Text("Holidays in \(Calendar.current.component(.year, from: Date()))")
+                    .font(.caption.bold())
+                    .foregroundStyle(.secondary)
+                
+                let currentYear = Calendar.current.component(.year, from: Date())
+                let holidays = HolidayCalendar.getHolidays(for: selectedCountry, year: currentYear)
+                
+                FlowLayout(spacing: 6) {
+                    ForEach(holidays.prefix(6), id: \.self) { date in
+                        Text(date, style: .date)
+                            .font(.caption)
+                            .padding(.horizontal, 8)
+                            .padding(.vertical, 4)
+                            .background(Color.blue.opacity(0.1))
+                            .clipShape(Capsule())
+                    }
+                }
+            }
+            .padding()
+            .background(Color.gray.opacity(0.1))
+            .clipShape(RoundedRectangle(cornerRadius: 10))
+            .padding(.horizontal)
+            
+            Spacer()
+        }
+        .padding(.vertical)
+    }
+    
+    // MARK: - Custom Dates View
+    private var customDatesView: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            TextField("Calendar Name (e.g., Company Holidays)", text: $customCalendarName)
+                .textFieldStyle(.roundedBorder)
+                .padding(.horizontal)
+            
+            // Selected Dates Display
+            VStack(alignment: .leading, spacing: 8) {
+                HStack {
+                    Text("Selected Dates")
+                        .font(.caption.bold())
+                        .foregroundStyle(.secondary)
+                    Spacer()
+                    Text("\(selectedDates.count) dates")
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                }
+                
+                if selectedDates.isEmpty {
+                    Button("Select Dates...") {
                         showingDatePicker = true
                     }
-                    
-                    Button("Create Calendar") {
-                        if !newCalendarName.isEmpty && !selectedDates.isEmpty {
-                            mlManager.createHolidayCalendar(
-                                name: newCalendarName,
-                                countryCode: "custom",
-                                dates: selectedDates
-                            )
-                            newCalendarName = ""
-                            selectedDates = []
-                        }
-                    }
-                    .disabled(newCalendarName.isEmpty || selectedDates.isEmpty)
-                }
-                
-                Section("Active Calendars") {
-                    ForEach(mlManager.getHolidayCalendars()) { calendar in
-                        HStack {
-                            Text(calendar.name)
-                            Spacer()
-                            if calendar.isEnabled {
-                                Image(systemName: "checkmark.circle.fill")
-                                    .foregroundStyle(.green)
+                    .buttonStyle(.bordered)
+                    .controlSize(.small)
+                } else {
+                    FlowLayout(spacing: 6) {
+                        ForEach(selectedDates.sorted().prefix(8), id: \.self) { date in
+                            HStack(spacing: 4) {
+                                Text(date, style: .date)
+                                    .font(.caption)
+                                Button(action: { 
+                                    selectedDates.removeAll { $0 == date }
+                                }) {
+                                    Image(systemName: "xmark.circle.fill")
+                                        .font(.caption)
+                                        .foregroundStyle(.red)
+                                }
+                                .buttonStyle(.plain)
                             }
+                            .padding(.horizontal, 8)
+                            .padding(.vertical, 4)
+                            .background(Color.green.opacity(0.1))
+                            .clipShape(Capsule())
+                        }
+                        if selectedDates.count > 8 {
+                            Text("+\(selectedDates.count - 8) more")
+                                .font(.caption)
+                                .foregroundStyle(.secondary)
                         }
                     }
-                    .onDelete { indexSet in
-                        let calendars = mlManager.getHolidayCalendars()
-                        for index in indexSet {
-                            mlManager.deleteHolidayCalendar(calendars[index])
-                        }
+                    
+                    Button("Add More Dates...") {
+                        showingDatePicker = true
                     }
+                    .buttonStyle(.bordered)
+                    .controlSize(.small)
                 }
+            }
+            .padding()
+            .background(Color.gray.opacity(0.1))
+            .clipShape(RoundedRectangle(cornerRadius: 10))
+            .padding(.horizontal)
+            
+            Button(action: addCustomCalendar) {
+                HStack {
+                    Image(systemName: "plus.circle.fill")
+                    Text("Add Custom Calendar")
+                }
+                .frame(maxWidth: .infinity)
+            }
+            .buttonStyle(.borderedProminent)
+            .disabled(customCalendarName.isEmpty || selectedDates.isEmpty)
+            .padding(.horizontal)
+            
+            Spacer()
+        }
+        .padding(.vertical)
+    }
+    
+    // MARK: - Actions
+    private func addPredefinedCalendar(country: (code: String, name: String, flag: String)) {
+        // Check if already exists
+        guard !calendars.contains(where: { $0.countryCode == country.code && $0.isSystemCalendar }) else {
+            return
+        }
+        
+        let calendar = HolidayCalendar(
+            name: "\(country.flag) \(country.name) Holidays",
+            countryCode: country.code,
+            customDates: [],
+            isSystemCalendar: true
+        )
+        modelContext.insert(calendar)
+        try? modelContext.save()
+    }
+    
+    private func addCustomCalendar() {
+        guard !customCalendarName.isEmpty && !selectedDates.isEmpty else { return }
+        
+        let calendar = HolidayCalendar(
+            name: customCalendarName,
+            countryCode: "CUSTOM",
+            customDates: selectedDates,
+            isSystemCalendar: false
+        )
+        modelContext.insert(calendar)
+        try? modelContext.save()
+        
+        // Reset form
+        customCalendarName = ""
+        selectedDates = []
+    }
+    
+    private func toggleCalendar(_ calendar: HolidayCalendar) {
+        calendar.isEnabled.toggle()
+        try? modelContext.save()
+    }
+    
+    private func deleteCalendar(_ calendar: HolidayCalendar) {
+        modelContext.delete(calendar)
+        try? modelContext.save()
+    }
+}
+
+// MARK: - Supporting Views
+struct CountryButton: View {
+    let country: (code: String, name: String, flag: String)
+    let isSelected: Bool
+    let isAdded: Bool
+    let onTap: () -> Void
+    let onAdd: () -> Void
+    
+    var body: some View {
+        HStack {
+            Text(country.flag)
+                .font(.title2)
+            Text(country.name)
+                .font(.callout)
+            Spacer()
+            
+            if isAdded {
+                Image(systemName: "checkmark.circle.fill")
+                    .foregroundStyle(.green)
+            } else {
+                Button(action: onAdd) {
+                    Image(systemName: "plus.circle.fill")
+                        .foregroundStyle(.blue)
+                }
+                .buttonStyle(.plain)
+            }
+        }
+        .padding()
+        .background(isSelected ? Color.blue.opacity(0.1) : Color.gray.opacity(0.1))
+        .clipShape(RoundedRectangle(cornerRadius: 10))
+        .overlay(
+            RoundedRectangle(cornerRadius: 10)
+                .stroke(isSelected ? Color.blue : Color.clear, lineWidth: 2)
+        )
+        .contentShape(Rectangle())
+        .onTapGesture(perform: onTap)
+    }
+}
+
+struct HolidayCalendarRow: View {
+    let calendar: HolidayCalendar
+    let onToggle: () -> Void
+    let onDelete: () -> Void
+    
+    var body: some View {
+        HStack(spacing: 12) {
+            // Icon/Flag
+            if calendar.isSystemCalendar {
+                Text(flagForCountry(calendar.countryCode))
+                    .font(.title3)
+            } else {
+                Image(systemName: "calendar.badge.plus")
+                    .font(.title3)
+                    .foregroundStyle(.orange)
+            }
+            
+            VStack(alignment: .leading, spacing: 2) {
+                Text(calendar.name)
+                    .font(.callout.weight(.medium))
                 
-                Section {
-                    Text("Holidays are excluded from ML training.")
+                if calendar.isSystemCalendar {
+                    Text("Predefined holidays")
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                } else {
+                    Text("\(calendar.customDates.count) custom dates")
                         .font(.caption)
                         .foregroundStyle(.secondary)
                 }
             }
+            
+            Spacer()
+            
+            Toggle("", isOn: Binding(
+                get: { calendar.isEnabled },
+                set: { _ in onToggle() }
+            ))
+            .toggleStyle(.switch)
+            .controlSize(.small)
+            
+            Button(action: onDelete) {
+                Image(systemName: "trash")
+                    .foregroundStyle(.red)
+            }
+            .buttonStyle(.plain)
         }
-        .frame(width: 400, height: 500)
-        .sheet(isPresented: $showingDatePicker) {
-            MultiDatePicker(selectedDates: $selectedDates)
+        .padding(.vertical, 4)
+    }
+    
+    private func flagForCountry(_ code: String) -> String {
+        HolidayCalendar.availableCountries.first { $0.code == code }?.flag ?? "📅"
+    }
+}
+
+// MARK: - Flow Layout Helper
+struct FlowLayout: Layout {
+    var spacing: CGFloat = 6
+    
+    func sizeThatFits(proposal: ProposedViewSize, subviews: Subviews, cache: inout ()) -> CGSize {
+        let result = FlowResult(in: proposal.replacingUnspecifiedDimensions().width, subviews: subviews, spacing: spacing)
+        return result.size
+    }
+    
+    func placeSubviews(in bounds: CGRect, proposal: ProposedViewSize, subviews: Subviews, cache: inout ()) {
+        let result = FlowResult(in: bounds.width, subviews: subviews, spacing: spacing)
+        for (index, subview) in subviews.enumerated() {
+            subview.place(at: CGPoint(x: bounds.minX + result.positions[index].x,
+                                      y: bounds.minY + result.positions[index].y),
+                         proposal: .unspecified)
+        }
+    }
+    
+    struct FlowResult {
+        var size: CGSize = .zero
+        var positions: [CGPoint] = []
+        
+        init(in maxWidth: CGFloat, subviews: Subviews, spacing: CGFloat) {
+            var x: CGFloat = 0
+            var y: CGFloat = 0
+            var rowHeight: CGFloat = 0
+            
+            for subview in subviews {
+                let size = subview.sizeThatFits(.unspecified)
+                
+                if x + size.width > maxWidth && x > 0 {
+                    x = 0
+                    y += rowHeight + spacing
+                    rowHeight = 0
+                }
+                
+                positions.append(CGPoint(x: x, y: y))
+                rowHeight = max(rowHeight, size.height)
+                x += size.width + spacing
+            }
+            
+            self.size = CGSize(width: maxWidth, height: y + rowHeight)
         }
     }
 }

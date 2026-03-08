@@ -31,12 +31,19 @@ class MLScheduleManager: ObservableObject {
     private let context: ModelContext
     
     // MARK: - Constants
-    private let minSamplesForTraining = 10
+    private let minSamplesForTraining = 3  // Reduced for easier testing
     private let modelFileName = "WorkSchedulePredictor.mlmodel"
     
     init() {
-        // Get SwiftData context
-        let container = try! ModelContainer(for: MLWorkPattern.self, MLConfiguration.self, HolidayCalendar.self)
+        // Get SwiftData context with all shared models
+        let schema = Schema([
+            MLWorkPattern.self,
+            MLConfiguration.self,
+            HolidayCalendar.self,
+            UserSettings.self,
+            WorkProfile.self
+        ])
+        let container = try! ModelContainer(for: schema, configurations: [ModelConfiguration(schema: schema, isStoredInMemoryOnly: false)])
         self.context = ModelContext(container)
         
         loadConfiguration()
@@ -575,6 +582,50 @@ class MLScheduleManager: ObservableObject {
         BusylightLogger.shared.info("ML: ✅ Datos de ML reiniciados completamente")
     }
     
+    // MARK: - Demo Data
+    
+    /// Genera datos de ejemplo para pruebas (3-7 días de patrones de trabajo)
+    func generateDemoData() {
+        BusylightLogger.shared.info("ML: 🎮 Generando datos de ejemplo para pruebas...")
+        
+        let calendar = Calendar.current
+        let today = Date()
+        
+        // Generar 5 días de datos históricos
+        for dayOffset in stride(from: -6, through: -2, by: 1) {
+            guard let date = calendar.date(byAdding: .day, value: dayOffset, to: today) else { continue }
+            
+            // Saltar fines de semana para datos más realistas
+            let weekday = calendar.component(.weekday, from: date)
+            guard weekday != 1 && weekday != 7 else { continue } // Skip Sunday (1) and Saturday (7)
+            
+            let pattern = MLWorkPattern(
+                date: date,
+                dayOfWeek: weekday,
+                startHour: 8 + Int.random(in: 0...2), // 8-10 AM
+                startMinute: 0,
+                endHour: 16 + Int.random(in: 2...4),  // 6-8 PM
+                endMinute: 0,
+                isHoliday: false,
+                sessionCount: Int.random(in: 3...6),
+                deepWorkMinutes: Int.random(in: 60...180),
+                calendarEventCount: Int.random(in: 2...5)
+            )
+            
+            context.insert(pattern)
+        }
+        
+        try? context.save()
+        updateTrainingStats()
+        
+        BusylightLogger.shared.info("ML: ✅ Datos de ejemplo generados - \(trainingDaysCollected) días disponibles")
+        
+        // Notificar que ya se puede entrenar
+        if canTrainModel() {
+            BusylightLogger.shared.info("ML: 🎯 Ahora puedes entrenar el modelo con los datos de ejemplo!")
+        }
+    }
+    
     // MARK: - Holiday Calendars
     
     @discardableResult
@@ -628,11 +679,11 @@ enum MLError: Error, LocalizedError {
     var errorDescription: String? {
         switch self {
         case .insufficientData:
-            return "Se necesitan al menos 10 días de datos para entrenar el modelo"
+            return "At least 3 days of work data needed to train the model"
         case .trainingFailed:
-            return "El entrenamiento del modelo falló"
+            return "Model training failed"
         case .modelNotFound:
-            return "No se encontró un modelo entrenado"
+            return "No trained model found"
         }
     }
 }

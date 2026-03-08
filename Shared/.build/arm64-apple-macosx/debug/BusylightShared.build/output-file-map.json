@@ -1,0 +1,47 @@
+{
+  "": {
+    "swift-dependencies": "/Users/skyones/Desktop/Project/macOS/Busylight/Shared/.build/arm64-apple-macosx/debug/BusylightShared.build/master.swiftdeps"
+  },
+  "/Users/skyones/Desktop/Project/macOS/Busylight/Shared/Sources/BusylightShared/BusylightShared.swift": {
+    "dependencies": "/Users/skyones/Desktop/Project/macOS/Busylight/Shared/.build/arm64-apple-macosx/debug/BusylightShared.build/BusylightShared.d",
+    "object": "/Users/skyones/Desktop/Project/macOS/Busylight/Shared/.build/arm64-apple-macosx/debug/BusylightShared.build/BusylightShared.swift.o",
+    "swiftmodule": "/Users/skyones/Desktop/Project/macOS/Busylight/Shared/.build/arm64-apple-macosx/debug/BusylightShared.build/BusylightShared~partial.swiftmodule",
+    "swift-dependencies": "/Users/skyones/Desktop/Project/macOS/Busylight/Shared/.build/arm64-apple-macosx/debug/BusylightShared.build/BusylightShared.swiftdeps",
+    "diagnostics": "/Users/skyones/Desktop/Project/macOS/Busylight/Shared/.build/arm64-apple-macosx/debug/BusylightShared.build/BusylightShared.dia"
+  },
+  "/Users/skyones/Desktop/Project/macOS/Busylight/Shared/Sources/BusylightShared/Models/MLModels.swift": {
+    "dependencies": "/Users/skyones/Desktop/Project/macOS/Busylight/Shared/.build/arm64-apple-macosx/debug/BusylightShared.build/MLModels.d",
+    "object": "/Users/skyones/Desktop/Project/macOS/Busylight/Shared/.build/arm64-apple-macosx/debug/BusylightShared.build/MLModels.swift.o",
+    "swiftmodule": "/Users/skyones/Desktop/Project/macOS/Busylight/Shared/.build/arm64-apple-macosx/debug/BusylightShared.build/MLModels~partial.swiftmodule",
+    "swift-dependencies": "/Users/skyones/Desktop/Project/macOS/Busylight/Shared/.build/arm64-apple-macosx/debug/BusylightShared.build/MLModels.swiftdeps",
+    "diagnostics": "/Users/skyones/Desktop/Project/macOS/Busylight/Shared/.build/arm64-apple-macosx/debug/BusylightShared.build/MLModels.dia"
+  },
+  "/Users/skyones/Desktop/Project/macOS/Busylight/Shared/Sources/BusylightShared/Models/PomodoroModels.swift": {
+    "dependencies": "/Users/skyones/Desktop/Project/macOS/Busylight/Shared/.build/arm64-apple-macosx/debug/BusylightShared.build/PomodoroModels.d",
+    "object": "/Users/skyones/Desktop/Project/macOS/Busylight/Shared/.build/arm64-apple-macosx/debug/BusylightShared.build/PomodoroModels.swift.o",
+    "swiftmodule": "/Users/skyones/Desktop/Project/macOS/Busylight/Shared/.build/arm64-apple-macosx/debug/BusylightShared.build/PomodoroModels~partial.swiftmodule",
+    "swift-dependencies": "/Users/skyones/Desktop/Project/macOS/Busylight/Shared/.build/arm64-apple-macosx/debug/BusylightShared.build/PomodoroModels.swiftdeps",
+    "diagnostics": "/Users/skyones/Desktop/Project/macOS/Busylight/Shared/.build/arm64-apple-macosx/debug/BusylightShared.build/PomodoroModels.dia"
+  },
+  "/Users/skyones/Desktop/Project/macOS/Busylight/Shared/Sources/BusylightShared/Models/UserSettings.swift": {
+    "dependencies": "/Users/skyones/Desktop/Project/macOS/Busylight/Shared/.build/arm64-apple-macosx/debug/BusylightShared.build/UserSettings.d",
+    "object": "/Users/skyones/Desktop/Project/macOS/Busylight/Shared/.build/arm64-apple-macosx/debug/BusylightShared.build/UserSettings.swift.o",
+    "swiftmodule": "/Users/skyones/Desktop/Project/macOS/Busylight/Shared/.build/arm64-apple-macosx/debug/BusylightShared.build/UserSettings~partial.swiftmodule",
+    "swift-dependencies": "/Users/skyones/Desktop/Project/macOS/Busylight/Shared/.build/arm64-apple-macosx/debug/BusylightShared.build/UserSettings.swiftdeps",
+    "diagnostics": "/Users/skyones/Desktop/Project/macOS/Busylight/Shared/.build/arm64-apple-macosx/debug/BusylightShared.build/UserSettings.dia"
+  },
+  "/Users/skyones/Desktop/Project/macOS/Busylight/Shared/Sources/BusylightShared/Sync/CloudKitSyncManager.swift": {
+    "dependencies": "/Users/skyones/Desktop/Project/macOS/Busylight/Shared/.build/arm64-apple-macosx/debug/BusylightShared.build/CloudKitSyncManager.d",
+    "object": "/Users/skyones/Desktop/Project/macOS/Busylight/Shared/.build/arm64-apple-macosx/debug/BusylightShared.build/CloudKitSyncManager.swift.o",
+    "swiftmodule": "/Users/skyones/Desktop/Project/macOS/Busylight/Shared/.build/arm64-apple-macosx/debug/BusylightShared.build/CloudKitSyncManager~partial.swiftmodule",
+    "swift-dependencies": "/Users/skyones/Desktop/Project/macOS/Busylight/Shared/.build/arm64-apple-macosx/debug/BusylightShared.build/CloudKitSyncManager.swiftdeps",
+    "diagnostics": "/Users/skyones/Desktop/Project/macOS/Busylight/Shared/.build/arm64-apple-macosx/debug/BusylightShared.build/CloudKitSyncManager.dia"
+  },
+  "/Users/skyones/Desktop/Project/macOS/Busylight/Shared/Sources/BusylightShared/Utilities/HolidayData.swift": {
+    "dependencies": "/Users/skyones/Desktop/Project/macOS/Busylight/Shared/.build/arm64-apple-macosx/debug/BusylightShared.build/HolidayData.d",
+    "object": "/Users/skyones/Desktop/Project/macOS/Busylight/Shared/.build/arm64-apple-macosx/debug/BusylightShared.build/HolidayData.swift.o",
+    "swiftmodule": "/Users/skyones/Desktop/Project/macOS/Busylight/Shared/.build/arm64-apple-macosx/debug/BusylightShared.build/HolidayData~partial.swiftmodule",
+    "swift-dependencies": "/Users/skyones/Desktop/Project/macOS/Busylight/Shared/.build/arm64-apple-macosx/debug/BusylightShared.build/HolidayData.swiftdeps",
+    "diagnostics": "/Users/skyones/Desktop/Project/macOS/Busylight/Shared/.build/arm64-apple-macosx/debug/BusylightShared.build/HolidayData.dia"
+  }
+}

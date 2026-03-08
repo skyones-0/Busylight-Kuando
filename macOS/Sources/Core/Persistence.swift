@@ -15,15 +15,21 @@ class PersistenceController {
     let container: ModelContainer
     
     init() {
-        // Define schema with all models
+        // Define schema with all shared models
         let schema = Schema([
-            PomodoroSession.self
+            PomodoroSession.self,
+            MLWorkPattern.self,
+            MLConfiguration.self,
+            HolidayCalendar.self,
+            UserSettings.self,
+            WorkProfile.self
         ])
         
-        // Configure model container
+        // Configure model container with CloudKit
         let modelConfiguration = ModelConfiguration(
             schema: schema,
-            isStoredInMemoryOnly: false
+            isStoredInMemoryOnly: false,
+            cloudKitDatabase: .automatic
         )
         
         do {
@@ -38,7 +44,14 @@ class PersistenceController {
     
     // Preview container for SwiftUI previews
     static var preview: ModelContainer {
-        let schema = Schema([PomodoroSession.self])
+        let schema = Schema([
+            PomodoroSession.self,
+            MLWorkPattern.self,
+            MLConfiguration.self,
+            HolidayCalendar.self,
+            UserSettings.self,
+            WorkProfile.self
+        ])
         let configuration = ModelConfiguration(
             schema: schema,
             isStoredInMemoryOnly: true
@@ -56,21 +69,20 @@ class PersistenceController {
             let sampleSessions = [
                 PomodoroSession(
                     startTime: Date(),
-                    durationMinutes: 25,
-                    phase: "work",
-                    completed: true
+                    duration: 25 * 60,
+                    type: "focus",
+                    taskName: "Sample Task 1"
                 ),
                 PomodoroSession(
                     startTime: Date().addingTimeInterval(-3600),
-                    durationMinutes: 5,
-                    phase: "shortBreak",
-                    completed: true
+                    duration: 5 * 60,
+                    type: "shortBreak"
                 ),
                 PomodoroSession(
                     startTime: Date().addingTimeInterval(-7200),
-                    durationMinutes: 25,
-                    phase: "work",
-                    completed: false
+                    duration: 25 * 60,
+                    type: "focus",
+                    taskName: "Sample Task 2"
                 )
             ]
             

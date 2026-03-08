@@ -20,7 +20,6 @@ class SmartFeaturesManager: ObservableObject {
     // MARK: - Published States
     @Published var calendarStatus: CalendarStatus = .none
     @Published var calendarAccessGranted = false
-    @Published var selectedCalendarIdentifier: String = ""
     @Published var availableCalendars: [EKCalendar] = []
     @Published var focusMode: FocusMode = .none
     @Published var isInMeeting: Bool = false
@@ -28,7 +27,6 @@ class SmartFeaturesManager: ObservableObject {
     @Published var currentWorkProfile: WorkProfile = .standard
     @Published var isDeepWorkActive: Bool = false
     @Published var dashboardData: ProductivityDashboard = ProductivityDashboard()
-    @Published var currentTheme: LightTheme = .minimal
     @Published var isWithinWorkHours: Bool = true
     @Published var deepWorkRemainingMinutes: Int = 0
     
@@ -41,6 +39,7 @@ class SmartFeaturesManager: ObservableObject {
     
     // MARK: - Settings
     @AppStorage("calendarSyncEnabled") var calendarSyncEnabled = true
+    @AppStorage("selectedCalendarIdentifier") var selectedCalendarIdentifier: String = ""
     @AppStorage("focusModeSyncEnabled") var focusModeSyncEnabled = true
     @AppStorage("deepWorkEnabled") var deepWorkEnabled = true
     @AppStorage("presentationModeEnabled") var presentationModeEnabled = true
@@ -49,7 +48,6 @@ class SmartFeaturesManager: ObservableObject {
     @AppStorage("workEndTime") var workEndTime = 18
     @AppStorage("workDays") var workDays = "1,2,3,4,5" // Mon-Fri
     @AppStorage("selectedWorkProfile") var selectedWorkProfile = "standard"
-    @AppStorage("selectedLightTheme") var selectedLightTheme = "minimal"
     @AppStorage("zoomDetectionEnabled") var zoomDetectionEnabled = true
     
     private init() {
@@ -59,7 +57,6 @@ class SmartFeaturesManager: ObservableObject {
     // MARK: - Setup
     private func setupFeatures() {
         loadWorkProfile()
-        loadTheme()
         setupCalendarSync()
         setupFocusModeSync()
         setupWorkHoursChecker()
@@ -394,31 +391,6 @@ class SmartFeaturesManager: ObservableObject {
         isWithinWorkHours = isWorkDay && isWorkHour
     }
     
-    // MARK: - 14. Light Themes
-    private func loadTheme() {
-        currentTheme = LightTheme(rawValue: selectedLightTheme) ?? .minimal
-    }
-    
-    func setTheme(_ theme: LightTheme) {
-        currentTheme = theme
-        selectedLightTheme = theme.rawValue
-    }
-    
-    func getThemeColor(for phase: PomodoroPhase) -> Color {
-        switch currentTheme {
-        case .aurora:
-            return phase == .work ? .green : .blue
-        case .minimal:
-            return phase == .work ? .white : .gray
-        case .nature:
-            return phase == .work ? Color(red: 0.4, green: 0.7, blue: 0.4) : Color(red: 0.6, green: 0.8, blue: 0.6)
-        case .cyber:
-            return phase == .work ? .cyan : .purple
-        case .calm:
-            return phase == .work ? Color(red: 0.5, green: 0.6, blue: 0.5) : Color(red: 0.6, green: 0.5, blue: 0.6)
-        }
-    }
-    
     // MARK: - ML Integration
     func updateWorkHours(start: Int, end: Int) {
         workStartTime = max(0, min(23, start))
@@ -479,24 +451,6 @@ enum WorkProfile: String, CaseIterable {
         case .meetings: return "person.2.fill"
         case .deepWork: return "brain.head.profile"
         case .learning: return "book.fill"
-        }
-    }
-}
-
-enum LightTheme: String, CaseIterable {
-    case minimal = "minimal"
-    case aurora = "aurora"
-    case nature = "nature"
-    case cyber = "cyber"
-    case calm = "calm"
-    
-    var displayName: String {
-        switch self {
-        case .minimal: return "Minimal"
-        case .aurora: return "Aurora"
-        case .nature: return "Nature"
-        case .cyber: return "Cyber"
-        case .calm: return "Calm"
         }
     }
 }
