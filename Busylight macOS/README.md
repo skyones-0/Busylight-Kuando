@@ -340,18 +340,11 @@ Busylight now supports **macOS, iOS, and watchOS** with shared ML capabilities:
 
 ---
 
-## 👤 Author
+## 👤 Develpment by
 
 **Jose Araujo** - Sky One, 2026
 
 ---
-
-## 📄 License
-
-This project is proprietary software.
-
----
-
 <p align="center">
   Made with ❤️ for macOS
 </p>
