@@ -27,12 +27,7 @@ struct MenuBarView: View {
                 // Visibility Card
                 GlassVisibilityCard()
                 
-                // Quick Colors
-               // GlassQuickColorsCard(busylight: busylight)
-                
-                Spacer(minLength: 4)
-                
-                // Actions - más compactos
+                // Actions - más compactos, justo después de Visibility
                 HStack(spacing: 8) {
                     Button {
                         BusylightLogger.shared.info("MenuBar: Abrir ventana principal")

@@ -66,6 +66,7 @@ struct GradientWaveButtonStyle: ButtonStyle {
             .foregroundStyle(isProminent ? .white : .primary)
             .frame(maxWidth: .infinity)
             .padding(.vertical, 12)
+            .focusable(false)
             .background(
                 ZStack {
                     // Base gradient background
@@ -121,6 +122,7 @@ struct SmallGradientButtonStyle: ButtonStyle {
             .foregroundStyle(isProminent ? .white : .primary)
             .frame(maxWidth: .infinity)
             .padding(.vertical, 6)
+            .focusable(false)
             .background(
                 ZStack {
                     RoundedRectangle(cornerRadius: cornerRadius)
@@ -227,6 +229,7 @@ struct ColorButtonStyle: ButtonStyle {
     func makeBody(configuration: Configuration) -> some View {
         configuration.label
             .padding(8)
+            .focusable(false)
             .background(
                 ZStack {
                     RoundedRectangle(cornerRadius: 12)
@@ -273,6 +276,7 @@ struct JingleButtonStyle: ButtonStyle {
     func makeBody(configuration: Configuration) -> some View {
         configuration.label
             .foregroundStyle(configuration.isPressed ? .white : .secondary)
+            .focusable(false)
             .background(
                 ZStack {
                     RoundedRectangle(cornerRadius: 10)
@@ -323,6 +327,7 @@ struct StepperButtonStyle: ButtonStyle {
     func makeBody(configuration: Configuration) -> some View {
         configuration.label
             .foregroundStyle(configuration.isPressed ? .white : .primary)
+            .focusable(false)
             .background(
                 ZStack {
                     Circle()
