@@ -1,218 +1,91 @@
-# Guía de Entrenamiento CoreML para Busylight
+# ML Training Data for Busylight
 
-Esta carpeta contiene datos y guías para entrenar tu propio modelo de predicción de horarios usando Create ML de Xcode.
+This folder contains synthetic training datasets for the CoreML Random Forest models used to predict work schedules.
 
----
+## Datasets
 
-## 📁 Archivos Incluidos
+### 1. work_schedule_training_data.csv (1,200 records)
+Main training dataset with realistic work patterns.
 
-| Archivo | Descripción |
-|---------|-------------|
-| `work_schedule_training_data.csv` | 30 días de datos de trabajo (sin fechas) - Ideal para entrenamiento rápido |
-| `work_schedule_with_holidays.csv` | 30 días con fechas reales y festivos marcados - Más realista |
+**Features:**
+- `dayOfWeek`: Day of week (1=Sunday, 7=Saturday)
+- `isWeekend`: 0 or 1
+- `isHoliday`: 0 or 1
+- `sessionCount`: Number of work sessions (0-12)
+- `deepWorkMinutes`: Deep work duration (0-480)
+- `calendarEventCount`: Calendar events (0-10)
+- `startHour`: Predicted start hour (0-23, 0=no work)
+- `endHour`: Predicted end hour (0-23, 0=no work)
 
----
+### 2. testing_data.csv (200 records)
+Testing dataset with edge cases and random samples.
 
-## 📊 Estructura de los Datos
+### 3. work_schedule_with_holidays.csv (300 records)
+Validation dataset with 100 holiday records for testing holiday exclusion.
 
-### Columnas del CSV:
+## Data Generation
 
-| Columna | Tipo | Descripción | Ejemplo |
-|---------|------|-------------|---------|
-| `dayOfWeek` | Número | Día de la semana (1=Domingo, 2=Lunes...) | 2 (Lunes) |
-| `isWeekend` | Booleano | ¿Es fin de semana? (0=no, 1=sí) | 0 |
-| `isHoliday` | Booleano | ¿Es festivo? (0=no, 1=sí) | 0 |
-| `sessionCount` | Número | Número de sesiones Pomodoro completadas | 5 |
-| `deepWorkMinutes` | Número | Minutos de trabajo profundo | 120 |
-| `calendarEventCount` | Número | Eventos en calendario ese día | 3 |
-| `startHour` | Número (Target) | Hora de inicio (0-23) | 8 |
-| `endHour` | Número (Target) | Hora de fin (0-23) | 17 |
-
-**Nota:** `startHour` y `endHour` son los valores que el modelo intentará predecir.
-
----
-
-## 🚀 Paso a Paso: Entrenar con Create ML
-
-### Paso 1: Abrir Create ML
-
-1. Abre **Xcode**
-2. Ve al menú: **Xcode** → **Open Developer Tool** → **Create ML**
-3. Selecciona **New Document** (⌘N)
-
-### Paso 2: Elegir el Tipo de Modelo
-
-1. Selecciona la pestaña **Tabular** (izquierda)
-2. Haz doble clic en **Tabular Regression** (Regresión Tabular)
-3. Dale un nombre: `BusylightWorkSchedulePredictor`
-4. Click en **Next** → Guarda el proyecto
-
-### Paso 3: Cargar los Datos
-
-1. En la sección **Training Data**, click en **Select...**
-2. Elige el archivo `work_schedule_training_data.csv` o `work_schedule_with_holidays.csv`
-3. Create ML detectará automáticamente las columnas
-
-### Paso 4: Configurar el Target (Objetivo)
-
-1. En **Target** (columna a predecir), selecciona primero **`startHour`**
-2. Verás que las demás columnas aparecen como **Features** automáticamente
-3. En **Algorithm**, selecciona **Random Forest** (mejor precisión)
-4. En **Parameters**:
-   - **Max iterations**: 100
-   - **Max depth**: 6
-
-### Paso 5: Entrenar el Modelo
-
-1. Click en el botón **Train** (arriba a la derecha)
-2. Espera ~10-30 segundos
-3. Verás métricas como:
-   - **Root Mean Squared Error (RMSE)**: Cuanto menor, mejor (ideal < 1.5)
-   - **Maximum Error**: Error máximo cometido
-
-### Paso 6: Probar el Modelo
-
-1. Ve a la pestaña **Evaluation**
-2. Ingresa valores de prueba:
-   ```
-   dayOfWeek: 2 (Lunes)
-   isWeekend: 0
-   isHoliday: 0
-   sessionCount: 5
-   deepWorkMinutes: 120
-   calendarEventCount: 3
-   ```
-3. Click en **Predict**
-4. Debería predecir algo cerca de `startHour: 8`
-
-### Paso 7: Exportar el Modelo
-
-1. Ve a la pestaña **Output** (izquierda)
-2. Click en **Get** → Elige ubicación
-3. Se guardará como `BusylightWorkSchedulePredictor.mlmodel`
-
-### Paso 8: Entrenar Segundo Modelo (endHour)
-
-Repite pasos 3-7 pero cambia:
-- **Target**: `endHour` (en lugar de startHour)
-- Nombre: `BusylightWorkSchedulePredictorEnd`
-
----
-
-## 📱 Usar el Modelo en tu App
-
-### Opción A: Reemplazar modelo existente
-
-1. Arrastra los archivos `.mlmodel` generados a tu proyecto Xcode
-2. Asegúrate de que estén en el target "Busylight macOS"
-3. El código usará automáticamente el nuevo modelo
-
-### Opción B: Probar predicción en código
-
-```swift
-import CoreML
-
-// Cargar modelo
-let config = MLModelConfiguration()
-let model = try! BusylightWorkSchedulePredictor(configuration: config)
-
-// Crear input
-let input = BusylightWorkSchedulePredictorInput(
-    dayOfWeek: 2,
-    isWeekend: 0,
-    isHoliday: 0,
-    sessionCount: 5,
-    deepWorkMinutes: 120,
-    calendarEventCount: 3
-)
-
-// Predecir
-let output = try! model.prediction(input: input)
-print("Hora de inicio predicha: \(output.startHour)")
+To regenerate datasets:
+```bash
+python3 generate_training_data.py
 ```
 
----
+## Patterns in Data
 
-## 🎯 Consejos para Mejores Resultados
+### Weekday Patterns (Monday-Friday)
+- **Light days** (1-3 sessions): Start 9-11am, 4-6 hours
+- **Normal days** (4-6 sessions): Start 8-9am, 7-8 hours
+- **Productive days** (7-9 sessions): Start 7-8am, 8-10 hours
+- **Intense days** (10+ sessions): Start 6-8am, 10+ hours
 
-### 1. Más Datos = Mejor Precisión
-- Mínimo: 7 días (1 semana)
-- Recomendado: 30+ días
-- Ideal: 3+ meses
+### Weekend Patterns
+- 30% probability: No work (0,0)
+- Light work: 1-2 sessions, 2-5 hours
+- Weekend warrior: 3-6 sessions, 4-8 hours
 
-### 2. Variedad en los Datos
-Incluye días:
-- Productivos (más sesiones, más deep work)
-- Ligeros (pocas sesiones)
-- Festivos (isHoliday=1, horas=0)
-- Fines de semana (isWeekend=1)
+### Holiday Patterns
+- 70% probability: No work
+- Light work: 2-4 hours if working
 
-### 3. Evitar Overfitting
-- No uses datos de solo 1 semana repetidos
-- Incluye variaciones reales
-- Usa Random Forest en lugar de Linear Regression para datos complejos
+### Deep Work Correlation
+- 4+ hours deep work → Early start (6-8am), long day
+- 2-4 hours → Normal start (8-9am)
+- <2 hours → Later start (9-11am) or no work
 
----
+## Usage in Create ML
 
-## 📊 Interpretar Resultados
+1. Open `predict_hours.mlproj` in Xcode
+2. Import these CSV files as data sources
+3. Train two models:
+   - **StartHours**: Predicts `startHour` from features
+   - **EndHours**: Predicts `endHour` from features
+4. Algorithm: Random Forest
+5. Target: Export as CoreML (.mlmodel)
 
-### Métricas de Evaluación:
+## Total Records
+- Training: 1,200
+- Testing: 200
+- Validation: 300
+- **Total: 1,700 records**
 
-| Métrica | Bueno | Regular | Malo |
-|---------|-------|---------|------|
-| **RMSE** | < 1.0 | 1.0 - 2.0 | > 2.0 |
-| **Max Error** | < 2 | 2 - 4 | > 4 |
+## Statistics
 
-**RMSE** = Error promedio en horas. Si es 0.5, significa que el modelo se equivoca ±30 minutos en promedio.
-
----
-
-## 🔧 Solución de Problemas
-
-### "Training failed" o errores
-
-1. **Verifica el CSV**:
-   - No debe tener celdas vacías
-   - Solo números (no texto excepto en headers)
-   - Usa punto (.) para decimales, no coma (,)
-
-2. **Suficientes datos**:
-   - Mínimo 5 filas
-   - Recomendado: 20+ filas
-
-3. **Variación en target**:
-   - Asegúrate de que `startHour` tenga diferentes valores (no todo 9)
-   - Si todos son iguales, el modelo no puede aprender
-
-### Predicciones constantes
-
-Si siempre predice lo mismo (ej: siempre 9:00):
-- Necesitas más variedad en tus datos de entrenamiento
-- Agrega días donde empiezas a diferentes horas
-
----
-
-## 🎓 Ejemplo: Crear tus Propios Datos
-
-Copia este formato en Excel o Numbers y exporta como CSV:
-
-```csv
-dayOfWeek,isWeekend,isHoliday,sessionCount,deepWorkMinutes,calendarEventCount,startHour,endHour
-2,0,0,5,120,3,8,17
-3,0,0,6,150,4,8,18
-...
 ```
+Training Data Distribution:
+- Weekdays: ~71%
+- Weekends: ~20%
+- Holidays: ~9%
 
-**Tip**: Rastrea tus patrones reales por 2-3 semanas y luego entrena el modelo con esos datos para predicciones personalizadas.
+Start Hour Distribution:
+- 0 (no work): ~15%
+- 6-8am: ~25%
+- 8-10am: ~45%
+- 10am-12pm: ~15%
 
----
-
-## 📚 Recursos Adicionales
-
-- [Documentación Create ML](https://developer.apple.com/documentation/createml)
-- [Core ML Tools](https://coremltools.readme.io/) - Para convertir modelos de Python
-- [Machine Learning de Apple](https://developer.apple.com/machine-learning/)
-
----
-
-¿Problemas? Revisa los logs de la app en Console.app para ver mensajes de error detallados.
+Session Count:
+- 0: ~5%
+- 1-3: ~25%
+- 4-6: ~40%
+- 7-9: ~22%
+- 10+: ~8%
+```
