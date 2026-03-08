@@ -6,42 +6,48 @@ This guide explains how to configure the Busylight project for iOS, macOS, and w
 
 ```
 Busylight/
-├── Shared/                      # Shared code for all platforms
-│   ├── Models/
-│   │   └── SharedModels.swift   # PomodoroPhase, LightColor, WorkProfile, PomodoroSession
-│   ├── Managers/
-│   │   ├── CloudKitSyncManager.swift   # CloudKit synchronization
-│   │   └── UnifiedPomodoroManager.swift # Unified timer with sync
-│   ├── Styles/
-│   │   └── SharedStyles.swift   # Glassmorphism UI components
-│   └── CloudKit/
-│       └── CloudKitManager.swift
+├── BusylightShared/             # Shared framework for all platforms
+│   └── Sources/
+│       ├── Models/
+│       │   └── SharedModels.swift
+│       ├── Managers/
+│       │   ├── CloudKitSyncManager.swift
+│       │   └── UnifiedPomodoroManager.swift
+│       ├── Styles/
+│       │   └── SharedStyles.swift
+│       └── CloudKit/
+│           └── CloudKitSyncManager.swift
 │
-├── Busylight/                   # Existing macOS app (UNCHANGED)
-│   ├── Core/                    # Existing macOS Core
-│   ├── Views/                   # Existing macOS Views
-│   └── ...                      # All existing files remain unchanged
+├── BusylightMac/                # macOS app
+│   └── Sources/
+│       ├── Core/                # App entry, device control, timer
+│       ├── Views/               # Main UI, Menu bar, Timer
+│       ├── Models/              # ML patterns, Sessions
+│       ├── Utilities/           # Smart features, Webhook, Logger
+│       └── Styles/              # Glassmorphism UI
 │
-├── BusylightIOS/                # New iOS app
-│   ├── Core/
-│   │   └── BusylightIOSApp.swift
-│   ├── Views/
-│   │   └── IOSContentView.swift
-│   └── LiveActivity/
-│       └── LiveActivityManager.swift
+├── BusylightIOS/                # iOS app
+│   └── Sources/
+│       ├── Core/
+│       │   └── BusylightIOSApp.swift
+│       ├── Views/
+│       │   └── IOSContentView.swift
+│       └── LiveActivity/
+│           └── LiveActivityManager.swift
 │
-├── BusylightWatch/              # New watchOS app
-│   ├── Core/
-│   │   └── BusylightWatchApp.swift
-│   └── Views/
-│       └── WatchContentView.swift
+├── BusylightWatch/              # watchOS app
+│   └── Sources/
+│       ├── Core/
+│       │   └── BusylightWatchApp.swift
+│       └── Views/
+│           └── WatchContentView.swift
 │
-└── Busylight.xcodeproj          # Xcode project (needs configuration)
+└── Busylight.xcodeproj          # Xcode project
 ```
 
 ## Features by Platform
 
-### macOS (Busylight/)
+### macOS (BusylightMac/)
 - ✅ Hardware control via BusylightSDK
 - ✅ Full UI with glassmorphism
 - ✅ Menu bar integration
@@ -110,7 +116,7 @@ Add these files to the `BusylightShared` target:
 - Background Modes
 - CloudKit
 
-#### macOS Target (Busylight):
+#### macOS Target (BusylightMac):
 - CloudKit (add if not present)
 
 ### 6. Add Dependencies
@@ -177,7 +183,7 @@ Add to all targets:
 
 ### macOS
 ```bash
-xcodebuild -project Busylight.xcodeproj -scheme Busylight -destination 'platform=macOS' build
+xcodebuild -project Busylight.xcodeproj -scheme BusylightMac -destination 'platform=macOS' build
 ```
 
 ### iOS Simulator

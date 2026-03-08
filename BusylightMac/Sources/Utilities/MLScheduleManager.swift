@@ -64,8 +64,10 @@ class MLScheduleManager: ObservableObject {
     func updateConfiguration(
         isEnabled: Bool? = nil,
         autoAdjust: Bool? = nil,
+        autoTraining: Bool? = nil,
         minDays: Int? = nil,
-        threshold: Double? = nil
+        threshold: Double? = nil,
+        notifications: Bool? = nil
     ) {
         guard let config = configuration else { return }
         
@@ -75,18 +77,24 @@ class MLScheduleManager: ObservableObject {
         if let autoAdjust = autoAdjust {
             config.autoAdjustSchedule = autoAdjust
         }
+        if let autoTraining = autoTraining {
+            config.autoTrainingEnabled = autoTraining
+        }
         if let minDays = minDays {
             config.minTrainingDays = minDays
         }
         if let threshold = threshold {
             config.confidenceThreshold = threshold
         }
+        if let notifications = notifications {
+            config.notificationOnAutoTrain = notifications
+        }
         
         try? context.save()
         objectWillChange.send()
     }
     
-    // MARK: - Data Collection
+    // MARK: - Data Collection & Auto-Training
     
     private func setupDataCollection() {
         // Recolectar datos diariamente
@@ -97,8 +105,74 @@ class MLScheduleManager: ObservableObject {
             }
             .store(in: &cancellables)
         
+        // Verificar entrenamiento automático cada día
+        Timer.publish(every: 86400, on: .main, in: .common) // Cada 24h
+            .autoconnect()
+            .sink { [weak self] _ in
+                self?.checkAndRunAutoTraining()
+                self?.applyDailyPrediction()
+            }
+            .store(in: &cancellables)
+        
         // También recolectar al iniciar
         collectDailyPattern()
+        
+        // Verificar auto-training al iniciar (con delay)
+        DispatchQueue.main.asyncAfter(deadline: .now() + 5) { [weak self] in
+            self?.checkAndRunAutoTraining()
+            self?.applyDailyPrediction()
+        }
+    }
+    
+    /// Verifica si debe ejecutar entrenamiento automático
+    private func checkAndRunAutoTraining() {
+        guard let config = configuration,
+              config.isMLEnabled,
+              config.autoTrainingEnabled,
+              !isTraining,
+              canTrainModel() else { return }
+        
+        // Verificar si ya se entrenó hoy
+        if let lastTraining = config.lastTrainingDate,
+           Calendar.current.isDateInToday(lastTraining) {
+            return
+        }
+        
+        // Ejecutar entrenamiento automático
+        Task {
+            do {
+                try await trainModel()
+                BusylightLogger.shared.info("ML: Modelo entrenado automáticamente")
+                
+                // Si hay predicción para mañana, aplicarla
+                if let tomorrow = Calendar.current.date(byAdding: .day, value: 1, to: Date()),
+                   let prediction = predictSchedule(for: tomorrow),
+                   config.autoAdjustSchedule {
+                    applyPrediction(prediction)
+                }
+            } catch {
+                BusylightLogger.shared.error("ML: Error en entrenamiento automático - \(error)")
+            }
+        }
+    }
+    
+    /// Aplica predicción para el día actual
+    private func applyDailyPrediction() {
+        guard let config = configuration,
+              config.isMLEnabled,
+              config.autoAdjustSchedule,
+              isModelTrained else { return }
+        
+        let today = Date()
+        guard !isHoliday(today) else { return }
+        
+        if let prediction = predictSchedule(for: today) {
+            // Solo aplicar si la confianza es suficiente
+            if prediction.confidence >= config.confidenceThreshold {
+                applyPrediction(prediction)
+                BusylightLogger.shared.info("ML: Horarios ajustados automáticamente - \(prediction.formattedStartTime) a \(prediction.formattedEndTime)")
+            }
+        }
     }
     
     func collectDailyPattern() {

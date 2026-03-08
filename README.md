@@ -106,31 +106,60 @@
 
 ## 🏗️ Architecture
 
-### Project Structure
+### Project Structure (Multi-Platform)
 ```
 Busylight/
-├── Core/
-│   ├── BusylightApp.swift          # App entry point
-│   ├── AppDelegate.swift           # Menu bar, dock control
-│   ├── BusylightManager.swift      # Device control
-│   ├── Persistence.swift           # SwiftData
-│   └── BusylightLogger.swift       # Logging system
-├── Views/
-│   ├── ContentView.swift           # Main UI
-│   ├── MenuBarView.swift           # Menu bar popover
-│   ├── TimerView.swift             # Standalone timer
-│   └── (New Views)
-│       ├── DeepWorkView.swift      # Deep work mode
-│       ├── WorkProfilesView.swift  # Profile selection
-│       ├── TeamsView.swift         # MS Teams integration
-│       └── DashboardView.swift     # Stats dashboard
-├── Styles/
-│   └── GlassmorphismStyles.swift   # UI components
-├── Utilities/
-│   ├── SmartFeaturesManager.swift  # 15 smart features
-│   └── WebhookServer.swift         # Local API
-└── Models/
-    └── PomodoroSession.swift       # SwiftData model
+│
+├── 📁 BusylightMac/                 # macOS App
+│   └── Sources/
+│       ├── Core/                    # App entry, device control
+│       ├── Views/                   # Main UI, Menu bar, Timer
+│       ├── Models/                  # ML patterns, Sessions
+│       ├── Utilities/               # Smart features, Webhook
+│       └── Styles/                  # Glassmorphism UI
+│
+├── 📁 BusylightIOS/                 # iOS App
+│   └── Sources/
+│       ├── Core/                    # iOS entry point
+│       ├── Views/                   # iOS UI
+│       └── LiveActivity/            # Live Activities
+│
+├── 📁 BusylightWatch/               # watchOS App
+│   └── Sources/
+│       ├── Core/                    # watchOS entry
+│       └── Views/                   # Watch UI
+│
+└── 📁 BusylightShared/              # Shared Framework
+    └── Sources/
+        ├── CloudKit/                # Sync
+        ├── Managers/                # Unified manager
+        ├── Models/                  # Shared models
+        └── Styles/                  # Shared UI
+```
+
+### macOS App Structure (BusylightMac/Sources/)
+```
+Core/
+├── BusylightApp.swift          # App entry point
+├── AppDelegate.swift           # Menu bar, dock control
+├── BusylightManager.swift      # Device control
+├── Persistence.swift           # SwiftData
+└── PomodoroManager.swift       # Timer logic
+
+Views/
+├── ContentView.swift           # Main UI
+├── MenuBarView.swift           # Menu bar popover
+└── TimerView.swift             # Standalone timer
+
+Utilities/
+├── SmartFeaturesManager.swift  # 15 smart features
+├── WebhookServer.swift         # Local API
+├── MLScheduleManager.swift     # ML scheduling
+└── BusylightLogger.swift       # Logging
+
+Models/
+├── PomodoroSession.swift       # SwiftData model
+└── MLWorkPattern.swift         # ML patterns
 ```
 
 ---
@@ -141,13 +170,13 @@ Busylight/
 ```bash
 # Clone repository
 git clone https://github.com/skyones-0/kuando_macos.git
-cd kuando_macos/Busylight
+cd kuando_macos
 
 # Open in Xcode
 open Busylight.xcodeproj
 
 # Or build via command line
-xcodebuild -project Busylight.xcodeproj -scheme Busylight -configuration Release
+xcodebuild -project Busylight.xcodeproj -scheme BusylightMac -configuration Release
 ```
 
 ---
@@ -182,15 +211,17 @@ xcodebuild -project Busylight.xcodeproj -scheme Busylight -configuration Release
 ### ML Autoconfiguration (NEW)
 1. Go to **Settings > ML Autoconfiguration**
 2. Enable **Smart Schedule Learning**
-3. The app collects your daily work patterns
-4. After 14+ days, click **Train Now**
-5. Enable **Auto-apply predictions** to automatically adjust work hours
+3. The app automatically collects your daily work patterns
+4. After 14+ days, the model **trains automatically**
+5. Work hours are **automatically adjusted** based on predictions
 
 **Features:**
+- **Fully Automatic**: Trains and applies predictions without user intervention
 - Learns your actual work patterns vs configured hours
 - Predicts optimal work hours for each day
 - Excludes holidays from training data
 - Shows model accuracy and confidence
+- Manual training available anytime via "Train Now"
 
 ### Managing Holidays
 1. Go to **Settings > ML Autoconfiguration > Holidays**
@@ -239,10 +270,12 @@ POST /timer/stop      # Stop pomodoro
 - ✅ Visual indicators for all smart features
 
 ### ML Autoconfiguration (NEW)
-- ✅ **Smart Schedule Learning** - ML model learns work patterns
+- ✅ **Smart Schedule Learning** - ML model learns work patterns automatically
+- ✅ **Auto-Training** - Model trains automatically when enough data is collected
 - ✅ **Work Hour Prediction** - Predicts optimal hours based on history
 - ✅ **Holiday Exclusion** - Exclude holidays from training
-- ✅ **Auto-apply** - Automatically adjust settings
+- ✅ **Auto-apply** - Automatically adjust settings every day
+- ✅ **Manual Override** - Train manually anytime with "Train Now"
 
 ### Bug Fixes (Latest)
 - ✅ **Fixed layout recursion crash** in menu bar calendar card

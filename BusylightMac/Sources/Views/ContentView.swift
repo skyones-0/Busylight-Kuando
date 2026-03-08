@@ -2293,6 +2293,25 @@ struct MLConfigurationCard: View {
     @State private var showingClearConfirmation = false
     @State private var trainingError: String?
     
+    private var statusColor: Color {
+        if mlManager.isTraining { return .orange }
+        if !mlManager.isModelTrained {
+            return mlManager.canTrainModel() ? .yellow : .gray
+        }
+        return mlManager.modelAccuracy > 0.8 ? .green : .orange
+    }
+    
+    private var statusText: String {
+        if mlManager.isTraining { return "Training model..." }
+        if mlManager.isModelTrained {
+            return "Model trained (\(String(format: "%.0f%%", mlManager.modelAccuracy * 100)) accuracy)"
+        }
+        if mlManager.canTrainModel() {
+            return "Ready to train - \(mlManager.trainingDaysCollected) days collected"
+        }
+        return "Collecting data - \(mlManager.trainingDaysCollected)/\(mlManager.configuration?.minTrainingDays ?? 14) days"
+    }
+    
     var body: some View {
         GlassCard(title: "ML Autoconfiguration", icon: "brain") {
             VStack(spacing: 16) {
@@ -2426,10 +2445,33 @@ struct MLConfigurationCard: View {
                         .buttonStyle(.plain)
                     }
                     
+                    // Auto-training toggle
+                    HStack {
+                        VStack(alignment: .leading, spacing: 2) {
+                            Text("Auto-train model")
+                                .font(.caption)
+                            Text("Trains automatically when enough data is collected")
+                                .font(.caption2)
+                                .foregroundStyle(.secondary)
+                        }
+                        Spacer()
+                        Toggle("", isOn: Binding(
+                            get: { mlManager.configuration?.autoTrainingEnabled ?? true },
+                            set: { mlManager.updateConfiguration(autoTraining: $0) }
+                        ))
+                        .toggleStyle(.switch)
+                        .controlSize(.mini)
+                    }
+                    
                     // Auto-adjust toggle
                     HStack {
-                        Text("Auto-apply predictions")
-                            .font(.caption)
+                        VStack(alignment: .leading, spacing: 2) {
+                            Text("Auto-apply predictions")
+                                .font(.caption)
+                            Text("Adjusts work hours based on predictions")
+                                .font(.caption2)
+                                .foregroundStyle(.secondary)
+                        }
                         Spacer()
                         Toggle("", isOn: Binding(
                             get: { mlManager.configuration?.autoAdjustSchedule ?? false },
@@ -2439,18 +2481,42 @@ struct MLConfigurationCard: View {
                         .controlSize(.mini)
                     }
                     
-                    // Predicción actual
-                    if let prediction = mlManager.lastPrediction {
-                        HStack(spacing: 8) {
-                            Image(systemName: "sparkles")
-                                .foregroundStyle(.purple)
-                            Text("Next prediction: \(prediction.formattedStartTime) - \(prediction.formattedEndTime)")
+                    // Estado del sistema
+                    VStack(alignment: .leading, spacing: 4) {
+                        HStack(spacing: 6) {
+                            Circle()
+                                .fill(statusColor)
+                                .frame(width: 6, height: 6)
+                            Text(statusText)
                                 .font(.caption)
+                                .foregroundStyle(.secondary)
                             Spacer()
                         }
-                        .padding(8)
-                        .background(Color.purple.opacity(0.1))
-                        .cornerRadius(8)
+                        
+                        // Predicción actual o próxima
+                        if let prediction = mlManager.lastPrediction {
+                            HStack(spacing: 8) {
+                                Image(systemName: "sparkles")
+                                    .foregroundStyle(.purple)
+                                Text("Tomorrow: \(prediction.formattedStartTime) - \(prediction.formattedEndTime)")
+                                    .font(.caption)
+                                Spacer()
+                            }
+                            .padding(8)
+                            .background(Color.purple.opacity(0.1))
+                            .cornerRadius(8)
+                        } else if mlManager.isModelTrained {
+                            HStack(spacing: 8) {
+                                Image(systemName: "checkmark.circle")
+                                    .foregroundStyle(.green)
+                                Text("Model ready - waiting for tomorrow's prediction")
+                                    .font(.caption)
+                                Spacer()
+                            }
+                            .padding(8)
+                            .background(Color.green.opacity(0.1))
+                            .cornerRadius(8)
+                        }
                     }
                     
                     if let error = trainingError {
