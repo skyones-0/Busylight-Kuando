@@ -71,13 +71,14 @@ class SmartFeaturesManager: ObservableObject {
     private func setupFeatures() {
         loadWorkProfile()
         loadTheme()
-        setupCalendarSync()
-        setupFocusModeSync()
-        setupIdleDetection()
-        setupVisualBreakTimer()
-        setupWorkHoursChecker()
-        setupMeetingDetection()
-        setupPresentationDetection()
+        // TEMP: Deshabilitado para debugging
+        // setupCalendarSync()
+        // setupFocusModeSync()
+        // setupIdleDetection()
+        // setupVisualBreakTimer()
+        // setupWorkHoursChecker()
+        // setupMeetingDetection()
+        // setupPresentationDetection()
         updateDashboard()
     }
     
