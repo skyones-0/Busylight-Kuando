@@ -472,7 +472,7 @@ struct PomodoroView: View {
                     .frame(maxWidth: .infinity)
                     .padding(.vertical, 12)
                 }
-                .buttonStyle(.waveButton(color: .green, prominent: true))
+                .buttonStyle(.gradientWave(color: .green, prominent: true))
                 .disabled(manager.isRunning && !manager.isPaused)
                 .opacity(manager.isRunning && !manager.isPaused ? 0.5 : 1)
                 
@@ -487,7 +487,7 @@ struct PomodoroView: View {
                     .frame(maxWidth: .infinity)
                     .padding(.vertical, 12)
                 }
-                .buttonStyle(.waveButton)
+                .buttonStyle(.gradientWave)
                 .disabled(!manager.isRunning || manager.isPaused)
                 .opacity(!manager.isRunning || manager.isPaused ? 0.5 : 1)
                 
@@ -502,7 +502,7 @@ struct PomodoroView: View {
                     .frame(maxWidth: .infinity)
                     .padding(.vertical, 12)
                 }
-                .buttonStyle(.waveButton(color: .red))
+                .buttonStyle(.gradientWave(color: .red))
                 .disabled(!manager.isRunning && !manager.isPaused)
                 .opacity(!manager.isRunning && !manager.isPaused ? 0.5 : 1)
             }
@@ -634,7 +634,7 @@ struct TeamsView: View {
                         .frame(maxWidth: .infinity)
                         .padding(.vertical, 12)
                     }
-                    .buttonStyle(.glassButton(color: isLoggedIn ? .red : .blue, prominent: !isLoggedIn))
+                    .buttonStyle(.gradientWave(color: isLoggedIn ? .red : .blue, prominent: !isLoggedIn))
                 }
             }
             .frame(maxWidth: 380)

@@ -7,6 +7,24 @@
 
 import SwiftUI
 
+// MARK: - Haptic Feedback Helper
+struct HapticFeedback {
+    static func light() {
+        let performer = NSHapticFeedbackManager.defaultPerformer
+        performer.perform(.generic, performanceTime: .now)
+    }
+    
+    static func medium() {
+        let performer = NSHapticFeedbackManager.defaultPerformer
+        performer.perform(.generic, performanceTime: .now)
+    }
+    
+    static func strong() {
+        let performer = NSHapticFeedbackManager.defaultPerformer
+        performer.perform(.generic, performanceTime: .now)
+    }
+}
+
 // MARK: - Glassmorphism Background
 struct GlassBackground: ViewModifier {
     var material: Material = .ultraThinMaterial
@@ -34,73 +52,14 @@ extension View {
     }
 }
 
-// MARK: - Glass Button Style
-struct GlassButtonStyle: ButtonStyle {
+// MARK: - Animated Gradient Button Style
+struct GradientWaveButtonStyle: ButtonStyle {
     var color: Color = .accentColor
     var isProminent: Bool = false
     var cornerRadius: CGFloat = 12
     
-    func makeBody(configuration: Configuration) -> some View {
-        configuration.label
-            .font(.system(.subheadline, design: .rounded).weight(.semibold))
-            .foregroundStyle(isProminent ? .white : .primary)
-            .padding(.horizontal, 16)
-            .padding(.vertical, 10)
-            .background(
-                ZStack {
-                    // Base glass layer
-                    RoundedRectangle(cornerRadius: cornerRadius)
-                        .fill(isProminent ? color.opacity(0.8) : Color.gray.opacity(0.15))
-                    
-                    // Highlight overlay
-                    RoundedRectangle(cornerRadius: cornerRadius)
-                        .fill(
-                            LinearGradient(
-                                colors: [
-                                    .white.opacity(configuration.isPressed ? 0.05 : 0.15),
-                                    .clear
-                                ],
-                                startPoint: .top,
-                                endPoint: .bottom
-                            )
-                        )
-                    
-                    // Border
-                    RoundedRectangle(cornerRadius: cornerRadius)
-                        .stroke(
-                            isProminent ? color.opacity(0.5) : .white.opacity(0.2),
-                            lineWidth: 1
-                        )
-                }
-            )
-            .shadow(
-                color: isProminent ? color.opacity(0.4) : .black.opacity(0.1),
-                radius: configuration.isPressed ? 2 : 8,
-                x: 0,
-                y: configuration.isPressed ? 1 : 3
-            )
-            .scaleEffect(configuration.isPressed ? 0.97 : 1)
-            .animation(.easeOut(duration: 0.15), value: configuration.isPressed)
-    }
-}
-
-extension ButtonStyle where Self == GlassButtonStyle {
-    static var glassButton: GlassButtonStyle { GlassButtonStyle() }
-    static func glassButton(color: Color, prominent: Bool = false) -> GlassButtonStyle {
-        GlassButtonStyle(color: color, isProminent: prominent)
-    }
-}
-
-// MARK: - Wave Button Style
-struct WaveButtonStyle: ButtonStyle {
-    var color: Color = .accentColor
-    var isProminent: Bool = false
-    var cornerRadius: CGFloat = 12
-    
-    @State private var rippleOpacity: Double = 0
-    @State private var rippleScale: CGFloat = 0.5
-    @State private var wavePhase: Double = 0
     @State private var isPressed: Bool = false
+    @State private var shimmerOffset: CGFloat = -1
     
     func makeBody(configuration: Configuration) -> some View {
         configuration.label
@@ -110,73 +69,68 @@ struct WaveButtonStyle: ButtonStyle {
             .padding(.vertical, 12)
             .background(
                 ZStack {
-                    // Base glass layer
+                    // Base gradient background
                     RoundedRectangle(cornerRadius: cornerRadius)
-                        .fill(isProminent ? color.opacity(0.8) : Color.gray.opacity(0.2))
-                    
-                    // Animated wave rings
-                    ForEach(0..<3) { index in
-                        RoundedRectangle(cornerRadius: cornerRadius)
-                            .stroke(
-                                isProminent ? color.opacity(0.3) : .white.opacity(0.3),
-                                lineWidth: 1.5
+                        .fill(
+                            LinearGradient(
+                                colors: isProminent 
+                                    ? [color.opacity(0.9), color.opacity(0.6)]
+                                    : [Color.gray.opacity(0.25), Color.gray.opacity(0.15)],
+                                startPoint: .topLeading,
+                                endPoint: .bottomTrailing
                             )
-                            .scaleEffect(rippleScale + CGFloat(index) * 0.15)
-                            .opacity(rippleOpacity * (1.0 - Double(index) * 0.3))
-                    }
+                        )
                     
-                    // Inner glow when pressed
+                    // Shimmer effect
+                    GeometryReader { geo in
+                        LinearGradient(
+                            colors: [
+                                .clear,
+                                .white.opacity(0.4),
+                                .clear
+                            ],
+                            startPoint: .leading,
+                            endPoint: .trailing
+                        )
+                        .frame(width: geo.size.width * 0.5)
+                        .offset(x: geo.size.width * shimmerOffset)
+                        .blur(radius: 5)
+                    }
+                    .clipShape(RoundedRectangle(cornerRadius: cornerRadius))
+                    
+                    // Pressed glow
                     RoundedRectangle(cornerRadius: cornerRadius)
                         .fill(
                             RadialGradient(
                                 colors: [
-                                    color.opacity(isPressed ? 0.4 : 0.0),
+                                    color.opacity(isPressed ? 0.5 : 0.0),
                                     .clear
                                 ],
                                 center: .center,
                                 startRadius: 0,
-                                endRadius: 50
-                            )
-                        )
-                    
-                    // Top highlight
-                    RoundedRectangle(cornerRadius: cornerRadius)
-                        .fill(
-                            LinearGradient(
-                                colors: [
-                                    .white.opacity(configuration.isPressed ? 0.1 : 0.2),
-                                    .clear
-                                ],
-                                startPoint: .top,
-                                endPoint: .center
+                                endRadius: 60
                             )
                         )
                     
                     // Border
                     RoundedRectangle(cornerRadius: cornerRadius)
                         .stroke(
-                            isProminent ? color.opacity(0.5) : .white.opacity(0.25),
-                            lineWidth: 1
+                            LinearGradient(
+                                colors: isProminent
+                                    ? [color.opacity(0.8), color.opacity(0.4)]
+                                    : [.white.opacity(0.4), .white.opacity(0.2)],
+                                startPoint: .topLeading,
+                                endPoint: .bottomTrailing
+                            ),
+                            lineWidth: 1.5
                         )
                 }
             )
-            .overlay(
-                // Wave animation overlay
-                GeometryReader { geometry in
-                    ZStack {
-                        // Center ripple point
-                        Circle()
-                            .fill(color.opacity(0.3))
-                            .frame(width: 10, height: 10)
-                            .position(x: geometry.size.width / 2, y: geometry.size.height / 2)
-                            .scaleEffect(rippleScale * 2)
-                            .opacity(rippleOpacity)
-                    }
-                }
-            )
             .shadow(
-                color: isProminent ? color.opacity(isPressed ? 0.6 : 0.4) : .black.opacity(0.1),
-                radius: isPressed ? 12 : 8,
+                color: isProminent 
+                    ? color.opacity(isPressed ? 0.6 : 0.4)
+                    : .black.opacity(0.1),
+                radius: isPressed ? 15 : 8,
                 x: 0,
                 y: isPressed ? 6 : 3
             )
@@ -184,40 +138,33 @@ struct WaveButtonStyle: ButtonStyle {
             .onChange(of: configuration.isPressed) { _, pressed in
                 isPressed = pressed
                 if pressed {
-                    // Trigger wave animation
-                    withAnimation(.easeOut(duration: 0.4)) {
-                        rippleScale = 1.2
-                        rippleOpacity = 1.0
-                    }
-                    withAnimation(.easeIn(duration: 0.4).delay(0.1)) {
-                        rippleScale = 1.5
-                        rippleOpacity = 0
+                    HapticFeedback.medium()
+                    // Trigger shimmer
+                    withAnimation(.linear(duration: 0.6)) {
+                        shimmerOffset = 2
                     }
                 } else {
-                    // Reset
-                    rippleScale = 0.5
-                    rippleOpacity = 0
+                    shimmerOffset = -1
                 }
             }
     }
 }
 
-extension ButtonStyle where Self == WaveButtonStyle {
-    static var waveButton: WaveButtonStyle { WaveButtonStyle() }
-    static func waveButton(color: Color, prominent: Bool = false) -> WaveButtonStyle {
-        WaveButtonStyle(color: color, isProminent: prominent)
+extension ButtonStyle where Self == GradientWaveButtonStyle {
+    static var gradientWave: GradientWaveButtonStyle { GradientWaveButtonStyle() }
+    static func gradientWave(color: Color, prominent: Bool = false) -> GradientWaveButtonStyle {
+        GradientWaveButtonStyle(color: color, isProminent: prominent)
     }
 }
 
-// MARK: - Small Wave Button Style (for MenuBar)
-struct SmallWaveButtonStyle: ButtonStyle {
+// MARK: - Small Gradient Button Style (for MenuBar)
+struct SmallGradientButtonStyle: ButtonStyle {
     var color: Color = .accentColor
     var isProminent: Bool = false
     var cornerRadius: CGFloat = 8
     
-    @State private var rippleScale: CGFloat = 0.5
-    @State private var rippleOpacity: Double = 0
     @State private var isPressed: Bool = false
+    @State private var shimmerOffset: CGFloat = -1
     
     func makeBody(configuration: Configuration) -> some View {
         configuration.label
@@ -227,27 +174,36 @@ struct SmallWaveButtonStyle: ButtonStyle {
             .padding(.vertical, 6)
             .background(
                 ZStack {
-                    // Base
+                    // Base gradient
                     RoundedRectangle(cornerRadius: cornerRadius)
-                        .fill(isProminent ? color.opacity(0.8) : Color.gray.opacity(0.2))
-                    
-                    // Wave ring
-                    RoundedRectangle(cornerRadius: cornerRadius)
-                        .stroke(
-                            isProminent ? color.opacity(0.4) : .white.opacity(0.3),
-                            lineWidth: 1
+                        .fill(
+                            LinearGradient(
+                                colors: isProminent
+                                    ? [color.opacity(0.85), color.opacity(0.55)]
+                                    : [Color.gray.opacity(0.2), Color.gray.opacity(0.12)],
+                                startPoint: .topLeading,
+                                endPoint: .bottomTrailing
+                            )
                         )
-                        .scaleEffect(rippleScale)
-                        .opacity(rippleOpacity)
                     
-                    // Inner glow
+                    // Shimmer
+                    GeometryReader { geo in
+                        LinearGradient(
+                            colors: [.clear, .white.opacity(0.5), .clear],
+                            startPoint: .leading,
+                            endPoint: .trailing
+                        )
+                        .frame(width: geo.size.width * 0.4)
+                        .offset(x: geo.size.width * shimmerOffset)
+                        .blur(radius: 3)
+                    }
+                    .clipShape(RoundedRectangle(cornerRadius: cornerRadius))
+                    
+                    // Press glow
                     RoundedRectangle(cornerRadius: cornerRadius)
                         .fill(
                             RadialGradient(
-                                colors: [
-                                    color.opacity(isPressed ? 0.3 : 0.0),
-                                    .clear
-                                ],
+                                colors: [color.opacity(isPressed ? 0.4 : 0), .clear],
                                 center: .center,
                                 startRadius: 0,
                                 endRadius: 30
@@ -257,13 +213,17 @@ struct SmallWaveButtonStyle: ButtonStyle {
                     // Border
                     RoundedRectangle(cornerRadius: cornerRadius)
                         .stroke(
-                            isProminent ? color.opacity(0.5) : .white.opacity(0.2),
+                            isProminent
+                                ? color.opacity(0.6)
+                                : .white.opacity(0.3),
                             lineWidth: 1
                         )
                 }
             )
             .shadow(
-                color: isProminent ? color.opacity(isPressed ? 0.5 : 0.3) : .black.opacity(0.08),
+                color: isProminent
+                    ? color.opacity(isPressed ? 0.5 : 0.3)
+                    : .black.opacity(0.08),
                 radius: isPressed ? 8 : 4,
                 x: 0,
                 y: isPressed ? 4 : 2
@@ -272,30 +232,25 @@ struct SmallWaveButtonStyle: ButtonStyle {
             .onChange(of: configuration.isPressed) { _, pressed in
                 isPressed = pressed
                 if pressed {
-                    withAnimation(.easeOut(duration: 0.3)) {
-                        rippleScale = 1.1
-                        rippleOpacity = 0.8
-                    }
-                    withAnimation(.easeIn(duration: 0.3).delay(0.05)) {
-                        rippleScale = 1.3
-                        rippleOpacity = 0
+                    HapticFeedback.light()
+                    withAnimation(.linear(duration: 0.5)) {
+                        shimmerOffset = 2
                     }
                 } else {
-                    rippleScale = 0.5
-                    rippleOpacity = 0
+                    shimmerOffset = -1
                 }
             }
     }
 }
 
-extension ButtonStyle where Self == SmallWaveButtonStyle {
-    static var smallWaveButton: SmallWaveButtonStyle { SmallWaveButtonStyle() }
-    static func smallWaveButton(color: Color, prominent: Bool = false) -> SmallWaveButtonStyle {
-        SmallWaveButtonStyle(color: color, isProminent: prominent)
+extension ButtonStyle where Self == SmallGradientButtonStyle {
+    static var smallGradient: SmallGradientButtonStyle { SmallGradientButtonStyle() }
+    static func smallGradient(color: Color, prominent: Bool = false) -> SmallGradientButtonStyle {
+        SmallGradientButtonStyle(color: color, isProminent: prominent)
     }
 }
 
-// MARK: - Color Circle Button (Glass)
+// MARK: - Color Circle Button (Glass with Haptic)
 struct GlassColorButton: View {
     let name: String
     let color: Color
@@ -307,7 +262,10 @@ struct GlassColorButton: View {
     @State private var rippleOpacity: Double = 0
     
     var body: some View {
-        Button(action: action) {
+        Button(action: {
+            HapticFeedback.medium()
+            action()
+        }) {
             VStack(spacing: 8) {
                 // Color circle with wave effect
                 ZStack {
@@ -400,7 +358,7 @@ struct GlassColorButton: View {
     }
 }
 
-// MARK: - Jingle Button (Glass)
+// MARK: - Jingle Button (Glass with Haptic)
 struct GlassJingleButton: View {
     let number: Int
     let action: () -> Void
@@ -411,7 +369,10 @@ struct GlassJingleButton: View {
     @State private var rippleOpacity: Double = 0
     
     var body: some View {
-        Button(action: action) {
+        Button(action: {
+            HapticFeedback.light()
+            action()
+        }) {
             Text("\(number)")
                 .font(.system(.callout, design: .rounded).weight(.bold))
                 .foregroundStyle(
@@ -632,6 +593,7 @@ struct GlassStepper: View {
                 Button {
                     if value > range.lowerBound {
                         value -= 1
+                        HapticFeedback.light()
                     }
                 } label: {
                     Image(systemName: "minus")
@@ -648,6 +610,7 @@ struct GlassStepper: View {
                 Button {
                     if value < range.upperBound {
                         value += 1
+                        HapticFeedback.light()
                     }
                 } label: {
                     Image(systemName: "plus")
