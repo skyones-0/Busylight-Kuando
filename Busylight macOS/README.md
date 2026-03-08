@@ -21,7 +21,7 @@
 
 ---
 
-## ✨ What's New in Super App 2.0
+## ✨ What's New in Super App 1.0
 
 ### 🚀 Reorganized Navigation
 - **7 Main Sections** in sidebar: Pomodoro, Deep Work, Profiles, Teams, Dashboard, Settings, Device
