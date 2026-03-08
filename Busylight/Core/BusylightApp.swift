@@ -15,7 +15,12 @@ struct BusylightApp: App {
         BusylightLogger.shared.info("=== Busylight App Iniciada ===")
         
         // Initialize SwiftData container
-        let schema = Schema([PomodoroSession.self])
+        let schema = Schema([
+            PomodoroSession.self,
+            MLWorkPattern.self,
+            MLConfiguration.self,
+            HolidayCalendar.self
+        ])
         let configuration = ModelConfiguration(
             schema: schema,
             isStoredInMemoryOnly: false
@@ -24,6 +29,9 @@ struct BusylightApp: App {
         do {
             container = try ModelContainer(for: schema, configurations: [configuration])
             BusylightLogger.shared.info("SwiftData container initialized")
+            
+            // Initialize ML Manager
+            _ = MLScheduleManager.shared
         } catch {
             fatalError("Failed to initialize SwiftData: \(error)")
         }

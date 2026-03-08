@@ -1076,6 +1076,10 @@ struct SettingsView: View {
                 }
                 .padding(.horizontal, 20)
                 
+                // MARK: ML Autoconfiguration
+                MLConfigurationCard()
+                    .padding(.horizontal, 20)
+                
                 // MARK: 9. Webhook API
                 GlassCard(title: "API & Integrations", icon: "network") {
                     VStack(spacing: 12) {
@@ -2277,6 +2281,322 @@ struct ElegantProgressBar: View {
         .onChange(of: progress) { _, newValue in
             withAnimation(.linear(duration: 0.5)) {
                 animatedProgress = newValue
+            }
+        }
+    }
+}
+
+// MARK: - ML Configuration Card
+struct MLConfigurationCard: View {
+    @StateObject private var mlManager = MLScheduleManager.shared
+    @State private var showingHolidaySheet = false
+    @State private var showingClearConfirmation = false
+    @State private var trainingError: String?
+    
+    var body: some View {
+        GlassCard(title: "ML Autoconfiguration", icon: "brain") {
+            VStack(spacing: 16) {
+                // Header con toggle principal
+                HStack(spacing: 12) {
+                    ZStack {
+                        Circle()
+                            .fill(mlManager.isModelTrained ? Color.green.opacity(0.2) : Color.orange.opacity(0.2))
+                            .frame(width: 44, height: 44)
+                        
+                        Image(systemName: mlManager.isModelTrained ? "checkmark.seal.fill" : "brain.head.profile")
+                            .font(.title3)
+                            .foregroundStyle(mlManager.isModelTrained ? .green : .orange)
+                    }
+                    
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text("Smart Schedule Learning")
+                            .font(.system(.body, design: .rounded).weight(.semibold))
+                        Text(mlManager.configuration?.isMLEnabled == true ? "Learning your patterns" : "Enable to auto-configure work hours")
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                    }
+                    
+                    Spacer()
+                    
+                    Toggle("", isOn: Binding(
+                        get: { mlManager.configuration?.isMLEnabled ?? false },
+                        set: { mlManager.updateConfiguration(isEnabled: $0) }
+                    ))
+                    .toggleStyle(.switch)
+                    .controlSize(.small)
+                }
+                
+                if mlManager.configuration?.isMLEnabled == true {
+                    Divider().opacity(0.3)
+                    
+                    // Estadísticas de entrenamiento
+                    VStack(alignment: .leading, spacing: 8) {
+                        HStack {
+                            Text("Training Data")
+                                .font(.caption)
+                                .foregroundStyle(.secondary)
+                            Spacer()
+                            Text("\(mlManager.trainingDaysCollected) days")
+                                .font(.caption)
+                                .foregroundStyle(.primary)
+                        }
+                        
+                        // Barra de progreso
+                        GeometryReader { geo in
+                            ZStack(alignment: .leading) {
+                                RoundedRectangle(cornerRadius: 3)
+                                    .fill(Material.thinMaterial)
+                                    .frame(height: 6)
+                                
+                                let progress = min(1.0, Double(mlManager.trainingDaysCollected) / Double(mlManager.configuration?.minTrainingDays ?? 14))
+                                RoundedRectangle(cornerRadius: 3)
+                                    .fill(Color.blue.gradient)
+                                    .frame(width: geo.size.width * progress, height: 6)
+                            }
+                        }
+                        .frame(height: 6)
+                        
+                        if mlManager.isModelTrained {
+                            HStack {
+                                Text("Model Accuracy")
+                                    .font(.caption)
+                                    .foregroundStyle(.secondary)
+                                Spacer()
+                                Text(String(format: "%.0f%%", mlManager.modelAccuracy * 100))
+                                    .font(.caption)
+                                    .foregroundStyle(mlManager.modelAccuracy > 0.8 ? .green : .orange)
+                            }
+                        }
+                    }
+                    
+                    // Botones de acción
+                    HStack(spacing: 10) {
+                        // Botón Entrenar
+                        Button(action: {
+                            Task {
+                                do {
+                                    try await mlManager.trainModel()
+                                } catch {
+                                    trainingError = error.localizedDescription
+                                }
+                            }
+                        }) {
+                            HStack(spacing: 4) {
+                                if mlManager.isTraining {
+                                    ProgressView()
+                                        .controlSize(.small)
+                                        .scaleEffect(0.6)
+                                } else {
+                                    Image(systemName: "play.fill")
+                                        .font(.caption)
+                                }
+                                Text(mlManager.isModelTrained ? "Retrain" : "Train Now")
+                                    .font(.caption)
+                            }
+                            .padding(.horizontal, 12)
+                            .padding(.vertical, 6)
+                        }
+                        .buttonStyle(.borderedProminent)
+                        .controlSize(.small)
+                        .tint(.blue)
+                        .disabled(!mlManager.canTrainModel() || mlManager.isTraining)
+                        
+                        // Botón Calendario Festivos
+                        Button(action: { showingHolidaySheet = true }) {
+                            HStack(spacing: 4) {
+                                Image(systemName: "calendar.badge.exclamationmark")
+                                    .font(.caption)
+                                Text("Holidays")
+                                    .font(.caption)
+                            }
+                            .padding(.horizontal, 12)
+                            .padding(.vertical, 6)
+                        }
+                        .buttonStyle(.bordered)
+                        .controlSize(.small)
+                        
+                        Spacer()
+                        
+                        // Botón Limpiar
+                        Button(action: { showingClearConfirmation = true }) {
+                            Image(systemName: "trash")
+                                .font(.caption)
+                                .foregroundStyle(.red)
+                        }
+                        .buttonStyle(.plain)
+                    }
+                    
+                    // Auto-adjust toggle
+                    HStack {
+                        Text("Auto-apply predictions")
+                            .font(.caption)
+                        Spacer()
+                        Toggle("", isOn: Binding(
+                            get: { mlManager.configuration?.autoAdjustSchedule ?? false },
+                            set: { mlManager.updateConfiguration(autoAdjust: $0) }
+                        ))
+                        .toggleStyle(.switch)
+                        .controlSize(.mini)
+                    }
+                    
+                    // Predicción actual
+                    if let prediction = mlManager.lastPrediction {
+                        HStack(spacing: 8) {
+                            Image(systemName: "sparkles")
+                                .foregroundStyle(.purple)
+                            Text("Next prediction: \(prediction.formattedStartTime) - \(prediction.formattedEndTime)")
+                                .font(.caption)
+                            Spacer()
+                        }
+                        .padding(8)
+                        .background(Color.purple.opacity(0.1))
+                        .cornerRadius(8)
+                    }
+                    
+                    if let error = trainingError {
+                        Text(error)
+                            .font(.caption)
+                            .foregroundStyle(.red)
+                    }
+                }
+            }
+        }
+        .sheet(isPresented: $showingHolidaySheet) {
+            HolidayCalendarView()
+        }
+        .alert("Clear all training data?", isPresented: $showingClearConfirmation) {
+            Button("Cancel", role: .cancel) { }
+            Button("Clear", role: .destructive) {
+                mlManager.clearAllData()
+            }
+        } message: {
+            Text("This will delete all collected work patterns and reset the ML model.")
+        }
+    }
+}
+
+// MARK: - Holiday Calendar View
+struct HolidayCalendarView: View {
+    @Environment(\.dismiss) private var dismiss
+    @StateObject private var mlManager = MLScheduleManager.shared
+    @State private var newCalendarName = ""
+    @State private var selectedDates: [Date] = []
+    @State private var showingDatePicker = false
+    
+    var body: some View {
+        NavigationView {
+            List {
+                Section("Add Holiday Calendar") {
+                    TextField("Calendar Name (e.g., US Holidays)", text: $newCalendarName)
+                    
+                    Button("Add Selected Dates") {
+                        showingDatePicker = true
+                    }
+                    
+                    if !selectedDates.isEmpty {
+                        Text("\(selectedDates.count) dates selected")
+                            .foregroundStyle(.secondary)
+                    }
+                    
+                    Button("Create Calendar") {
+                        if !newCalendarName.isEmpty && !selectedDates.isEmpty {
+                            mlManager.createHolidayCalendar(
+                                name: newCalendarName,
+                                countryCode: "custom",
+                                dates: selectedDates
+                            )
+                            newCalendarName = ""
+                            selectedDates = []
+                        }
+                    }
+                    .disabled(newCalendarName.isEmpty || selectedDates.isEmpty)
+                }
+                
+                Section("Active Calendars") {
+                    ForEach(mlManager.getHolidayCalendars()) { calendar in
+                        HStack {
+                            Text(calendar.name)
+                            Spacer()
+                            if calendar.isEnabled {
+                                Image(systemName: "checkmark.circle.fill")
+                                    .foregroundStyle(.green)
+                            }
+                        }
+                    }
+                    .onDelete { indexSet in
+                        let calendars = mlManager.getHolidayCalendars()
+                        for index in indexSet {
+                            mlManager.deleteHolidayCalendar(calendars[index])
+                        }
+                    }
+                }
+                
+                Section("Info") {
+                    Text("Holidays are excluded from ML training. The model will not learn patterns from holiday days.")
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                }
+            }
+            .navigationTitle("Holiday Calendars")
+            .toolbar {
+                ToolbarItem(placement: .cancellationAction) {
+                    Button("Close") { dismiss() }
+                }
+            }
+            .sheet(isPresented: $showingDatePicker) {
+                MultiDatePicker(selectedDates: $selectedDates)
+            }
+        }
+    }
+}
+
+// MARK: - Multi Date Picker
+struct MultiDatePicker: View {
+    @Environment(\.dismiss) private var dismiss
+    @Binding var selectedDates: [Date]
+    @State private var currentSelection = Date()
+    
+    var body: some View {
+        NavigationView {
+            VStack {
+                DatePicker(
+                    "Select Date",
+                    selection: $currentSelection,
+                    displayedComponents: .date
+                )
+                .datePickerStyle(.graphical)
+                .padding()
+                
+                List {
+                    Section("Selected Dates") {
+                        ForEach(selectedDates.sorted(), id: \.self) { date in
+                            HStack {
+                                Text(date, style: .date)
+                                Spacer()
+                                Button(action: {
+                                    selectedDates.removeAll { $0 == date }
+                                }) {
+                                    Image(systemName: "xmark.circle.fill")
+                                        .foregroundStyle(.red)
+                                }
+                                .buttonStyle(.plain)
+                            }
+                        }
+                    }
+                }
+            }
+            .navigationTitle("Select Holidays")
+            .toolbar {
+                ToolbarItem(placement: .cancellationAction) {
+                    Button("Cancel") { dismiss() }
+                }
+                ToolbarItem(placement: .confirmationAction) {
+                    Button("Add") {
+                        if !selectedDates.contains(currentSelection) {
+                            selectedDates.append(currentSelection)
+                        }
+                    }
+                }
             }
         }
     }

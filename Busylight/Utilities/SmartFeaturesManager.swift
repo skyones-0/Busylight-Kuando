@@ -557,6 +557,24 @@ class SmartFeaturesManager: ObservableObject {
             smartBreakStatus = .completed
         }
     }
+    
+    // MARK: - ML Integration
+    func updateWorkHours(start: Int, end: Int) {
+        workStartTime = max(0, min(23, start))
+        workEndTime = max(1, min(24, end))
+        
+        // Notificar cambio
+        NotificationCenter.default.post(
+            name: NSNotification.Name("WorkHoursChanged"),
+            object: nil,
+            userInfo: ["start": workStartTime, "end": workEndTime]
+        )
+        
+        // Recheck work hours immediately
+        checkWorkHours()
+        
+        BusylightLogger.shared.info("Work hours updated by ML: \(workStartTime):00 - \(workEndTime):00")
+    }
 }
 
 // MARK: - Supporting Types
