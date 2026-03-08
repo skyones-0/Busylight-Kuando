@@ -10,6 +10,7 @@ import CoreML
 import CreateML
 import SwiftData
 import Combine
+import UserNotifications
 
 /// Manager para ML de predicción de horarios
 @MainActor

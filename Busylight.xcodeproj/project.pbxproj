@@ -51,10 +51,23 @@
 		6896E76E2F490BB90010A930 /* BusylightSDK_Swift.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; path = BusylightSDK_Swift.framework; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
+/* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
+		6882FD392F4A6A7E0012B062 /* Exceptions for "Busylight" folder in "Busylight" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				Info.plist,
+			);
+			target = 6896E7332F490AC10010A930 /* Busylight */;
+		};
+/* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
+
 /* Begin PBXFileSystemSynchronizedRootGroup section */
 		6896E7362F490AC10010A930 /* Busylight */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
-			path = Busylight;
+			exceptions = (
+				6882FD392F4A6A7E0012B062 /* Exceptions for "Busylight" folder in "Busylight" target */,
+			);
+			path = macOS;
 			sourceTree = "<group>";
 		};
 		6896E7492F490AC30010A930 /* BusylightTests */ = {

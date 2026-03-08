@@ -135,6 +135,9 @@
     "Add Selected Dates" : {
 
     },
+    "Adjusts work hours based on predictions" : {
+
+    },
     "All Calendars" : {
 
     },
@@ -174,6 +177,9 @@
           }
         }
       }
+    },
+    "Auto-train model" : {
+
     },
     "Available" : {
       "extractionState" : "stale",
@@ -582,6 +588,9 @@
     "Model Accuracy" : {
 
     },
+    "Model ready - waiting for tomorrow's prediction" : {
+
+    },
     "Mute" : {
       "extractionState" : "stale",
       "localizations" : {
@@ -595,16 +604,6 @@
     },
     "Next →" : {
 
-    },
-    "Next prediction: %@ - %@" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "new",
-            "value" : "Next prediction: %1$@ - %2$@"
-          }
-        }
-      }
     },
     "No activities scheduled" : {
 
@@ -1117,10 +1116,23 @@
         }
       }
     },
+    "Tomorrow: %@ - %@" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Tomorrow: %1$@ - %2$@"
+          }
+        }
+      }
+    },
     "Train Now" : {
 
     },
     "Training Data" : {
+
+    },
+    "Trains automatically when enough data is collected" : {
 
     },
     "Turn Off" : {
