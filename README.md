@@ -14,6 +14,8 @@
   <a href="#"><img src="https://img.shields.io/badge/SwiftUI-Yes-007AFF?logo=swift&logoColor=white" alt="SwiftUI"></a>
   <a href="#"><img src="https://img.shields.io/badge/Core%20ML-Enabled-FF6B6B" alt="CoreML"></a>
   <a href="#"><img src="https://img.shields.io/badge/Localization-Spanish%20100%25-blue" alt="Spanish"></a>
+  ![Validate Project](https://github.com/skyones-0/Busylight-Kuando/workflows/Validate%20Project/badge.svg)
+  ![CodeQL](https://github.com/skyones-0/Busylight-Kuando/workflows/CodeQL%20Analysis/badge.svg)
 </p>
 
 ---
@@ -129,8 +131,8 @@ open "Busylight macOS/Busylight macOS.xcodeproj"
 ```bash
 # Run unit tests (Cmd+U in Xcode)
 # or via command line:
-xcodebuild test -project "Busylight macOS/Busylight macOS.xcodeproj" \
-  -scheme "Busylight macOS" \
+xcodebuild test -project "Busylight mac OS/Busylight mac OS.xcodeproj" \
+  -scheme "Busylight mac OS" \
   -destination 'platform=macOS'
 ```
 
@@ -184,14 +186,14 @@ xcodebuild test -project "Busylight macOS/Busylight macOS.xcodeproj" \
 4. ML model will ignore these days when learning patterns
 
 #### ML Console Log Indicators
-- 🚀 `ML: Iniciando entrenamiento` - Training started
-- ⏳ `ML: Entrenando modelo` - Training in progress  
-- ✅ `ML: Entrenamiento completado` - Training finished
-- ❌ `ML: Error en entrenamiento` - Training failed
-- 📝 `ML: Nuevo patrón diario creado` - New pattern collected
-- 🎯 `ML: Se alcanzó el mínimo de datos` - Ready to train
-- 🔮 `ML: Predicción generada` - Prediction created
-- 🔄 `ML: Horarios ajustados automáticamente` - Hours updated
+- 🚀 `ML: Starting training` - Training started
+- ⏳ `ML: Training model` - Training in progress  
+- ✅ `ML: Training completed` - Training finished
+- ❌ `ML: Training error` - Training failed
+- 📝 `ML: New daily pattern created` - New pattern collected
+- 🎯 `ML: Minimum data reached` - Ready to train
+- 🔮 `ML: Prediction generated` - Prediction created
+- 🔄 `ML: Hours auto-adjusted` - Hours updated
 
 ### Local API Server
 1. Go to **Settings > Local API Server**
