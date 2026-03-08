@@ -23,6 +23,20 @@ struct HapticFeedback {
         let performer = NSHapticFeedbackManager.defaultPerformer
         performer.perform(.generic, performanceTime: .now)
     }
+    
+    // Prolonged haptic for main actions (Play/Pause/Stop)
+    static func prolonged() {
+        let performer = NSHapticFeedbackManager.defaultPerformer
+        // Perform multiple haptics in sequence for prolonged effect
+        performer.perform(.generic, performanceTime: .now)
+        
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.05) {
+            performer.perform(.generic, performanceTime: .now)
+        }
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+            performer.perform(.generic, performanceTime: .now)
+        }
+    }
 }
 
 // MARK: - Glassmorphism Background
@@ -97,7 +111,7 @@ struct GradientWaveButtonStyle: ButtonStyle {
             )
             .onChange(of: configuration.isPressed) { _, pressed in
                 if pressed {
-                    HapticFeedback.medium()
+                    HapticFeedback.prolonged()
                 }
             }
     }

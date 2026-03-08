@@ -324,192 +324,263 @@ struct DeviceView: View {
     }
 }
 
-// MARK: - Pomodoro View (Glassmorphism)
+// MARK: - Pomodoro View (Compact Modern)
 struct PomodoroView: View {
     @ObservedObject var busylight: BusylightManager
     @ObservedObject private var manager = PomodoroManager.shared
     
     var body: some View {
-        VStack(spacing: 20) {
-            // Header
-            VStack(spacing: 4) {
-                HStack(spacing: 10) {
-                    Image(systemName: "timer")
-                        .font(.largeTitle)
-                        .foregroundStyle(manager.currentPhase.color)
-                    
-                    Text("Focus Timer")
-                        .font(.system(.largeTitle, design: .rounded).weight(.bold))
-                }
+        VStack(spacing: 16) {
+            // Compact Header
+            HStack(spacing: 8) {
+                Image(systemName: "timer")
+                    .font(.title2)
+                    .foregroundStyle(manager.currentPhase.color)
                 
-                Text("Stay productive with timed sessions")
-                    .font(.subheadline)
+                Text("Focus")
+                    .font(.system(.title2, design: .rounded).weight(.bold))
+                
+                Spacer()
+                
+                // Phase badge compact
+                HStack(spacing: 4) {
+                    Image(systemName: manager.currentPhase.icon)
+                        .font(.caption2)
+                    Text(manager.currentPhase.rawValue)
+                        .font(.caption.weight(.medium))
+                }
+                .padding(.horizontal, 8)
+                .padding(.vertical, 4)
+                .background(
+                    Capsule()
+                        .fill(manager.currentPhase.color.opacity(0.2))
+                )
+                .foregroundStyle(manager.currentPhase.color)
+            }
+            .padding(.horizontal, 20)
+            .padding(.top, 16)
+            
+            // Timer Display - Compact & Centered
+            VStack(spacing: 8) {
+                // Main Timer
+                Text(manager.timeString)
+                    .font(.system(size: 56, weight: .bold, design: .rounded))
+                    .monospacedDigit()
+                    .foregroundStyle(manager.currentPhase.color)
+                
+                // Set indicator inline
+                Text("Set \(manager.currentSet) of \(manager.totalSets)")
+                    .font(.caption)
                     .foregroundStyle(.secondary)
-            }
-            .frame(maxWidth: .infinity, alignment: .leading)
-            .padding(.horizontal, 24)
-            .padding(.top, 20)
-            
-            // Main Timer Display
-            GlassCard(title: "Current Session", icon: manager.currentPhase.icon) {
-                VStack(spacing: 16) {
-                    // Phase and Set Info
-                    HStack {
-                        GlassStatusBadge(
-                            text: manager.currentPhase.rawValue,
-                            isActive: manager.isRunning,
-                            icon: manager.currentPhase.icon
-                        )
+                
+                // Progress Bar - Thinner
+                GeometryReader { geo in
+                    ZStack(alignment: .leading) {
+                        RoundedRectangle(cornerRadius: 2)
+                            .fill(Color.gray.opacity(0.2))
+                            .frame(height: 4)
                         
-                        Spacer()
-                        
-                        Text("Set \(manager.currentSet)/\(manager.totalSets)")
-                            .font(.system(.title3, design: .rounded).weight(.semibold))
-                            .foregroundStyle(.secondary)
+                        RoundedRectangle(cornerRadius: 2)
+                            .fill(manager.currentPhase.color)
+                            .frame(width: max(0, geo.size.width * manager.progress), height: 4)
+                            .animation(.linear(duration: 0.5), value: manager.progress)
                     }
-                    
-                    // Timer Display
-                    Text(manager.timeString)
-                        .font(.system(size: 72, weight: .bold, design: .rounded))
-                        .monospacedDigit()
-                        .foregroundStyle(manager.currentPhase.color)
-                        .shadow(color: manager.currentPhase.color.opacity(0.3), radius: 10)
-                    
-                    // Progress Bar
-                    GeometryReader { geo in
-                        ZStack(alignment: .leading) {
-                            RoundedRectangle(cornerRadius: 4)
-                                .fill(Material.thinMaterial)
-                                .frame(height: 8)
-                            
-                            RoundedRectangle(cornerRadius: 4)
-                                .fill(
-                                    LinearGradient(
-                                        colors: [
-                                            manager.currentPhase.color.opacity(0.8),
-                                            manager.currentPhase.color
-                                        ],
-                                        startPoint: .leading,
-                                        endPoint: .trailing
-                                    )
-                                )
-                                .frame(width: geo.size.width * manager.progress, height: 8)
-                                .shadow(color: manager.currentPhase.color.opacity(0.4), radius: 4)
-                                .animation(.linear(duration: 0.5), value: manager.progress)
-                        }
-                    }
-                    .frame(height: 8)
                 }
-                .padding(.vertical, 8)
+                .frame(height: 4)
+                .padding(.horizontal, 40)
+            }
+            .padding(.vertical, 8)
+            
+            // Compact Config Cards
+            HStack(spacing: 8) {
+                CompactTimerBadge(
+                    value: manager.workTimeMinutes,
+                    unit: "m",
+                    icon: "briefcase.fill",
+                    color: .green
+                )
+                CompactTimerBadge(
+                    value: manager.shortBreakMinutes,
+                    unit: "m",
+                    icon: "cup.and.saucer.fill",
+                    color: .blue
+                )
+                CompactTimerBadge(
+                    value: manager.longBreakMinutes,
+                    unit: "m",
+                    icon: "sun.max.fill",
+                    color: .orange
+                )
+                CompactTimerBadge(
+                    value: manager.configuredSets,
+                    unit: "",
+                    icon: "number",
+                    color: .purple
+                )
             }
             .padding(.horizontal, 20)
             
-            // Timer Display Cards (Configuration Preview)
-            HStack(spacing: 12) {
-                GlassTimerCard(
-                    time: String(format: "%02d:00", manager.workTimeMinutes),
-                    color: .green,
-                    icon: "briefcase.fill"
-                )
-                
-                GlassTimerCard(
-                    time: String(format: "%02d:00", manager.shortBreakMinutes),
-                    color: .blue,
-                    icon: "cup.and.saucer.fill"
-                )
-                
-                GlassTimerCard(
-                    time: String(format: "%02d:00", manager.longBreakMinutes),
-                    color: .orange,
-                    icon: "sun.max.fill"
-                )
-                
-                GlassTimerCard(
-                    time: "\(manager.configuredSets)",
-                    color: .purple,
-                    icon: "arrow.clockwise",
-                    isNumber: true
-                )
-            }
-            .padding(.horizontal, 20)
-            
-            // Configuration
-            GlassCard(title: "Configuration", icon: "slider.horizontal.3") {
-                VStack(spacing: 12) {
-                    HStack(spacing: 12) {
-                        ConfigLabel(icon: "briefcase.fill", title: "Work")
-                        ConfigLabel(icon: "cup.and.saucer.fill", title: "Short")
-                        ConfigLabel(icon: "sun.max.fill", title: "Long")
-                        ConfigLabel(icon: "number", title: "Sets")
-                    }
+            // Compact Configuration
+            VStack(spacing: 8) {
+                // Stepper row - more compact
+                HStack(spacing: 8) {
+                    CompactStepper(
+                        icon: "briefcase.fill",
+                        value: $manager.workTimeMinutes,
+                        range: 1...60
+                    )
+                    .onChange(of: manager.workTimeMinutes) { manager.updateConfiguration() }
                     
-                    HStack(spacing: 10) {
-                        GlassStepper(value: $manager.workTimeMinutes, suffix: "min", range: 1...60)
-                            .onChange(of: manager.workTimeMinutes) { manager.updateConfiguration() }
-                        GlassStepper(value: $manager.shortBreakMinutes, suffix: "min", range: 1...30)
-                            .onChange(of: manager.shortBreakMinutes) { manager.updateConfiguration() }
-                        GlassStepper(value: $manager.longBreakMinutes, suffix: "min", range: 1...60)
-                            .onChange(of: manager.longBreakMinutes) { manager.updateConfiguration() }
-                        GlassStepper(value: $manager.configuredSets, suffix: "", range: 1...10)
-                            .onChange(of: manager.configuredSets) { manager.updateConfiguration() }
-                    }
+                    CompactStepper(
+                        icon: "cup.and.saucer.fill",
+                        value: $manager.shortBreakMinutes,
+                        range: 1...30
+                    )
+                    .onChange(of: manager.shortBreakMinutes) { manager.updateConfiguration() }
+                    
+                    CompactStepper(
+                        icon: "sun.max.fill",
+                        value: $manager.longBreakMinutes,
+                        range: 1...60
+                    )
+                    .onChange(of: manager.longBreakMinutes) { manager.updateConfiguration() }
+                    
+                    CompactStepper(
+                        icon: "arrow.clockwise",
+                        value: $manager.configuredSets,
+                        range: 1...10
+                    )
+                    .onChange(of: manager.configuredSets) { manager.updateConfiguration() }
                 }
             }
             .padding(.horizontal, 20)
             .disabled(manager.isRunning)
-            .opacity(manager.isRunning ? 0.6 : 1)
+            .opacity(manager.isRunning ? 0.5 : 1)
             
-            // Control Buttons
-            HStack(spacing: 16) {
+            // Control Buttons - Compact
+            HStack(spacing: 12) {
                 Button {
                     manager.start()
                 } label: {
-                    HStack(spacing: 8) {
-                        Image(systemName: manager.isPaused ? "play.fill" : "play.fill")
-                        Text(manager.isPaused ? "Resume" : "Start")
-                    }
-                    .font(.system(.subheadline, design: .rounded).weight(.semibold))
-                    .frame(maxWidth: .infinity)
-                    .padding(.vertical, 12)
+                    Label(manager.isPaused ? "Resume" : "Start", systemImage: "play.fill")
+                        .font(.system(.callout, design: .rounded).weight(.semibold))
                 }
                 .buttonStyle(.gradientWave(color: .green, prominent: true))
                 .disabled(manager.isRunning && !manager.isPaused)
-                .opacity(manager.isRunning && !manager.isPaused ? 0.5 : 1)
                 
                 Button {
                     manager.pause()
                 } label: {
-                    HStack(spacing: 8) {
-                        Image(systemName: "pause.fill")
-                        Text("Pause")
-                    }
-                    .font(.system(.subheadline, design: .rounded).weight(.semibold))
-                    .frame(maxWidth: .infinity)
-                    .padding(.vertical, 12)
+                    Label("Pause", systemImage: "pause.fill")
+                        .font(.system(.callout, design: .rounded).weight(.medium))
                 }
                 .buttonStyle(.gradientWave)
                 .disabled(!manager.isRunning || manager.isPaused)
-                .opacity(!manager.isRunning || manager.isPaused ? 0.5 : 1)
                 
                 Button {
                     manager.stop()
                 } label: {
-                    HStack(spacing: 8) {
-                        Image(systemName: "stop.fill")
-                        Text("Stop")
-                    }
-                    .font(.system(.subheadline, design: .rounded).weight(.semibold))
-                    .frame(maxWidth: .infinity)
-                    .padding(.vertical, 12)
+                    Label("Stop", systemImage: "stop.fill")
+                        .font(.system(.callout, design: .rounded).weight(.medium))
                 }
                 .buttonStyle(.gradientWave(color: .red))
                 .disabled(!manager.isRunning && !manager.isPaused)
-                .opacity(!manager.isRunning && !manager.isPaused ? 0.5 : 1)
             }
             .padding(.horizontal, 20)
             
             Spacer()
         }
+    }
+}
+
+// Compact Timer Badge
+struct CompactTimerBadge: View {
+    let value: Int
+    let unit: String
+    let icon: String
+    let color: Color
+    
+    var body: some View {
+        VStack(spacing: 2) {
+            HStack(spacing: 2) {
+                Image(systemName: icon)
+                    .font(.system(size: 8))
+                Text("\(value)\(unit)")
+                    .font(.system(.caption2, design: .rounded).weight(.semibold))
+            }
+            .foregroundStyle(color)
+        }
+        .frame(maxWidth: .infinity)
+        .padding(.vertical, 6)
+        .background(
+            RoundedRectangle(cornerRadius: 6)
+                .fill(color.opacity(0.1))
+                .overlay(
+                    RoundedRectangle(cornerRadius: 6)
+                        .stroke(color.opacity(0.3), lineWidth: 1)
+                )
+        )
+    }
+}
+
+// Compact Stepper
+struct CompactStepper: View {
+    let icon: String
+    @Binding var value: Int
+    let range: ClosedRange<Int>
+    
+    var body: some View {
+        HStack(spacing: 4) {
+            Button {
+                if value > range.lowerBound {
+                    value -= 1
+                    HapticFeedback.light()
+                }
+            } label: {
+                Image(systemName: "minus")
+                    .font(.system(size: 8, weight: .bold))
+                    .frame(width: 18, height: 18)
+            }
+            .buttonStyle(CompactStepperButtonStyle())
+            
+            VStack(spacing: 0) {
+                Image(systemName: icon)
+                    .font(.system(size: 8))
+                    .foregroundStyle(.secondary)
+                Text("\(value)")
+                    .font(.system(.caption2, design: .rounded).weight(.semibold))
+            }
+            .frame(minWidth: 26)
+            
+            Button {
+                if value < range.upperBound {
+                    value += 1
+                    HapticFeedback.light()
+                }
+            } label: {
+                Image(systemName: "plus")
+                    .font(.system(size: 8, weight: .bold))
+                    .frame(width: 18, height: 18)
+            }
+            .buttonStyle(CompactStepperButtonStyle())
+        }
+        .padding(4)
+        .background(
+            RoundedRectangle(cornerRadius: 6)
+                .fill(Color.gray.opacity(0.1))
+        )
+    }
+}
+
+struct CompactStepperButtonStyle: ButtonStyle {
+    func makeBody(configuration: Configuration) -> some View {
+        configuration.label
+            .foregroundStyle(configuration.isPressed ? .white : .secondary)
+            .background(
+                Circle()
+                    .fill(configuration.isPressed ? Color.accentColor.opacity(0.7) : Color.clear)
+            )
+            .focusable(false)
     }
 }
 
