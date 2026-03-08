@@ -967,33 +967,8 @@ struct SettingsView: View {
                         // 3. Other features in compact row
                         LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: 8) {
                             CompactToggle(icon: "moon.fill", title: "Focus Mode", isOn: $smartFeatures.focusModeSyncEnabled)
-                            CompactToggle(icon: "eye.fill", title: "20-20-20 Breaks", isOn: $smartFeatures.visualBreakEnabled)
                             CompactToggle(icon: "video.fill", title: "Video Calls", isOn: $smartFeatures.zoomDetectionEnabled)
                             CompactToggle(icon: "rectangle.inset.filled", title: "Presentations", isOn: $smartFeatures.presentationModeEnabled)
-                        }
-                        
-                        Divider().opacity(0.3)
-                        
-                        // 4. Idle Detection
-                        HStack(spacing: 12) {
-                            Image(systemName: "person.fill.questionmark")
-                                .font(.callout)
-                                .foregroundStyle(.secondary)
-                                .frame(width: 24)
-                            
-                            VStack(alignment: .leading, spacing: 2) {
-                                HStack {
-                                    Text("Idle Detection")
-                                        .font(.system(.body, design: .rounded))
-                                    Spacer()
-                                    Toggle("", isOn: $smartFeatures.idleDetectionEnabled)
-                                        .toggleStyle(.switch)
-                                        .controlSize(.small)
-                                }
-                                Text("Pauses timer after \(smartFeatures.idleTimeoutMinutes) min")
-                                    .font(.caption2)
-                                    .foregroundStyle(.secondary)
-                            }
                         }
                     }
                 }

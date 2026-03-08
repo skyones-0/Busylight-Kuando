@@ -23,42 +23,31 @@ class SmartFeaturesManager: ObservableObject {
     @Published var selectedCalendarIdentifier: String = ""
     @Published var availableCalendars: [EKCalendar] = []
     @Published var focusMode: FocusMode = .none
-    @Published var isIdle: Bool = false
     @Published var isInMeeting: Bool = false
     @Published var isPresenting: Bool = false
     @Published var currentWorkProfile: WorkProfile = .standard
     @Published var isDeepWorkActive: Bool = false
-    @Published var visualBreakTimer: Int = 0
-    @Published var isVisualBreakActive: Bool = false
     @Published var dashboardData: ProductivityDashboard = ProductivityDashboard()
     @Published var currentTheme: LightTheme = .minimal
     @Published var isWithinWorkHours: Bool = true
-    @Published var smartBreakStatus: SmartBreakStatus = .waiting
     @Published var deepWorkRemainingMinutes: Int = 0
     
     // MARK: - Private Properties
     private var cancellables = Set<AnyCancellable>()
-    private var idleTimer: Timer?
-    private var visualBreakTimerObj: Timer?
     private var workHoursTimer: Timer?
     private var meetingCheckTimer: Timer?
-    private var lastActivityTime: Date = Date()
     private var eventStore = EKEventStore()
     private var captureSession: AVCaptureSession?
     
     // MARK: - Settings
     @AppStorage("calendarSyncEnabled") var calendarSyncEnabled = true
     @AppStorage("focusModeSyncEnabled") var focusModeSyncEnabled = true
-    @AppStorage("idleDetectionEnabled") var idleDetectionEnabled = true
-    @AppStorage("idleTimeoutMinutes") var idleTimeoutMinutes = 5
-    @AppStorage("visualBreakEnabled") var visualBreakEnabled = true
     @AppStorage("deepWorkEnabled") var deepWorkEnabled = true
     @AppStorage("presentationModeEnabled") var presentationModeEnabled = true
     @AppStorage("workHoursEnabled") var workHoursEnabled = true
     @AppStorage("workStartTime") var workStartTime = 9
     @AppStorage("workEndTime") var workEndTime = 18
     @AppStorage("workDays") var workDays = "1,2,3,4,5" // Mon-Fri
-    @AppStorage("smartBreaksEnabled") var smartBreaksEnabled = true
     @AppStorage("selectedWorkProfile") var selectedWorkProfile = "standard"
     @AppStorage("selectedLightTheme") var selectedLightTheme = "minimal"
     @AppStorage("zoomDetectionEnabled") var zoomDetectionEnabled = true
@@ -71,11 +60,8 @@ class SmartFeaturesManager: ObservableObject {
     private func setupFeatures() {
         loadWorkProfile()
         loadTheme()
-        // Todos habilitados excepto idleDetection y visualBreakTimer
         setupCalendarSync()
         setupFocusModeSync()
-        // setupIdleDetection()         // ← DESHABILITADO: addGlobalMonitorForEvents causa freeze
-        // setupVisualBreakTimer()      // ← DESHABILITADO: @Published updates cada 60s causan freeze
         setupWorkHoursChecker()
         setupMeetingDetection()
         setupPresentationDetection()
@@ -255,124 +241,7 @@ class SmartFeaturesManager: ObservableObject {
         }
     }
     
-    // MARK: - 3. Idle Detection
-    private func setupIdleDetection() {
-        guard idleDetectionEnabled else { return }
-        
-        NSEvent.addGlobalMonitorForEvents(matching: [.mouseMoved, .leftMouseDown, .rightMouseDown, .keyDown]) { _ in
-            self.lastActivityTime = Date()
-            if self.isIdle {
-                self.isIdle = false
-                self.resumeFromIdle()
-            }
-        }
-        
-        idleTimer = Timer.scheduledTimer(withTimeInterval: 30, repeats: true) { _ in
-            self.checkIdleStatus()
-        }
-    }
-    
-    @Published var wasPomodoroRunningBeforeIdle = false
-    
-    private func checkIdleStatus() {
-        let idleTime = Date().timeIntervalSince(lastActivityTime)
-        let timeout = Double(idleTimeoutMinutes * 60)
-        
-        if idleTime > timeout && !isIdle {
-            isIdle = true
-            BusylightManager.shared.orange()
-            
-            // Pause Pomodoro if running (but don't stop it)
-            let pomodoro = PomodoroManager.shared
-            if pomodoro.isRunning && !pomodoro.isPaused {
-                wasPomodoroRunningBeforeIdle = true
-                pomodoro.pause()
-                
-                // Show notification
-                let content = UNMutableNotificationContent()
-                content.title = "⏸️ Pomodoro Pausado"
-                content.body = "Detectamos inactividad. El timer se pausó automáticamente."
-                content.sound = .default
-                
-                let request = UNNotificationRequest(identifier: "idlePause", content: content, trigger: nil)
-                UNUserNotificationCenter.current().add(request)
-            }
-        }
-    }
-    
-    private func resumeFromIdle() {
-        // Resume Pomodoro if it was paused by idle detection
-        if wasPomodoroRunningBeforeIdle {
-            wasPomodoroRunningBeforeIdle = false
-            PomodoroManager.shared.start() // Resume
-            
-            // Show notification
-            let content = UNMutableNotificationContent()
-            content.title = "▶️ Pomodoro Reanudado"
-            content.body = "Bienvenido de vuelta. El timer sigue corriendo."
-            content.sound = .default
-            
-            let request = UNNotificationRequest(identifier: "idleResume", content: content, trigger: nil)
-            UNUserNotificationCenter.current().add(request)
-        }
-        
-        if PomodoroManager.shared.isRunning {
-            // Let pomodoro handle light color
-        } else if case .inMeeting = calendarStatus {
-            BusylightManager.shared.red()
-        } else {
-            BusylightManager.shared.green()
-        }
-    }
-    
-    // MARK: - 4. 20-20-20 Visual Break Timer
-    private func setupVisualBreakTimer() {
-        guard visualBreakEnabled else { return }
-        
-        // Request notification permissions
-        UNUserNotificationCenter.current().requestAuthorization(options: [.alert, .sound]) { granted, _ in
-            print("Notification permission: \(granted)")
-        }
-        
-        visualBreakTimerObj = Timer.scheduledTimer(withTimeInterval: 60, repeats: true) { _ in
-            self.visualBreakTimer += 1
-            if self.visualBreakTimer >= 20 {
-                self.triggerVisualBreak()
-            }
-        }
-    }
-    
-    private func triggerVisualBreak() {
-        isVisualBreakActive = true
-        visualBreakTimer = 0
-        
-        // Gentle blue pulse for 20 seconds
-        BusylightManager.shared.pulseBlue()
-        
-        // Show notification
-        let content = UNMutableNotificationContent()
-        content.title = "👁️ Descanso Visual (20-20-20)"
-        content.body = "Mira a 6 metros (20 pies) de distancia durante 20 segundos para cuidar tus ojos"
-        content.sound = .default
-        
-        let request = UNNotificationRequest(identifier: "visualBreak", content: content, trigger: nil)
-        UNUserNotificationCenter.current().add(request) { error in
-            if let error = error {
-                print("Error showing notification: \(error)")
-            }
-        }
-        
-        // Auto-reset after 20 seconds
-        DispatchQueue.main.asyncAfter(deadline: .now() + 20) {
-            self.isVisualBreakActive = false
-            self.visualBreakTimer = 0
-            if !PomodoroManager.shared.isRunning {
-                BusylightManager.shared.off()
-            }
-        }
-    }
-    
-    // MARK: - 5. Dashboard Data
+    // MARK: - 3. Dashboard Data
     func updateDashboard() {
         // Simplified dashboard without SwiftData fetch
         dashboardData = ProductivityDashboard()
@@ -550,21 +419,6 @@ class SmartFeaturesManager: ObservableObject {
         }
     }
     
-    // MARK: - 11. Smart Breaks
-    func checkBreakActivity() {
-        guard smartBreaksEnabled,
-              PomodoroManager.shared.isRunning,
-              PomodoroManager.shared.currentPhase == .shortBreak else { return }
-        
-        let timeSinceBreakStarted = Date().timeIntervalSince(lastActivityTime)
-        
-        if timeSinceBreakStarted < 10 {
-            smartBreakStatus = .skipped
-        } else {
-            smartBreakStatus = .completed
-        }
-    }
-    
     // MARK: - ML Integration
     func updateWorkHours(start: Int, end: Int) {
         workStartTime = max(0, min(23, start))
@@ -645,12 +499,6 @@ enum LightTheme: String, CaseIterable {
         case .calm: return "Calm"
         }
     }
-}
-
-enum SmartBreakStatus {
-    case waiting
-    case skipped
-    case completed
 }
 
 struct ProductivityDashboard {
