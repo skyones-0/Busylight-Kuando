@@ -90,6 +90,12 @@
 7. **🕐 Smart Work Hours** - Schedule reminders
 8. **🔥 Deep Work Mode** - Distraction-free sessions
 
+### ML & AI Features (NEW)
+- **🧠 Smart Schedule Learning** - ML model learns your work patterns
+- **📈 Work Hour Prediction** - Auto-suggests optimal work hours
+- **🎯 Holiday Exclusion** - Mark holidays to exclude from training
+- **⚡ Auto-Configuration** - Automatically adjust settings based on patterns
+
 ### Integrations
 - **🌐 Local API** - HTTP endpoints at localhost:8080
 - **👔 Microsoft Teams** - Presence sync & activities
@@ -173,6 +179,25 @@ xcodebuild -project Busylight.xcodeproj -scheme Busylight -configuration Release
 4. Select specific calendar (or "All")
 5. Status shows in menu bar automatically
 
+### ML Autoconfiguration (NEW)
+1. Go to **Settings > ML Autoconfiguration**
+2. Enable **Smart Schedule Learning**
+3. The app collects your daily work patterns
+4. After 14+ days, click **Train Now**
+5. Enable **Auto-apply predictions** to automatically adjust work hours
+
+**Features:**
+- Learns your actual work patterns vs configured hours
+- Predicts optimal work hours for each day
+- Excludes holidays from training data
+- Shows model accuracy and confidence
+
+### Managing Holidays
+1. Go to **Settings > ML Autoconfiguration > Holidays**
+2. Create a holiday calendar (e.g., "US Holidays")
+3. Select dates to exclude from ML training
+4. ML model will ignore these days when learning patterns
+
 ### Local API
 1. Go to **Settings > API & Integrations**
 2. Toggle **Local API Server**
@@ -212,6 +237,12 @@ POST /timer/stop      # Stop pomodoro
 - ✅ Next event preview in menu bar
 - ✅ Deep Work countdown timer
 - ✅ Visual indicators for all smart features
+
+### ML Autoconfiguration (NEW)
+- ✅ **Smart Schedule Learning** - ML model learns work patterns
+- ✅ **Work Hour Prediction** - Predicts optimal hours based on history
+- ✅ **Holiday Exclusion** - Exclude holidays from training
+- ✅ **Auto-apply** - Automatically adjust settings
 
 ### Bug Fixes (Latest)
 - ✅ **Fixed layout recursion crash** in menu bar calendar card
