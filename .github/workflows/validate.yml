@@ -1,0 +1,71 @@
+name: Validate Project
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+jobs:
+  validate:
+    name: Validate Project Structure
+    runs-on: macos-latest
+
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v4
+
+    - name: Validate Project Structure
+      run: |
+        echo "✅ Validating Busylight macOS project..."
+        
+        # Check main project exists
+        if [ -d "Busylight macOS" ]; then
+          echo "✅ Busylight macOS folder found"
+        else
+          echo "❌ Busylight mac OS folder missing"
+          exit 1
+        fi
+        
+        # Check Xcode project exists
+        if [ -d "Busylight macOS/Busylight macOS.xcodeproj" ]; then
+          echo "✅ Xcode project found"
+        else
+          echo "❌ Xcode project missing"
+          exit 1
+        fi
+        
+        # Check key source files exist
+        if [ -f "Busylight macOS/Busylight macOS/Core/BusylightManager.swift" ]; then
+          echo "✅ BusylightManager.swift found"
+        else
+          echo "❌ BusylightManager.swift missing"
+          exit 1
+        fi
+        
+        # Check ML models exist
+        if [ -d "Busylight macOS/Busylight macOS/CoreML/ML Model" ]; then
+          echo "✅ ML Models folder found"
+        else
+          echo "❌ ML Models folder missing"
+          exit 1
+        fi
+        
+        # Check SDK exists
+        if [ -d "Busylight macOS/BusylightSDK_Swift.framework" ]; then
+          echo "✅ BusylightSDK framework found"
+        else
+          echo "❌ BusylightSDK framework missing"
+          exit 1
+        fi
+        
+        echo ""
+        echo "🎉 All validations passed!"
+        echo "Note: Full build requires macOS 26.2 (not available in GitHub Actions yet)"
+
+    - name: Show Xcode Version
+      run: |
+        echo "Xcode version available in GitHub Actions:"
+        xcodebuild -version
+        echo ""
+        echo "Project requires: macOS 26.2+"
