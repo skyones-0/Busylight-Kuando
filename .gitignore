@@ -121,3 +121,6 @@ Temporary Items
 # *.mlmodel
 # *.mlmodelc
 # *.mlpackage
+
+# ML Model Keys (private keys - NEVER commit)
+*.mlmodelkey
