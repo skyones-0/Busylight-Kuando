@@ -110,7 +110,7 @@
 ```
 Busylight/
 │
-├── 📁 BusylightMac/                 # macOS App
+├── 📁 macOS/                        # macOS App
 │   └── Sources/
 │       ├── Core/                    # App entry, device control
 │       ├── Views/                   # Main UI, Menu bar, Timer
@@ -118,18 +118,18 @@ Busylight/
 │       ├── Utilities/               # Smart features, Webhook
 │       └── Styles/                  # Glassmorphism UI
 │
-├── 📁 BusylightIOS/                 # iOS App
+├── 📁 iOS/                          # iOS App
 │   └── Sources/
 │       ├── Core/                    # iOS entry point
 │       ├── Views/                   # iOS UI
 │       └── LiveActivity/            # Live Activities
 │
-├── 📁 BusylightWatch/               # watchOS App
+├── 📁 watchOS/                      # watchOS App
 │   └── Sources/
 │       ├── Core/                    # watchOS entry
 │       └── Views/                   # Watch UI
 │
-└── 📁 BusylightShared/              # Shared Framework
+└── 📁 Shared/                       # Shared Framework
     └── Sources/
         ├── CloudKit/                # Sync
         ├── Managers/                # Unified manager
@@ -137,7 +137,7 @@ Busylight/
         └── Styles/                  # Shared UI
 ```
 
-### macOS App Structure (BusylightMac/Sources/)
+### macOS App Structure (macOS/Sources/)
 ```
 Core/
 ├── BusylightApp.swift          # App entry point
@@ -176,7 +176,7 @@ cd kuando_macos
 open Busylight.xcodeproj
 
 # Or build via command line
-xcodebuild -project Busylight.xcodeproj -scheme BusylightMac -configuration Release
+xcodebuild -project Busylight.xcodeproj -scheme macOS -configuration Release
 ```
 
 ---

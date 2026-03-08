@@ -5,7 +5,7 @@
 ```
 Busylight/
 │
-├── 📁 BusylightMac/                 # APP macOS
+├── 📁 macOS/                        # APP macOS
 │   └── Sources/
 │       ├── Core/
 │       │   ├── BusylightApp.swift           # Entry point macOS
@@ -34,7 +34,7 @@ Busylight/
 │       ├── Busylight.entitlements           # Entitlements
 │       └── Info.plist                       # Info plist
 │
-├── 📁 BusylightIOS/                 # APP iOS
+├── 📁 iOS/                          # APP iOS
 │   └── Sources/
 │       ├── Core/
 │       │   └── BusylightIOSApp.swift        # Entry point iOS
@@ -43,14 +43,14 @@ Busylight/
 │       └── LiveActivity/
 │           └── LiveActivityManager.swift    # Live Activities + Dynamic Island
 │
-├── 📁 BusylightWatch/               # APP watchOS
+├── 📁 watchOS/                      # APP watchOS
 │   └── Sources/
 │       ├── Core/
 │       │   └── BusylightWatchApp.swift      # Entry point watchOS
 │       └── Views/
 │           └── WatchContentView.swift       # UI básica watchOS
 │
-├── 📁 BusylightShared/              # FRAMEWORK COMPARTIDO
+├── 📁 Shared/                       # FRAMEWORK COMPARTIDO
 │   └── Sources/
 │       ├── CloudKit/
 │       │   └── CloudKitSyncManager.swift    # Sync CloudKit
@@ -69,7 +69,7 @@ Busylight/
 
 ## ✅ Características por Plataforma
 
-### macOS (BusylightMac/)
+### macOS
 - 💻 Control hardware Busylight (USB)
 - ⏱️ Timer Pomodoro completo
 - 🔔 Notificaciones nativas
@@ -78,7 +78,7 @@ Busylight/
 - 🌐 Webhook server integrado
 - ☁️ CloudKit sync
 
-### iOS (BusylightIOS/)
+### iOS
 - ⏱️ Timer Pomodoro completo
 - 🔔 Live Activities (pantalla bloqueada)
 - 🏝️ Dynamic Island
@@ -87,13 +87,13 @@ Busylight/
 - ☁️ CloudKit sync
 - 🎨 Glassmorphism UI
 
-### watchOS (BusylightWatch/)
+### watchOS
 - ⏱️ Timer display
 - ▶️ Controles básicos
 - 🔔 Alertas
 - ☁️ CloudKit sync
 
-### Shared (BusylightShared/)
+### Shared
 - 📦 Framework reutilizable
 - ☁️ CloudKit synchronization
 - 🎨 Glassmorphism components
@@ -102,18 +102,18 @@ Busylight/
 ## 🚀 Configuración Xcode
 
 ### Targets existentes:
-1. **BusylightMac** - App macOS (principal)
-2. **BusylightIOS** - App iOS
-3. **BusylightWatch** - App watchOS
-4. **BusylightShared** - Framework compartido
+1. **macOS** - App macOS (principal)
+2. **iOS** - App iOS
+3. **watchOS** - App watchOS
+4. **Shared** - Framework compartido
 
 ### Dependencias
 
 | Target | Dependencias |
 |--------|-------------|
-| BusylightMac | BusylightShared, BusylightSDK_Swift.framework |
-| BusylightIOS | BusylightShared, ActivityKit, SwiftData |
-| BusylightWatch | BusylightShared, SwiftData |
+| macOS | Shared, BusylightSDK_Swift.framework |
+| iOS | Shared, ActivityKit, SwiftData |
+| watchOS | Shared, SwiftData |
 
 ## ☁️ CloudKit Container
 
@@ -140,7 +140,9 @@ El estado se sincroniza automáticamente:
 
 ## 📝 Notas
 
-- ✅ Código macOS movido de `Busylight/` a `BusylightMac/`
+- ✅ Código macOS en `macOS/`
+- ✅ Código iOS en `iOS/`
+- ✅ Código watchOS en `watchOS/`
+- ✅ Código compartido en `Shared/`
 - ✅ Sin duplicados - cada plataforma en su carpeta
-- ✅ Código compartido en `BusylightShared/`
 - ✅ Estructura limpia y organizada

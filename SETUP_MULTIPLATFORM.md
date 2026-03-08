@@ -6,7 +6,7 @@ This guide explains how to configure the Busylight project for iOS, macOS, and w
 
 ```
 Busylight/
-├── BusylightShared/             # Shared framework for all platforms
+├── Shared/                      # Shared framework for all platforms
 │   └── Sources/
 │       ├── Models/
 │       │   └── SharedModels.swift
@@ -18,7 +18,7 @@ Busylight/
 │       └── CloudKit/
 │           └── CloudKitSyncManager.swift
 │
-├── BusylightMac/                # macOS app
+├── macOS/                       # macOS app
 │   └── Sources/
 │       ├── Core/                # App entry, device control, timer
 │       ├── Views/               # Main UI, Menu bar, Timer
@@ -26,7 +26,7 @@ Busylight/
 │       ├── Utilities/           # Smart features, Webhook, Logger
 │       └── Styles/              # Glassmorphism UI
 │
-├── BusylightIOS/                # iOS app
+├── iOS/                         # iOS app
 │   └── Sources/
 │       ├── Core/
 │       │   └── BusylightIOSApp.swift
@@ -35,7 +35,7 @@ Busylight/
 │       └── LiveActivity/
 │           └── LiveActivityManager.swift
 │
-├── BusylightWatch/              # watchOS app
+├── watchOS/                     # watchOS app
 │   └── Sources/
 │       ├── Core/
 │       │   └── BusylightWatchApp.swift
@@ -47,13 +47,13 @@ Busylight/
 
 ## Features by Platform
 
-### macOS (BusylightMac/)
+### macOS (macOS/)
 - ✅ Hardware control via BusylightSDK
 - ✅ Full UI with glassmorphism
 - ✅ Menu bar integration
 - ✅ CloudKit sync
 
-### iOS (BusylightIOS/)
+### iOS (iOS/)
 - ✅ Full timer controls
 - ✅ Live Activities (Lock Screen)
 - ✅ Dynamic Island support
@@ -63,7 +63,7 @@ Busylight/
 - ✅ CloudKit sync
 - ✅ Glassmorphism UI
 
-### watchOS (BusylightWatch/)
+### watchOS (watchOS/)
 - ✅ Basic timer display
 - ✅ Start/Pause/Stop controls
 - ✅ Alerts and notifications
@@ -76,12 +76,12 @@ Busylight/
 
 1. File → New → Target
 2. Select "Framework" under iOS
-3. Name: `BusylightShared`
+3. Name: `Shared`
 4. Add to project
 
 ### 2. Add Shared Files to Framework
 
-Add these files to the `BusylightShared` target:
+Add these files to the `Shared` target:
 - `Shared/Models/SharedModels.swift`
 - `Shared/Managers/CloudKitSyncManager.swift`
 - `Shared/Managers/UnifiedPomodoroManager.swift`
@@ -91,7 +91,7 @@ Add these files to the `BusylightShared` target:
 
 1. File → New → Target
 2. Select "App" under iOS
-3. Name: `BusylightIOS`
+3. Name: `iOS`
 4. Interface: SwiftUI
 5. Language: Swift
 6. Enable: Live Activities, CloudKit
@@ -100,7 +100,7 @@ Add these files to the `BusylightShared` target:
 
 1. File → New → Target
 2. Select "App" under watchOS
-3. Name: `BusylightWatch`
+3. Name: `watchOS`
 4. Interface: SwiftUI
 5. Language: Swift
 
@@ -116,7 +116,7 @@ Add these files to the `BusylightShared` target:
 - Background Modes
 - CloudKit
 
-#### macOS Target (BusylightMac):
+#### macOS Target (macOS):
 - CloudKit (add if not present)
 
 ### 6. Add Dependencies
@@ -158,10 +158,10 @@ Add `BusylightLiveActivityWidget` to the widget extension.
 
 Set up bundle identifiers:
 - macOS: `co.skyones.Busylight`
-- iOS: `co.skyones.Busylight.ios`
-- watchOS: `co.skyones.Busylight.watch`
-- Shared: `co.skyones.Busylight.shared`
-- Widget: `co.skyones.Busylight.widget`
+- iOS: `co.skyones.Busylight.iOS`
+- watchOS: `co.skyones.Busylight.watchOS`
+- Shared: `co.skyones.Busylight.Shared`
+- Widget: `co.skyones.Busylight.Widget`
 
 ### 10. App Groups (for data sharing)
 
@@ -183,17 +183,17 @@ Add to all targets:
 
 ### macOS
 ```bash
-xcodebuild -project Busylight.xcodeproj -scheme BusylightMac -destination 'platform=macOS' build
+xcodebuild -project Busylight.xcodeproj -scheme macOS -destination 'platform=macOS' build
 ```
 
 ### iOS Simulator
 ```bash
-xcodebuild -project Busylight.xcodeproj -scheme BusylightIOS -destination 'platform=iOS Simulator,name=iPhone 15 Pro' build
+xcodebuild -project Busylight.xcodeproj -scheme iOS -destination 'platform=iOS Simulator,name=iPhone 15 Pro' build
 ```
 
 ### watchOS Simulator
 ```bash
-xcodebuild -project Busylight.xcodeproj -scheme BusylightWatch -destination 'platform=watchOS Simulator,name=Apple Watch Series 9 (45mm)' build
+xcodebuild -project Busylight.xcodeproj -scheme watchOS -destination 'platform=watchOS Simulator,name=Apple Watch Series 9 (45mm)' build
 ```
 
 ## Troubleshooting
