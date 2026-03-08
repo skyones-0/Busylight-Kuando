@@ -14,8 +14,10 @@
   <a href="#"><img src="https://img.shields.io/badge/SwiftUI-Yes-007AFF?logo=swift&logoColor=white" alt="SwiftUI"></a>
   <a href="#"><img src="https://img.shields.io/badge/Core%20ML-Enabled-FF6B6B" alt="CoreML"></a>
   <a href="#"><img src="https://img.shields.io/badge/Localization-Spanish%20100%25-blue" alt="Spanish"></a>
-  ![Validate Project](https://github.com/skyones-0/Busylight-Kuando/workflows/Validate%20Project/badge.svg)
-  ![CodeQL](https://github.com/skyones-0/Busylight-Kuando/workflows/CodeQL%20Analysis/badge.svg)
+</p>
+
+<p align="center">
+  <img src="https://github.com/skyones-0/Busylight-Kuando/workflows/Validate%20Project/badge.svg" alt="Validate Project">
 </p>
 
 ---
