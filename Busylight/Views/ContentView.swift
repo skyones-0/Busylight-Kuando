@@ -324,213 +324,215 @@ struct DeviceView: View {
     }
 }
 
-// MARK: - Pomodoro View (Compact Modern)
+// MARK: - Pomodoro View (Elegant Design)
 struct PomodoroView: View {
     @ObservedObject var busylight: BusylightManager
     @ObservedObject private var manager = PomodoroManager.shared
     
     var body: some View {
-        VStack(spacing: 16) {
-            // Compact Header
-            HStack(spacing: 8) {
-                Image(systemName: "timer")
-                    .font(.title2)
-                    .foregroundStyle(manager.currentPhase.color)
-                
-                Text("Focus")
-                    .font(.system(.title2, design: .rounded).weight(.bold))
+        VStack(spacing: 20) {
+            // Elegant Header
+            HStack {
+                HStack(spacing: 6) {
+                    Image(systemName: "timer")
+                        .font(.title3)
+                        .foregroundStyle(manager.currentPhase.color)
+                    
+                    Text("Focus Session")
+                        .font(.system(.title3, design: .rounded).weight(.semibold))
+                }
                 
                 Spacer()
                 
-                // Phase badge compact
-                HStack(spacing: 4) {
-                    Image(systemName: manager.currentPhase.icon)
-                        .font(.caption2)
-                    Text(manager.currentPhase.rawValue)
-                        .font(.caption.weight(.medium))
-                }
-                .padding(.horizontal, 8)
-                .padding(.vertical, 4)
-                .background(
-                    Capsule()
-                        .fill(manager.currentPhase.color.opacity(0.2))
+                // Elegant Phase Pill
+                PhasePill(
+                    phase: manager.currentPhase.rawValue,
+                    icon: manager.currentPhase.icon,
+                    color: manager.currentPhase.color
                 )
-                .foregroundStyle(manager.currentPhase.color)
             }
-            .padding(.horizontal, 20)
-            .padding(.top, 16)
+            .padding(.horizontal, 24)
+            .padding(.top, 20)
             
-            // Timer Display - Compact & Centered
-            VStack(spacing: 8) {
-                // Main Timer
+            // Main Timer Card
+            VStack(spacing: 12) {
+                // Timer
                 Text(manager.timeString)
-                    .font(.system(size: 56, weight: .bold, design: .rounded))
+                    .font(.system(size: 64, weight: .thin, design: .rounded))
                     .monospacedDigit()
-                    .foregroundStyle(manager.currentPhase.color)
+                    .foregroundStyle(.primary)
                 
-                // Set indicator inline
-                Text("Set \(manager.currentSet) of \(manager.totalSets)")
-                    .font(.caption)
-                    .foregroundStyle(.secondary)
+                // Set Counter
+                HStack(spacing: 4) {
+                    Text("Session")
+                        .foregroundStyle(.secondary)
+                    Text("\(manager.currentSet)/\(manager.totalSets)")
+                        .fontWeight(.semibold)
+                        .foregroundStyle(manager.currentPhase.color)
+                }
+                .font(.subheadline)
                 
-                // Progress Bar - Thinner
+                // Elegant Progress Bar
                 GeometryReader { geo in
                     ZStack(alignment: .leading) {
-                        RoundedRectangle(cornerRadius: 2)
-                            .fill(Color.gray.opacity(0.2))
-                            .frame(height: 4)
+                        // Background
+                        Capsule()
+                            .fill(Color.gray.opacity(0.15))
+                            .frame(height: 6)
                         
-                        RoundedRectangle(cornerRadius: 2)
-                            .fill(manager.currentPhase.color)
-                            .frame(width: max(0, geo.size.width * manager.progress), height: 4)
+                        // Progress
+                        Capsule()
+                            .fill(
+                                LinearGradient(
+                                    colors: [
+                                        manager.currentPhase.color.opacity(0.8),
+                                        manager.currentPhase.color
+                                    ],
+                                    startPoint: .leading,
+                                    endPoint: .trailing
+                                )
+                            )
+                            .frame(width: max(0, geo.size.width * manager.progress), height: 6)
+                            .shadow(color: manager.currentPhase.color.opacity(0.4), radius: 4, x: 0, y: 0)
                             .animation(.linear(duration: 0.5), value: manager.progress)
                     }
                 }
-                .frame(height: 4)
-                .padding(.horizontal, 40)
+                .frame(height: 6)
+                .padding(.horizontal, 60)
+                .padding(.top, 4)
             }
-            .padding(.vertical, 8)
-            
-            // Compact Config Cards
-            HStack(spacing: 8) {
-                CompactTimerBadge(
-                    value: manager.workTimeMinutes,
-                    unit: "m",
-                    icon: "briefcase.fill",
-                    color: .green
-                )
-                CompactTimerBadge(
-                    value: manager.shortBreakMinutes,
-                    unit: "m",
-                    icon: "cup.and.saucer.fill",
-                    color: .blue
-                )
-                CompactTimerBadge(
-                    value: manager.longBreakMinutes,
-                    unit: "m",
-                    icon: "sun.max.fill",
-                    color: .orange
-                )
-                CompactTimerBadge(
-                    value: manager.configuredSets,
-                    unit: "",
-                    icon: "number",
-                    color: .purple
-                )
-            }
-            .padding(.horizontal, 20)
-            
-            // Compact Configuration
-            VStack(spacing: 8) {
-                // Stepper row - more compact
-                HStack(spacing: 8) {
-                    CompactStepper(
-                        icon: "briefcase.fill",
-                        value: $manager.workTimeMinutes,
-                        range: 1...60
+            .padding(.vertical, 24)
+            .background(
+                RoundedRectangle(cornerRadius: 20)
+                    .fill(.ultraThinMaterial)
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 20)
+                            .stroke(manager.currentPhase.color.opacity(0.2), lineWidth: 1)
                     )
+            )
+            .padding(.horizontal, 20)
+            .shadow(color: manager.currentPhase.color.opacity(0.1), radius: 20, x: 0, y: 10)
+            
+            // Config Summary Row
+            HStack(spacing: 12) {
+                ConfigItem(icon: "briefcase.fill", label: "Work", value: "\(manager.workTimeMinutes)m", color: .green)
+                ConfigItem(icon: "cup.and.saucer.fill", label: "Break", value: "\(manager.shortBreakMinutes)m", color: .blue)
+                ConfigItem(icon: "sun.max.fill", label: "Long", value: "\(manager.longBreakMinutes)m", color: .orange)
+                ConfigItem(icon: "number", label: "Sets", value: "\(manager.configuredSets)", color: .purple)
+            }
+            .padding(.horizontal, 24)
+            
+            // Stepper Row
+            HStack(spacing: 12) {
+                ElegantStepper(icon: "briefcase.fill", value: $manager.workTimeMinutes, range: 1...60)
                     .onChange(of: manager.workTimeMinutes) { manager.updateConfiguration() }
-                    
-                    CompactStepper(
-                        icon: "cup.and.saucer.fill",
-                        value: $manager.shortBreakMinutes,
-                        range: 1...30
-                    )
+                
+                ElegantStepper(icon: "cup.and.saucer.fill", value: $manager.shortBreakMinutes, range: 1...30)
                     .onChange(of: manager.shortBreakMinutes) { manager.updateConfiguration() }
-                    
-                    CompactStepper(
-                        icon: "sun.max.fill",
-                        value: $manager.longBreakMinutes,
-                        range: 1...60
-                    )
+                
+                ElegantStepper(icon: "sun.max.fill", value: $manager.longBreakMinutes, range: 1...60)
                     .onChange(of: manager.longBreakMinutes) { manager.updateConfiguration() }
-                    
-                    CompactStepper(
-                        icon: "arrow.clockwise",
-                        value: $manager.configuredSets,
-                        range: 1...10
-                    )
+                
+                ElegantStepper(icon: "arrow.clockwise", value: $manager.configuredSets, range: 1...10)
                     .onChange(of: manager.configuredSets) { manager.updateConfiguration() }
-                }
             }
-            .padding(.horizontal, 20)
+            .padding(.horizontal, 24)
             .disabled(manager.isRunning)
             .opacity(manager.isRunning ? 0.5 : 1)
             
-            // Control Buttons - Compact
-            HStack(spacing: 12) {
-                Button {
-                    manager.start()
-                } label: {
-                    Label(manager.isPaused ? "Resume" : "Start", systemImage: "play.fill")
-                        .font(.system(.callout, design: .rounded).weight(.semibold))
-                }
-                .buttonStyle(.gradientWave(color: .green, prominent: true))
+            // Control Buttons
+            HStack(spacing: 16) {
+                ControlButton(
+                    title: manager.isPaused ? "Resume" : "Start",
+                    icon: "play.fill",
+                    color: .green,
+                    isProminent: true,
+                    action: { manager.start() }
+                )
                 .disabled(manager.isRunning && !manager.isPaused)
                 
-                Button {
-                    manager.pause()
-                } label: {
-                    Label("Pause", systemImage: "pause.fill")
-                        .font(.system(.callout, design: .rounded).weight(.medium))
-                }
-                .buttonStyle(.gradientWave)
+                ControlButton(
+                    title: "Pause",
+                    icon: "pause.fill",
+                    color: .orange,
+                    isProminent: false,
+                    action: { manager.pause() }
+                )
                 .disabled(!manager.isRunning || manager.isPaused)
                 
-                Button {
-                    manager.stop()
-                } label: {
-                    Label("Stop", systemImage: "stop.fill")
-                        .font(.system(.callout, design: .rounded).weight(.medium))
-                }
-                .buttonStyle(.gradientWave(color: .red))
+                ControlButton(
+                    title: "Stop",
+                    icon: "stop.fill",
+                    color: .red,
+                    isProminent: false,
+                    action: { manager.stop() }
+                )
                 .disabled(!manager.isRunning && !manager.isPaused)
             }
-            .padding(.horizontal, 20)
+            .padding(.horizontal, 24)
             
             Spacer()
         }
     }
 }
 
-// Compact Timer Badge
-struct CompactTimerBadge: View {
-    let value: Int
-    let unit: String
+// Phase Pill
+struct PhasePill: View {
+    let phase: String
     let icon: String
     let color: Color
     
     var body: some View {
-        VStack(spacing: 2) {
-            HStack(spacing: 2) {
-                Image(systemName: icon)
-                    .font(.system(size: 8))
-                Text("\(value)\(unit)")
-                    .font(.system(.caption2, design: .rounded).weight(.semibold))
-            }
-            .foregroundStyle(color)
+        HStack(spacing: 4) {
+            Image(systemName: icon)
+                .font(.caption2)
+            Text(phase)
+                .font(.caption.weight(.medium))
         }
-        .frame(maxWidth: .infinity)
-        .padding(.vertical, 6)
+        .padding(.horizontal, 10)
+        .padding(.vertical, 5)
         .background(
-            RoundedRectangle(cornerRadius: 6)
-                .fill(color.opacity(0.1))
+            Capsule()
+                .fill(color.opacity(0.15))
                 .overlay(
-                    RoundedRectangle(cornerRadius: 6)
+                    Capsule()
                         .stroke(color.opacity(0.3), lineWidth: 1)
                 )
         )
+        .foregroundStyle(color)
     }
 }
 
-// Compact Stepper
-struct CompactStepper: View {
+// Config Item
+struct ConfigItem: View {
+    let icon: String
+    let label: String
+    let value: String
+    let color: Color
+    
+    var body: some View {
+        VStack(spacing: 2) {
+            Image(systemName: icon)
+                .font(.caption2)
+                .foregroundStyle(color)
+            Text(value)
+                .font(.system(.caption, design: .rounded).weight(.semibold))
+            Text(label)
+                .font(.system(.caption2, design: .rounded))
+                .foregroundStyle(.secondary)
+        }
+        .frame(maxWidth: .infinity)
+    }
+}
+
+// Elegant Stepper
+struct ElegantStepper: View {
     let icon: String
     @Binding var value: Int
     let range: ClosedRange<Int>
     
     var body: some View {
-        HStack(spacing: 4) {
+        HStack(spacing: 8) {
             Button {
                 if value > range.lowerBound {
                     value -= 1
@@ -538,19 +540,19 @@ struct CompactStepper: View {
                 }
             } label: {
                 Image(systemName: "minus")
-                    .font(.system(size: 8, weight: .bold))
-                    .frame(width: 18, height: 18)
+                    .font(.caption.weight(.bold))
+                    .frame(width: 24, height: 24)
             }
-            .buttonStyle(CompactStepperButtonStyle())
+            .buttonStyle(ElegantStepperButtonStyle())
             
-            VStack(spacing: 0) {
+            VStack(spacing: 2) {
                 Image(systemName: icon)
-                    .font(.system(size: 8))
+                    .font(.caption2)
                     .foregroundStyle(.secondary)
                 Text("\(value)")
-                    .font(.system(.caption2, design: .rounded).weight(.semibold))
+                    .font(.system(.subheadline, design: .rounded).weight(.semibold))
             }
-            .frame(minWidth: 26)
+            .frame(minWidth: 32)
             
             Button {
                 if value < range.upperBound {
@@ -559,27 +561,88 @@ struct CompactStepper: View {
                 }
             } label: {
                 Image(systemName: "plus")
-                    .font(.system(size: 8, weight: .bold))
-                    .frame(width: 18, height: 18)
+                    .font(.caption.weight(.bold))
+                    .frame(width: 24, height: 24)
             }
-            .buttonStyle(CompactStepperButtonStyle())
+            .buttonStyle(ElegantStepperButtonStyle())
         }
-        .padding(4)
+        .padding(6)
         .background(
-            RoundedRectangle(cornerRadius: 6)
-                .fill(Color.gray.opacity(0.1))
+            RoundedRectangle(cornerRadius: 10)
+                .fill(.ultraThinMaterial)
+                .overlay(
+                    RoundedRectangle(cornerRadius: 10)
+                        .stroke(.white.opacity(0.1), lineWidth: 1)
+                )
         )
     }
 }
 
-struct CompactStepperButtonStyle: ButtonStyle {
+struct ElegantStepperButtonStyle: ButtonStyle {
     func makeBody(configuration: Configuration) -> some View {
         configuration.label
             .foregroundStyle(configuration.isPressed ? .white : .secondary)
             .background(
                 Circle()
-                    .fill(configuration.isPressed ? Color.accentColor.opacity(0.7) : Color.clear)
+                    .fill(configuration.isPressed ? Color.accentColor : Color.gray.opacity(0.2))
             )
+            .focusable(false)
+    }
+}
+
+// Control Button with Prolonged Haptic
+struct ControlButton: View {
+    let title: String
+    let icon: String
+    let color: Color
+    let isProminent: Bool
+    let action: () -> Void
+    
+    var body: some View {
+        Button(action: {
+            HapticFeedback.prolonged()
+            action()
+        }) {
+            VStack(spacing: 4) {
+                Image(systemName: icon)
+                    .font(.callout)
+                Text(title)
+                    .font(.system(.caption, design: .rounded).weight(isProminent ? .semibold : .medium))
+            }
+            .frame(maxWidth: .infinity)
+            .padding(.vertical, 12)
+        }
+        .buttonStyle(ControlButtonStyle(color: color, isProminent: isProminent))
+    }
+}
+
+struct ControlButtonStyle: ButtonStyle {
+    let color: Color
+    let isProminent: Bool
+    
+    func makeBody(configuration: Configuration) -> some View {
+        configuration.label
+            .foregroundStyle(isProminent ? .white : color)
+            .background(
+                ZStack {
+                    RoundedRectangle(cornerRadius: 12)
+                        .fill(
+                            configuration.isPressed
+                                ? color.opacity(isProminent ? 1 : 0.3)
+                                : color.opacity(isProminent ? 0.8 : 0.15)
+                        )
+                    
+                    RoundedRectangle(cornerRadius: 12)
+                        .stroke(color.opacity(configuration.isPressed ? 0.8 : 0.4), lineWidth: 1)
+                }
+            )
+            .shadow(
+                color: color.opacity(configuration.isPressed ? 0.4 : 0.2),
+                radius: configuration.isPressed ? 8 : 4,
+                x: 0,
+                y: configuration.isPressed ? 4 : 2
+            )
+            .scaleEffect(configuration.isPressed ? 0.97 : 1)
             .focusable(false)
     }
 }
