@@ -6,9 +6,11 @@
 //
 
 import SwiftUI
+import EventKit
 
 enum SidebarItem: String, CaseIterable, Identifiable {
     case pomodoro = "Pomodoro"
+    case dashboard = "Dashboard"
     case configuration = "Settings"
     case device = "Device"
     
@@ -17,6 +19,7 @@ enum SidebarItem: String, CaseIterable, Identifiable {
     var icon: String {
         switch self {
         case .pomodoro: return "timer"
+        case .dashboard: return "chart.bar.fill"
         case .configuration: return "gearshape.fill"
         case .device: return "lightbulb.fill"
         }
@@ -97,6 +100,8 @@ struct ContentView: View {
                     switch selectedItem {
                     case .pomodoro:
                         PomodoroView(busylight: busylight)
+                    case .dashboard:
+                        DashboardView()
                     case .configuration:
                         SettingsView()
                     case .device:
@@ -315,18 +320,54 @@ struct DeviceView: View {
 struct PomodoroView: View {
     @ObservedObject var busylight: BusylightManager
     @ObservedObject private var manager = PomodoroManager.shared
+    @ObservedObject private var smartFeatures = SmartFeaturesManager.shared
     
     var body: some View {
         VStack(spacing: 20) {
+            // Deep Work Active Banner
+            if smartFeatures.isDeepWorkActive {
+                HStack(spacing: 12) {
+                    Image(systemName: "flame.fill")
+                        .font(.title3)
+                        .foregroundStyle(.orange)
+                    
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text("Deep Work Mode Active")
+                            .font(.system(.body, design: .rounded).weight(.semibold))
+                        Text("Pomodoro is paused. Deep Work: \(smartFeatures.deepWorkRemainingMinutes) min left")
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                    }
+                    
+                    Spacer()
+                    
+                    Button("End Deep Work") {
+                        smartFeatures.endDeepWorkMode()
+                    }
+                    .buttonStyle(.smallGradient(color: .orange))
+                }
+                .padding(16)
+                .background(
+                    RoundedRectangle(cornerRadius: 12)
+                        .fill(Color.orange.opacity(0.15))
+                        .overlay(
+                            RoundedRectangle(cornerRadius: 12)
+                                .stroke(Color.orange.opacity(0.4), lineWidth: 1)
+                        )
+                )
+                .padding(.horizontal, 20)
+            }
+            
             // Elegant Header
             HStack {
                 HStack(spacing: 6) {
                     Image(systemName: "timer")
                         .font(.title3)
-                        .foregroundStyle(manager.currentPhase.color)
+                        .foregroundStyle(smartFeatures.isDeepWorkActive ? .gray : manager.currentPhase.color)
                     
                     Text(NSLocalizedString("Focus Session", comment: "Pomodoro session title"))
                         .font(.system(.title3, design: .rounded).weight(.semibold))
+                        .foregroundStyle(smartFeatures.isDeepWorkActive ? .gray : .primary)
                 }
                 
                 Spacer()
@@ -334,8 +375,8 @@ struct PomodoroView: View {
                 // Elegant Phase Pill con efectos visuales
                 PhaseLabel(
                     text: manager.currentPhase.rawValue,
-                    color: manager.currentPhase.color,
-                    isRunning: manager.isRunning
+                    color: smartFeatures.isDeepWorkActive ? .gray : manager.currentPhase.color,
+                    isRunning: manager.isRunning && !smartFeatures.isDeepWorkActive
                 )
             }
             .padding(.horizontal, 24)
@@ -424,13 +465,16 @@ struct PomodoroView: View {
             // Control Buttons
             HStack(spacing: 16) {
                 ControlButton(
-                    title: manager.isPaused ? NSLocalizedString("Resume", comment: "Resume button") : NSLocalizedString("Start", comment: "Start button"),
-                    icon: "play.fill",
-                    color: .green,
+                    title: smartFeatures.isDeepWorkActive 
+                        ? NSLocalizedString("Deep Work Active", comment: "Deep work active button") 
+                        : (manager.isPaused ? NSLocalizedString("Resume", comment: "Resume button") : NSLocalizedString("Start", comment: "Start button")),
+                    icon: smartFeatures.isDeepWorkActive ? "flame.fill" : "play.fill",
+                    color: smartFeatures.isDeepWorkActive ? .orange : .green,
                     isProminent: true,
                     action: { manager.start() }
                 )
-                .disabled(manager.isRunning && !manager.isPaused)
+                .disabled(manager.isRunning && !manager.isPaused || smartFeatures.isDeepWorkActive)
+                .opacity(smartFeatures.isDeepWorkActive ? 0.5 : 1)
                 
                 ControlButton(
                     title: NSLocalizedString("Pause", comment: "Pause button"),
@@ -439,7 +483,8 @@ struct PomodoroView: View {
                     isProminent: false,
                     action: { manager.pause() }
                 )
-                .disabled(!manager.isRunning || manager.isPaused)
+                .disabled(!manager.isRunning || manager.isPaused || smartFeatures.isDeepWorkActive)
+                .opacity(smartFeatures.isDeepWorkActive ? 0.3 : 1)
                 
                 ControlButton(
                     title: NSLocalizedString("Stop", comment: "Stop button"),
@@ -448,7 +493,8 @@ struct PomodoroView: View {
                     isProminent: false,
                     action: { manager.stop() }
                 )
-                .disabled(!manager.isRunning && !manager.isPaused)
+                .disabled((!manager.isRunning && !manager.isPaused) || smartFeatures.isDeepWorkActive)
+                .opacity(smartFeatures.isDeepWorkActive ? 0.3 : 1)
             }
             .padding(.horizontal, 24)
             
@@ -648,9 +694,12 @@ struct ConfigLabel: View {
     }
 }
 
-// MARK: - Settings View (Integrado: Appearance + Teams + Info)
+// MARK: - Settings View (Super App - All 15 Features)
 struct SettingsView: View {
     @EnvironmentObject var appDelegate: AppDelegate
+    @StateObject private var smartFeatures = SmartFeaturesManager.shared
+    @StateObject private var webhookServer = WebhookServer.shared
+    
     @AppStorage("appearanceMode") private var appearanceMode = 0
     
     // Teams state
@@ -658,6 +707,39 @@ struct SettingsView: View {
     @State private var teamsPassword = ""
     @State private var isTeamsConnected = false
     @State private var teamsStatus = "Offline"
+    
+    // Computed properties
+    var calendarStatusText: String {
+        if !smartFeatures.calendarAccessGranted {
+            return "No access"
+        }
+        switch smartFeatures.calendarStatus {
+        case .inMeeting(let title):
+            return "In meeting: \(title.prefix(20))"
+        case .preparing(let title):
+            return "Soon: \(title.prefix(20))"
+        case .available:
+            return "Available"
+        case .none:
+            return "No events"
+        }
+    }
+    
+    var calendarStatusColor: Color {
+        switch smartFeatures.calendarStatus {
+        case .inMeeting: return .red
+        case .preparing: return .yellow
+        case .available: return .green
+        case .none: return .gray
+        }
+    }
+    
+    var selectedCalendarName: String {
+        if smartFeatures.selectedCalendarIdentifier.isEmpty {
+            return "All"
+        }
+        return smartFeatures.availableCalendars.first { $0.calendarIdentifier == smartFeatures.selectedCalendarIdentifier }?.title ?? "Unknown"
+    }
     
     var body: some View {
         ScrollView {
@@ -670,6 +752,28 @@ struct SettingsView: View {
                 }
                 .padding(.horizontal, 24)
                 .padding(.top, 20)
+                
+                // MARK: 7. Work Profiles
+                GlassCard(title: "Work Profile", icon: "briefcase.fill") {
+                    VStack(spacing: 12) {
+                        Text("Select a preset for your current activity")
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                        
+                        LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible()), GridItem(.flexible())], spacing: 8) {
+                            ForEach(WorkProfile.allCases, id: \.self) { profile in
+                                ProfileButton(
+                                    profile: profile,
+                                    isSelected: smartFeatures.currentWorkProfile == profile
+                                ) {
+                                    smartFeatures.setWorkProfile(profile)
+                                }
+                            }
+                        }
+                    }
+                }
+                .padding(.horizontal, 20)
                 
                 // MARK: Appearance Section
                 GlassCard(title: "Appearance", icon: "paintbrush.fill") {
@@ -696,6 +800,366 @@ struct SettingsView: View {
                                 isOn: $appDelegate.showInMenuBar
                             )
                         }
+                        
+                        Divider().opacity(0.5)
+                        
+                        // 14. Light Themes
+                        Text("Light Theme")
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                        
+                        ScrollView(.horizontal, showsIndicators: false) {
+                            HStack(spacing: 8) {
+                                ForEach(LightTheme.allCases, id: \.self) { theme in
+                                    ThemeButton(
+                                        theme: theme,
+                                        isSelected: smartFeatures.currentTheme == theme
+                                    ) {
+                                        smartFeatures.setTheme(theme)
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+                .padding(.horizontal, 20)
+                
+                // MARK: Smart Features - Compact Layout
+                GlassCard(title: "Smart Features", icon: "sparkles") {
+                    VStack(spacing: 16) {
+                        
+                        // 1. Calendar Sync - Compact Inline
+                        HStack(spacing: 12) {
+                            Image(systemName: "calendar")
+                                .font(.callout)
+                                .foregroundStyle(.secondary)
+                                .frame(width: 24)
+                            
+                            VStack(alignment: .leading, spacing: 2) {
+                                HStack {
+                                    Text("Calendar Sync")
+                                        .font(.system(.body, design: .rounded))
+                                    Spacer()
+                                    Toggle("", isOn: $smartFeatures.calendarSyncEnabled)
+                                        .toggleStyle(.switch)
+                                        .controlSize(.small)
+                                }
+                                
+                                // Inline calendar selector
+                                if smartFeatures.calendarSyncEnabled {
+                                    HStack(spacing: 6) {
+                                        Circle()
+                                            .fill(calendarStatusColor)
+                                            .frame(width: 8, height: 8)
+                                        Text(calendarStatusText)
+                                            .font(.caption2)
+                                            .foregroundStyle(.secondary)
+                                        
+                                        if smartFeatures.calendarAccessGranted && !smartFeatures.availableCalendars.isEmpty {
+                                            Text("•")
+                                                .font(.caption2)
+                                                .foregroundStyle(.secondary)
+                                            Menu {
+                                                Button("All Calendars") {
+                                                    smartFeatures.selectedCalendarIdentifier = ""
+                                                }
+                                                ForEach(smartFeatures.availableCalendars, id: \.calendarIdentifier) { calendar in
+                                                    Button(calendar.title) {
+                                                        smartFeatures.selectedCalendarIdentifier = calendar.calendarIdentifier
+                                                    }
+                                                }
+                                            } label: {
+                                                HStack(spacing: 2) {
+                                                    Text(selectedCalendarName)
+                                                        .font(.caption2)
+                                                    Image(systemName: "chevron.down")
+                                                        .font(.caption2)
+                                                }
+                                                .foregroundStyle(.blue)
+                                            }
+                                            .buttonStyle(.plain)
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                        
+                        Divider().opacity(0.3)
+                        
+                        // 2. Work Hours - Compact Stepper Style
+                        HStack(spacing: 12) {
+                            Image(systemName: "clock.badge.checkmark")
+                                .font(.callout)
+                                .foregroundStyle(.secondary)
+                                .frame(width: 24)
+                            
+                            VStack(alignment: .leading, spacing: 4) {
+                                HStack {
+                                    Text("Work Hours")
+                                        .font(.system(.body, design: .rounded))
+                                    Spacer()
+                                    Toggle("", isOn: $smartFeatures.workHoursEnabled)
+                                        .toggleStyle(.switch)
+                                        .controlSize(.small)
+                                }
+                                
+                                if smartFeatures.workHoursEnabled {
+                                    HStack(spacing: 16) {
+                                        // Start time stepper
+                                        HStack(spacing: 4) {
+                                            Button {
+                                                if smartFeatures.workStartTime > 0 { smartFeatures.workStartTime -= 1 }
+                                            } label: {
+                                                Image(systemName: "minus")
+                                                    .font(.caption)
+                                                    .frame(width: 20, height: 20)
+                                                    .background(Color.gray.opacity(0.2))
+                                                    .clipShape(Circle())
+                                            }
+                                            .buttonStyle(.plain)
+                                            
+                                            Text("\(smartFeatures.workStartTime):00")
+                                                .font(.system(.caption, design: .rounded).weight(.medium))
+                                                .frame(width: 40)
+                                            
+                                            Button {
+                                                if smartFeatures.workStartTime < smartFeatures.workEndTime - 1 { smartFeatures.workStartTime += 1 }
+                                            } label: {
+                                                Image(systemName: "plus")
+                                                    .font(.caption)
+                                                    .frame(width: 20, height: 20)
+                                                    .background(Color.gray.opacity(0.2))
+                                                    .clipShape(Circle())
+                                            }
+                                            .buttonStyle(.plain)
+                                        }
+                                        
+                                        Text("to")
+                                            .font(.caption)
+                                            .foregroundStyle(.secondary)
+                                        
+                                        // End time stepper
+                                        HStack(spacing: 4) {
+                                            Button {
+                                                if smartFeatures.workEndTime > smartFeatures.workStartTime + 1 { smartFeatures.workEndTime -= 1 }
+                                            } label: {
+                                                Image(systemName: "minus")
+                                                    .font(.caption)
+                                                    .frame(width: 20, height: 20)
+                                                    .background(Color.gray.opacity(0.2))
+                                                    .clipShape(Circle())
+                                            }
+                                            .buttonStyle(.plain)
+                                            
+                                            Text("\(smartFeatures.workEndTime):00")
+                                                .font(.system(.caption, design: .rounded).weight(.medium))
+                                                .frame(width: 40)
+                                            
+                                            Button {
+                                                if smartFeatures.workEndTime < 23 { smartFeatures.workEndTime += 1 }
+                                            } label: {
+                                                Image(systemName: "plus")
+                                                    .font(.caption)
+                                                    .frame(width: 20, height: 20)
+                                                    .background(Color.gray.opacity(0.2))
+                                                    .clipShape(Circle())
+                                            }
+                                            .buttonStyle(.plain)
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                        
+                        Divider().opacity(0.3)
+                        
+                        // 3. Other features in compact row
+                        LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: 8) {
+                            CompactToggle(icon: "moon.fill", title: "Focus Mode", isOn: $smartFeatures.focusModeSyncEnabled)
+                            CompactToggle(icon: "eye.fill", title: "20-20-20 Breaks", isOn: $smartFeatures.visualBreakEnabled)
+                            CompactToggle(icon: "video.fill", title: "Video Calls", isOn: $smartFeatures.zoomDetectionEnabled)
+                            CompactToggle(icon: "rectangle.inset.filled", title: "Presentations", isOn: $smartFeatures.presentationModeEnabled)
+                        }
+                        
+                        Divider().opacity(0.3)
+                        
+                        // 4. Idle Detection
+                        HStack(spacing: 12) {
+                            Image(systemName: "person.fill.questionmark")
+                                .font(.callout)
+                                .foregroundStyle(.secondary)
+                                .frame(width: 24)
+                            
+                            VStack(alignment: .leading, spacing: 2) {
+                                HStack {
+                                    Text("Idle Detection")
+                                        .font(.system(.body, design: .rounded))
+                                    Spacer()
+                                    Toggle("", isOn: $smartFeatures.idleDetectionEnabled)
+                                        .toggleStyle(.switch)
+                                        .controlSize(.small)
+                                }
+                                Text("Pauses timer after \(smartFeatures.idleTimeoutMinutes) min")
+                                    .font(.caption2)
+                                    .foregroundStyle(.secondary)
+                            }
+                        }
+                    }
+                }
+                .padding(.horizontal, 20)
+                
+                // MARK: 6. Deep Work Mode
+                GlassCard(title: "Deep Work", icon: "brain.head.profile") {
+                    VStack(spacing: 12) {
+                        HStack {
+                            VStack(alignment: .leading, spacing: 2) {
+                                Text("Deep Work Session")
+                                    .font(.system(.body, design: .rounded).weight(.medium))
+                                Text("Block distractions for focused work")
+                                    .font(.caption)
+                                    .foregroundStyle(.secondary)
+                            }
+                            Spacer()
+                        }
+                        
+                        // Pomodoro paused warning
+                        if PomodoroManager.shared.isRunning || PomodoroManager.shared.isPaused {
+                            HStack(spacing: 8) {
+                                Image(systemName: "pause.circle.fill")
+                                    .foregroundStyle(.orange)
+                                Text("Pomodoro will be paused when Deep Work starts")
+                                    .font(.caption)
+                                    .foregroundStyle(.secondary)
+                            }
+                            .padding(8)
+                            .background(Color.orange.opacity(0.1))
+                            .cornerRadius(8)
+                        }
+                        
+                        if smartFeatures.isDeepWorkActive {
+                            VStack(spacing: 8) {
+                                HStack(spacing: 12) {
+                                    Image(systemName: "flame.fill")
+                                        .font(.title2)
+                                        .foregroundStyle(.orange)
+                                    
+                                    VStack(alignment: .leading, spacing: 2) {
+                                        Text("Deep Work Active")
+                                            .font(.system(.callout, design: .rounded).weight(.semibold))
+                                        Text("\(smartFeatures.deepWorkRemainingMinutes) min remaining")
+                                            .font(.caption)
+                                            .foregroundStyle(.secondary)
+                                    }
+                                    
+                                    Spacer()
+                                    
+                                    Button("End") {
+                                        smartFeatures.endDeepWorkMode()
+                                    }
+                                    .buttonStyle(.smallGradient(color: .red))
+                                }
+                            }
+                            .padding(12)
+                            .background(
+                                RoundedRectangle(cornerRadius: 10)
+                                    .fill(Color.orange.opacity(0.1))
+                                    .overlay(
+                                        RoundedRectangle(cornerRadius: 10)
+                                            .stroke(Color.orange.opacity(0.3), lineWidth: 1)
+                                    )
+                            )
+                        } else {
+                            HStack(spacing: 8) {
+                                DeepWorkButton(minutes: 60) {
+                                    smartFeatures.startDeepWorkMode(durationMinutes: 60)
+                                }
+                                DeepWorkButton(minutes: 90) {
+                                    smartFeatures.startDeepWorkMode(durationMinutes: 90)
+                                }
+                                DeepWorkButton(minutes: 120) {
+                                    smartFeatures.startDeepWorkMode(durationMinutes: 120)
+                                }
+                            }
+                        }
+                    }
+                }
+                .padding(.horizontal, 20)
+                
+                // MARK: 9. Webhook API
+                GlassCard(title: "API & Integrations", icon: "network") {
+                    VStack(spacing: 12) {
+                        // Status indicator
+                        HStack(spacing: 12) {
+                            Image(systemName: webhookServer.isRunning ? "server.rack" : "server.rack.slash")
+                                .font(.title2)
+                                .foregroundStyle(webhookServer.isRunning ? .green : .secondary)
+                            
+                            VStack(alignment: .leading, spacing: 2) {
+                                Text("Local API Server")
+                                    .font(.system(.body, design: .rounded).weight(.medium))
+                                HStack(spacing: 4) {
+                                    Circle()
+                                        .fill(webhookServer.isRunning ? Color.green : Color.gray)
+                                        .frame(width: 6, height: 6)
+                                    Text(webhookServer.isRunning ? "Running on port 8080" : "Stopped")
+                                        .font(.caption)
+                                        .foregroundStyle(.secondary)
+                                }
+                            }
+                            
+                            Spacer()
+                            
+                            Toggle("", isOn: Binding(
+                                get: { webhookServer.serverEnabled },
+                                set: { newValue in
+                                    webhookServer.serverEnabled = newValue
+                                    if newValue {
+                                        webhookServer.start()
+                                    } else {
+                                        webhookServer.stop()
+                                    }
+                                }
+                            ))
+                            .toggleStyle(.switch)
+                            .controlSize(.small)
+                        }
+                        
+                        if webhookServer.isRunning {
+                            VStack(alignment: .leading, spacing: 6) {
+                                HStack {
+                                    Text("Endpoint:")
+                                        .font(.caption)
+                                        .foregroundStyle(.secondary)
+                                    Text("http://localhost:8080/status")
+                                        .font(.system(.caption, design: .monospaced))
+                                        .foregroundStyle(.primary)
+                                    Spacer()
+                                }
+                                
+                                HStack {
+                                    Text("Requests handled:")
+                                        .font(.caption)
+                                        .foregroundStyle(.secondary)
+                                    Text("\(webhookServer.requestCount)")
+                                        .font(.system(.caption, design: .rounded).weight(.medium))
+                                    Spacer()
+                                }
+                                
+                                Divider().opacity(0.3)
+                                
+                                Text("Available endpoints: GET /status, POST /color, POST /status, POST /timer/{start|pause|stop}")
+                                    .font(.caption2)
+                                    .foregroundStyle(.secondary)
+                            }
+                            .padding(10)
+                            .background(Color.green.opacity(0.05))
+                            .overlay(
+                                RoundedRectangle(cornerRadius: 8)
+                                    .stroke(Color.green.opacity(0.2), lineWidth: 1)
+                            )
+                            .cornerRadius(8)
+                        }
                     }
                 }
                 .padding(.horizontal, 20)
@@ -703,7 +1167,6 @@ struct SettingsView: View {
                 // MARK: Microsoft Teams Section
                 GlassCard(title: "Microsoft Teams", icon: "person.2.fill") {
                     VStack(spacing: 16) {
-                        // Connection Status
                         HStack(spacing: 12) {
                             ZStack {
                                 Circle()
@@ -735,7 +1198,6 @@ struct SettingsView: View {
                                 }
                         }
                         
-                        // Login fields when not connected
                         if !isTeamsConnected {
                             Divider().opacity(0.5)
                             
@@ -755,7 +1217,6 @@ struct SettingsView: View {
                             }
                         }
                         
-                        // Status selector when connected
                         if isTeamsConnected {
                             Divider().opacity(0.5)
                             
@@ -764,7 +1225,6 @@ struct SettingsView: View {
                                 .foregroundStyle(.secondary)
                                 .frame(maxWidth: .infinity, alignment: .leading)
                             
-                            // Status grid
                             LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: 8) {
                                 TeamsStatusButton(
                                     icon: "checkmark.circle.fill",
@@ -878,6 +1338,7 @@ struct TeamsStatusButton: View {
 struct GlassToggleRow: View {
     let icon: String
     let title: String
+    var subtitle: String? = nil
     @Binding var isOn: Bool
     
     var body: some View {
@@ -887,8 +1348,16 @@ struct GlassToggleRow: View {
                 .foregroundStyle(.secondary)
                 .frame(width: 24)
             
-            Text(title)
-                .font(.system(.body, design: .rounded))
+            VStack(alignment: .leading, spacing: subtitle != nil ? 2 : 0) {
+                Text(title)
+                    .font(.system(.body, design: .rounded))
+                
+                if let subtitle = subtitle {
+                    Text(subtitle)
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                }
+            }
             
             Spacer()
             
@@ -905,6 +1374,326 @@ struct GlassToggleRow: View {
                 RoundedRectangle(cornerRadius: 10)
                     .stroke(.white.opacity(0.15), lineWidth: 1)
             }
+        )
+    }
+}
+
+// MARK: - Profile Button
+struct ProfileButton: View {
+    let profile: WorkProfile
+    let isSelected: Bool
+    let action: () -> Void
+    
+    var body: some View {
+        Button(action: action) {
+            VStack(spacing: 6) {
+                Image(systemName: profile.icon)
+                    .font(.title3)
+                    .foregroundStyle(isSelected ? .white : .secondary)
+                
+                Text(profile.displayName)
+                    .font(.system(.caption, design: .rounded).weight(.medium))
+                    .foregroundStyle(isSelected ? .white : .primary)
+            }
+            .frame(maxWidth: .infinity)
+            .padding(.vertical, 12)
+            .background(
+                RoundedRectangle(cornerRadius: 10)
+                    .fill(isSelected ? Color.accentColor : Color.gray.opacity(0.15))
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 10)
+                            .stroke(isSelected ? Color.accentColor.opacity(0.5) : .white.opacity(0.1), lineWidth: 1)
+                    )
+            )
+        }
+        .buttonStyle(.plain)
+    }
+}
+
+// MARK: - Theme Button
+struct ThemeButton: View {
+    let theme: LightTheme
+    let isSelected: Bool
+    let action: () -> Void
+    
+    var themeColor: Color {
+        switch theme {
+        case .minimal: return .gray
+        case .aurora: return .green
+        case .nature: return Color(red: 0.4, green: 0.7, blue: 0.4)
+        case .cyber: return .cyan
+        case .calm: return Color(red: 0.5, green: 0.6, blue: 0.5)
+        }
+    }
+    
+    var body: some View {
+        Button(action: action) {
+            VStack(spacing: 4) {
+                Circle()
+                    .fill(themeColor)
+                    .frame(width: 24, height: 24)
+                    .overlay(
+                        Circle()
+                            .stroke(isSelected ? .white : Color.clear, lineWidth: 2)
+                    )
+                
+                Text(theme.displayName)
+                    .font(.system(.caption2, design: .rounded))
+                    .foregroundStyle(isSelected ? .primary : .secondary)
+            }
+            .padding(.horizontal, 12)
+            .padding(.vertical, 8)
+            .background(
+                RoundedRectangle(cornerRadius: 8)
+                    .fill(isSelected ? themeColor.opacity(0.15) : Color.clear)
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 8)
+                            .stroke(isSelected ? themeColor.opacity(0.4) : Color.clear, lineWidth: 1)
+                    )
+            )
+        }
+        .buttonStyle(.plain)
+    }
+}
+
+// MARK: - Deep Work Button
+struct DeepWorkButton: View {
+    let minutes: Int
+    let action: () -> Void
+    
+    var body: some View {
+        Button(action: action) {
+            VStack(spacing: 2) {
+                Text("\(minutes)")
+                    .font(.system(.title3, design: .rounded).weight(.bold))
+                Text("min")
+                    .font(.caption2)
+            }
+            .frame(maxWidth: .infinity)
+            .padding(.vertical, 10)
+            .background(
+                RoundedRectangle(cornerRadius: 8)
+                    .fill(Color.orange.opacity(0.15))
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 8)
+                            .stroke(Color.orange.opacity(0.3), lineWidth: 1)
+                    )
+            )
+            .foregroundStyle(.orange)
+        }
+        .buttonStyle(.plain)
+    }
+}
+
+// MARK: - Dashboard View
+struct DashboardView: View {
+    @StateObject private var smartFeatures = SmartFeaturesManager.shared
+    
+    var body: some View {
+        ScrollView {
+            VStack(spacing: 20) {
+                // Header
+                HStack {
+                    Text("Productivity Dashboard")
+                        .font(.system(.largeTitle, design: .rounded).weight(.bold))
+                    Spacer()
+                }
+                .padding(.horizontal, 24)
+                .padding(.top, 20)
+                
+                // Stats Grid
+                LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: 12) {
+                    DashboardStatCard(
+                        title: "Focus Hours",
+                        value: String(format: "%.1f", smartFeatures.dashboardData.totalFocusHours),
+                        unit: "h",
+                        icon: "clock.fill",
+                        color: .blue
+                    )
+                    
+                    DashboardStatCard(
+                        title: "Pomodoros",
+                        value: "\(smartFeatures.dashboardData.pomodorosCompleted)",
+                        unit: "",
+                        icon: "checkmark.circle.fill",
+                        color: .green
+                    )
+                    
+                    DashboardStatCard(
+                        title: "Current Streak",
+                        value: "\(smartFeatures.dashboardData.currentStreak)",
+                        unit: "days",
+                        icon: "flame.fill",
+                        color: .orange
+                    )
+                    
+                    DashboardStatCard(
+                        title: "Best Day",
+                        value: smartFeatures.dashboardData.bestDay,
+                        unit: String(format: "%.1fh", smartFeatures.dashboardData.bestDayHours),
+                        icon: "star.fill",
+                        color: .purple
+                    )
+                }
+                .padding(.horizontal, 20)
+                
+                // Weekly Chart (Simplified)
+                GlassCard(title: "Last 7 Days", icon: "chart.bar.fill") {
+                    HStack(spacing: 8) {
+                        ForEach(smartFeatures.dashboardData.weeklyData.prefix(7), id: \.date) { day in
+                            VStack(spacing: 4) {
+                                RoundedRectangle(cornerRadius: 3)
+                                    .fill(Color.blue.opacity(0.7))
+                                    .frame(width: 20, height: max(4, CGFloat(day.hours) * 10))
+                                
+                                Text(dayLabel(for: day.date))
+                                    .font(.caption2)
+                                    .foregroundStyle(.secondary)
+                            }
+                            .frame(maxWidth: .infinity)
+                        }
+                    }
+                    .padding(.vertical, 8)
+                }
+                .padding(.horizontal, 20)
+                
+                // Tips
+                GlassCard(title: "Insights", icon: "lightbulb.fill") {
+                    VStack(alignment: .leading, spacing: 8) {
+                        InsightRow(
+                            icon: "flame.fill",
+                            text: "You're on a \(smartFeatures.dashboardData.currentStreak)-day streak! Keep it up!",
+                            color: .orange
+                        )
+                        
+                        if smartFeatures.dashboardData.pomodorosCompleted > 20 {
+                            InsightRow(
+                                icon: "trophy.fill",
+                                text: "Over 20 pomodoros this week - outstanding focus!",
+                                color: .yellow
+                            )
+                        }
+                        
+                        InsightRow(
+                            icon: "eye.fill",
+                            text: "Remember the 20-20-20 rule for eye health",
+                            color: .blue
+                        )
+                    }
+                }
+                .padding(.horizontal, 20)
+                
+                Spacer(minLength: 20)
+            }
+        }
+        .onAppear {
+            smartFeatures.updateDashboard()
+        }
+    }
+    
+    private func dayLabel(for date: Date) -> String {
+        let formatter = DateFormatter()
+        formatter.dateFormat = "E"
+        return formatter.string(from: date).prefix(1).uppercased()
+    }
+}
+
+struct DashboardStatCard: View {
+    let title: String
+    let value: String
+    let unit: String
+    let icon: String
+    let color: Color
+    
+    var body: some View {
+        VStack(spacing: 8) {
+            HStack {
+                Image(systemName: icon)
+                    .font(.callout)
+                    .foregroundStyle(color)
+                Spacer()
+            }
+            
+            HStack(alignment: .lastTextBaseline, spacing: 2) {
+                Text(value)
+                    .font(.system(.title2, design: .rounded).weight(.bold))
+                if !unit.isEmpty {
+                    Text(unit)
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                }
+            }
+            .frame(maxWidth: .infinity, alignment: .leading)
+            
+            Text(title)
+                .font(.caption)
+                .foregroundStyle(.secondary)
+                .frame(maxWidth: .infinity, alignment: .leading)
+        }
+        .padding(12)
+        .background(
+            ZStack {
+                RoundedRectangle(cornerRadius: 12)
+                    .fill(Material.thinMaterial)
+                
+                RoundedRectangle(cornerRadius: 12)
+                    .stroke(color.opacity(0.2), lineWidth: 1)
+            }
+        )
+    }
+}
+
+struct InsightRow: View {
+    let icon: String
+    let text: String
+    let color: Color
+    
+    var body: some View {
+        HStack(spacing: 10) {
+            Image(systemName: icon)
+                .font(.callout)
+                .foregroundStyle(color)
+            
+            Text(text)
+                .font(.callout)
+                .foregroundStyle(.secondary)
+            
+            Spacer()
+        }
+    }
+}
+
+// MARK: - Compact Toggle for Settings
+struct CompactToggle: View {
+    let icon: String
+    let title: String
+    @Binding var isOn: Bool
+    
+    var body: some View {
+        HStack(spacing: 8) {
+            Image(systemName: icon)
+                .font(.caption)
+                .foregroundStyle(isOn ? .blue : .secondary)
+                .frame(width: 20)
+            
+            Text(title)
+                .font(.system(.caption, design: .rounded))
+                .foregroundStyle(isOn ? .primary : .secondary)
+            
+            Spacer()
+            
+            Toggle("", isOn: $isOn)
+                .toggleStyle(.switch)
+                .controlSize(.mini)
+        }
+        .padding(8)
+        .background(
+            RoundedRectangle(cornerRadius: 8)
+                .fill(isOn ? Color.accentColor.opacity(0.1) : Color.gray.opacity(0.1))
+                .overlay(
+                    RoundedRectangle(cornerRadius: 8)
+                        .stroke(isOn ? Color.accentColor.opacity(0.3) : Color.clear, lineWidth: 1)
+                )
         )
     }
 }

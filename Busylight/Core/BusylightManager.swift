@@ -4,6 +4,8 @@ import Combine
 import BusylightSDK_Swift
 
 class BusylightManager: ObservableObject {
+    static let shared = BusylightManager()
+    
     private var bl: Busylight?
     @Published var color: Color = .gray
     @Published var status = "No device"

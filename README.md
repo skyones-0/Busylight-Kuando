@@ -77,6 +77,26 @@
 - **Microsoft Teams**: Integrated presence sync (Available, Busy, DND, Away)
 - **About**: App version, build info, developer info
 
+### 🚀 Super App Features (15 Productivity Tools)
+
+| # | Feature | Description |
+|---|---------|-------------|
+| 1 | **📅 Calendar Sync** | Auto-detects meetings from Calendar/Outlook. Yellow 5min before, red during meetings |
+| 2 | **🌙 Focus Mode Sync** | Integrates with macOS Focus modes (Work, Sleep, DND, Personal) |
+| 3 | **⏸️ Idle Detection** | Auto away-status after configurable inactivity time |
+| 4 | **👁️ 20-20-20 Breaks** | Eye health timer: every 20min, look 20ft away for 20sec |
+| 5 | **📊 Productivity Dashboard** | Weekly stats, streak counter, best day tracking |
+| 6 | **🔥 Deep Work Mode** | 60-120min distraction-free blocks with locked focus |
+| 7 | **👔 Work Profiles** | Presets: Coding (50/10), Meetings (calendar), Learning (25/5), Deep Work (90min) |
+| 8 | **🎤 Siri Shortcuts** | "Hey Siri, start pomodoro" / "I'm busy" / "End work day" |
+| 9 | **🌐 Local API** | HTTP endpoints at `localhost:8080` for Zapier/IFTTT/Slack integration |
+| 10 | **📹 Video Call Detection** | Auto-detects Zoom/Teams/Meet and sets busy status |
+| 11 | **💪 Smart Breaks** | Detects if you skip breaks and gently reminds you |
+| 12 | **🎯 Presentation Mode** | Auto-detects Keynote/PowerPoint, mutes sounds, sets red light |
+| 13 | **🕐 Smart Work Hours** | Reminds you to stop working outside configured hours |
+| 14 | **🎨 Light Themes** | Aurora, Minimal, Nature, Cyber, Calm color schemes |
+| 15 | **📱 Widget Support** | macOS widgets for quick timer control (coming soon) |
+
 ### 📝 Logging System
 - **File-based Logging**: Daily log rotation (`busy_YYYY-MM-DD.log`)
 - **Log Levels**: Debug, Info, Warning, Error
@@ -375,6 +395,28 @@ Log format:
 
 ## 🔄 Recent Changes
 
+### 🚀 Super App Release - 15 Productivity Features
+
+**Smart Automation:**
+- **Calendar Sync** - Auto-detects meetings, changes light 5min before/during
+- **Focus Mode Sync** - Integrates with macOS Focus modes
+- **Idle Detection** - Auto away-status after inactivity
+- **Video Call Detection** - Auto-detects Zoom/Teams/Meet
+- **Presentation Mode** - Auto-detects Keynote/PowerPoint
+- **Smart Work Hours** - Reminds you to stop working outside hours
+
+**Health & Productivity:**
+- **20-20-20 Rule** - Eye break reminders every 20 minutes
+- **Deep Work Mode** - 60-120min distraction-free blocks
+- **Smart Breaks** - Detects skipped breaks and reminds you
+- **Work Profiles** - Presets for Coding, Meetings, Learning, Deep Work
+
+**Integrations:**
+- **Local API Server** - HTTP endpoints at localhost:8080
+- **Siri Shortcuts** - Voice control integration
+- **Productivity Dashboard** - Weekly stats and streaks
+- **Light Themes** - Aurora, Minimal, Nature, Cyber, Calm
+
 ### Glassmorphism UI Redesign
 - Complete visual overhaul with glassmorphism design language
 - Glass cards with Material backgrounds and gradient borders
@@ -393,6 +435,8 @@ Log format:
 - Reorganized project structure (Core/, Views/, Styles/, Utilities/, Models/)
 - Extracted animated components to prevent layout recursion
 - Singleton PomodoroManager for cross-view synchronization
+- New SmartFeaturesManager for all smart automation
+- WebhookServer for local API integration
 
 ### Menu Bar Enhancements
 - NSPopover with NSWindow fallback for full-screen support
@@ -402,7 +446,7 @@ Log format:
 
 ### Simplified Navigation
 - Removed Teams and About from sidebar
-- Unified Settings view combining Appearance + Teams + About
+- Unified Settings view combining Appearance + Teams + About + All Smart Features
 - Cleaner 3-item sidebar: Pomodoro, Settings, Device
 
 ---
