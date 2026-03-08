@@ -153,15 +153,13 @@ struct GlassPomodoroCard: View {
                 Image(systemName: manager.currentPhase.icon)
                     .font(.caption2)
                     .foregroundStyle(manager.currentPhase.color)
-                Text("Focus")
-                    .font(.system(.caption, design: .rounded).weight(.semibold))
                 Spacer()
                 
-                // Phase badge
-                GlassStatusBadge(
+                // Phase badge con efectos
+                PhaseLabel(
                     text: manager.currentPhase.rawValue,
-                    isActive: manager.isRunning,
-                    icon: manager.currentPhase.icon
+                    color: manager.currentPhase.color,
+                    isRunning: manager.isRunning
                 )
                 .font(.system(.caption2, design: .rounded))
             }
@@ -176,11 +174,12 @@ struct GlassPomodoroCard: View {
                 Spacer()
                 
                 VStack(alignment: .trailing, spacing: 0) {
-                    // Phase label - verde brillante cuando está corriendo, gris cuando no
-                    Text(manager.currentPhase.rawValue)
-                        .font(.caption2.weight(.semibold))
-                        .foregroundStyle(manager.isRunning ? manager.currentPhase.color : .gray.opacity(0.6))
-                        .brightness(manager.isRunning ? 0.1 : 0)
+                    // Phase label con efectos: glow + pulse + background capsule
+                    PhaseLabel(
+                        text: manager.currentPhase.rawValue,
+                        color: manager.currentPhase.color,
+                        isRunning: manager.isRunning
+                    )
                     Text("Set \(manager.currentSet)/\(manager.totalSets)")
                         .font(.caption2)
                         .foregroundStyle(.secondary)
@@ -285,6 +284,64 @@ struct GlassPomodoroCard: View {
                     )
             }
         )
+    }
+}
+
+// MARK: - Phase Label con efectos visuales (Glow + Pulse + Background)
+struct PhaseLabel: View {
+    let text: String
+    let color: Color
+    let isRunning: Bool
+    
+    @State private var pulseScale: CGFloat = 1.0
+    @State private var glowOpacity: Double = 0.6
+    
+    var body: some View {
+        Text(text)
+            .font(.caption2.weight(.semibold))
+            .foregroundStyle(isRunning ? color : .gray.opacity(0.6))
+            .brightness(isRunning ? 0.15 : 0)
+            // Efecto 3: Background capsule de color
+            .padding(.horizontal, 8)
+            .padding(.vertical, 3)
+            .background(
+                Capsule()
+                    .fill(isRunning ? color.opacity(0.15) : Color.clear)
+                    .overlay(
+                        Capsule()
+                            .stroke(isRunning ? color.opacity(0.4) : Color.clear, lineWidth: 1)
+                    )
+            )
+            // Efecto 1: Glow/sombra cuando corre
+            .shadow(
+                color: isRunning ? color.opacity(glowOpacity) : .clear,
+                radius: isRunning ? 6 : 0,
+                x: 0,
+                y: 0
+            )
+            // Efecto 2: Animación de pulso suave
+            .scaleEffect(isRunning ? pulseScale : 1.0)
+            .onAppear {
+                if isRunning {
+                    startPulseAnimation()
+                }
+            }
+            .onChange(of: isRunning) { _, newValue in
+                if newValue {
+                    startPulseAnimation()
+                }
+            }
+    }
+    
+    private func startPulseAnimation() {
+        // Animación de pulso infinita
+        withAnimation(
+            .easeInOut(duration: 1.5)
+            .repeatForever(autoreverses: true)
+        ) {
+            pulseScale = 1.05
+            glowOpacity = 1.0
+        }
     }
 }
 

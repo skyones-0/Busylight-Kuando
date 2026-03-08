@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="https://via.placeholder.com/120x120/6366f1/ffffff?text=BL" alt="Busylight Logo" width="120" height="120">
+  <img src="icon Exports/BL Icon.png" alt="Busylight Logo" width="120" height="120">
 </p>
 
 <h1 align="center">Busylight for macOS</h1>
@@ -9,7 +9,7 @@
 </p>
 
 <p align="center">
-  <a href="#"><img src="https://img.shields.io/badge/macOS-13.0%2B-000000?logo=apple&logoColor=white" alt="macOS"></a>
+  <a href="#"><img src="https://img.shields.io/badge/macOS-26.2%2B-000000?logo=apple&logoColor=white" alt="macOS"></a>
   <a href="#"><img src="https://img.shields.io/badge/Swift-5.9-F05138?logo=swift&logoColor=white" alt="Swift"></a>
   <a href="#"><img src="https://img.shields.io/badge/SwiftUI-Yes-007AFF?logo=swift&logoColor=white" alt="SwiftUI"></a>
   <a href="#"><img src="https://img.shields.io/badge/Architecture-ARM64-FF6B6B" alt="ARM64"></a>
@@ -40,23 +40,42 @@
 - **Volume Control**: Adjustable from 0-100%
 - **Color Sync**: Synchronize lights with audio alerts
 
-### ⏱️ Pomodoro Timer
+### ⏱️ Pomodoro Timer (Enhanced)
 - **Customizable Sessions**: Work time (default 25 min), short break (5 min), long break (15 min)
 - **Set Counter**: Configure number of work sets
 - **Auto Light Control**: Green during work, automatic status changes
-- **Menu Bar Quick Access**: Start/pause from menu bar
+- **Phase Management**: Work → Short Break → Work → Long Break cycle
+- **Visual Indicators**: Progress bar, phase badges with glow/pulse effects
+- **Haptic Feedback**: Prolonged haptic (3 pulses) for main controls
+- **Menu Bar Quick Access**: Full timer controls from menu bar
 
-### 🖥️ Microsoft Teams Integration
-- **Presence Sync**: Connect with Microsoft Teams status
-- **Status Display**: Available, Busy, Do Not Disturb, Away
-- **Account Connection**: OAuth-style login interface
+### 🎨 Glassmorphism UI
+- **Modern Design**: Glassmorphism style with blur, transparency, and depth
+- **Gradient Effects**: Animated shimmer effects on buttons
+- **Dynamic Cards**: Glass cards with border highlights and shadows
+- **Smooth Animations**: Scale, pulse, and glow animations
+- **Phase Visual Effects**: Working/Resting/Relaxing labels with color-coded glow
 
-### 🎨 Native macOS Interface
-- **SwiftUI Interface**: Modern, responsive design
-- **Menu Bar Extra**: Quick access from system menu bar
-- **Sidebar Navigation**: Test, Pomodoro, Teams, Configuration, About
-- **Appearance Modes**: System, Light, Dark themes
-- **Dock Visibility**: Show/hide app from Dock
+### 🖥️ Menu Bar Integration
+- **NSPopover Interface**: Native macOS popover with glassmorphism design
+- **Full-Screen Support**: Automatic NSWindow fallback for full-screen spaces
+- **Quick Controls**: Timer controls, color buttons, visibility toggles
+- **Status Indicator**: Real-time connection and timer status
+
+### 🌐 Multilanguage Support
+- **Localized Interface**: English and Spanish support
+- **System Language Detection**: Automatic language selection
+- **Localizable.xcstrings**: Modern Swift localization
+
+### 🗄️ SwiftData Persistence
+- **Session History**: Track completed Pomodoro sessions
+- **SwiftData Models**: Modern replacement for CoreData
+- **Automatic Migration**: Seamless data migration from previous versions
+
+### 🔧 Settings (Unified)
+- **Appearance**: System/Light/Dark themes, Dock/Menu Bar visibility
+- **Microsoft Teams**: Integrated presence sync (Available, Busy, DND, Away)
+- **About**: App version, build info, developer info
 
 ### 📝 Logging System
 - **File-based Logging**: Daily log rotation (`busy_YYYY-MM-DD.log`)
@@ -70,7 +89,7 @@
 
 | Component | Minimum Version |
 |-----------|----------------|
-| macOS | 13.0+ |
+| macOS | 26.2+ |
 | Xcode | 15.0+ |
 | Swift | 5.9+ |
 | Hardware | Apple Silicon (ARM64) |
@@ -101,38 +120,51 @@ xcodebuild -project Busylight.xcodeproj -scheme Busylight -configuration Release
 
 ## 🎮 Usage
 
-### Test Panel
-Access via **Test** in the sidebar:
-- Click color buttons to set solid colors
-- Click jingle buttons (1-16) to play sounds with random colors
+### Device Panel (antes "Test")
+Access via **Device** in the sidebar:
+- Click color buttons to set solid colors with glassmorphism effects
+- Click jingle buttons (1-16) to play sounds with synchronized lights
+- Quick actions: Off, Pulse, Blink
 - View connection status and current device name
 
 ### Pomodoro Timer
 Access via **Pomodoro** in the sidebar or menu bar:
 - Configure work time, short break, long break, and number of sets
-- Click **Start** to begin (light turns green)
+- Visual stepper controls (increased size for better interaction)
+- Click **Start** to begin (light turns green, "Working" label glows)
 - Click **Pause** to pause the session
-- Visual progress indicator
+- Click **Stop** to reset
+- **Visual Progress**: Elegant progress bar with phase color
+- **Phase Indicators**: Dynamic phase label with glow + pulse + capsule effects
+- **Set Counter**: Shows current set / total sets
 
-### Microsoft Teams
-Access via **Teams** in the sidebar:
-- Enter email and password
-- Click **Login** to connect
-- Select presence status from dropdown
+### Settings (Unified)
+Access via **Settings** in the sidebar:
 
-### Configuration
-Access via **Configuration** in the sidebar:
+**Appearance Section:**
 - **Theme**: System, Light, or Dark mode
 - **Show in Dock**: Toggle Dock visibility
 - **Show in Menu Bar**: Toggle menu bar icon
 
+**Microsoft Teams Section:**
+- **Connection Toggle**: Connect/disconnect from Teams
+- **Login Fields**: Email and password (when disconnected)
+- **Status Grid**: Available, Busy, DND, Away buttons (when connected)
+- **Presence Sync**: Automatic light color based on Teams status
+
+**About Section:**
+- App icon with gradient background
+- Version and build information
+
 ### Menu Bar
 Click the lightbulb icon in the menu bar for quick access:
-- View connection status
-- Pomodoro controls
-- Quick color buttons (Red, Green, Blue, Yellow, Purple, White)
+- View connection status with color indicator
+- Full Pomodoro timer with phase badge
+- Timer display with phase-colored glow
+- Control buttons (Play/Pause/Stop) with validation states
+- Quick color buttons (Red, Green, Blue, Yellow, Purple, White, Orange)
 - Visibility toggles
-- Open Main Window / Quit
+- Open Main Window / Quit actions
 
 ---
 
@@ -143,18 +175,26 @@ Click the lightbulb icon in the menu bar for quick access:
 ```
 Busylight/
 ├── Busylight/
-│   ├── BusylightApp.swift          # App entry point, scene management
-│   ├── AppDelegate.swift           # Menu bar, dock visibility
-│   ├── ContentView.swift           # Main UI with sidebar navigation
-│   ├── MenuBarView.swift           # Menu bar popover UI
-│   ├── BusylightManager.swift      # Device control, SDK integration
-│   ├── BusylightLogger.swift       # File logging system
-│   ├── TimerView.swift             # Pomodoro timer view
-│   ├── Persistence.swift           # CoreData persistence
-│   └── Info.plist                  # App configuration
-├── BusylightTests/                 # Unit tests
-├── BusylightUITests/               # UI tests
-└── BusylightSDK_Swift.framework    # Official Busylight SDK
+│   ├── Core/
+│   │   ├── BusylightApp.swift          # App entry, SwiftData setup
+│   │   ├── AppDelegate.swift           # Menu bar, dock visibility, popover/window
+│   │   ├── Persistence.swift           # SwiftData persistence controller
+│   │   └── BusylightLogger.swift       # File logging system
+│   ├── Views/
+│   │   ├── ContentView.swift           # Main UI with sidebar navigation
+│   │   ├── MenuBarView.swift           # Menu bar popover UI
+│   │   └── TimerView.swift             # Standalone timer window
+│   ├── Styles/
+│   │   └── GlassmorphismStyles.swift   # Glassmorphism components & button styles
+│   ├── Utilities/
+│   │   └── BusylightManager.swift      # Device control, SDK integration
+│   ├── Models/
+│   │   └── PomodoroSession.swift       # SwiftData model for sessions
+│   └── Resources/
+│       └── Localizable.xcstrings       # English/Spanish localization
+├── BusylightTests/                     # Unit tests
+├── BusylightUITests/                   # UI tests
+└── BusylightSDK_Swift.framework        # Official Busylight SDK
 ```
 
 ### Key Components
@@ -184,6 +224,45 @@ busylight.jingle(soundNumber: 1, red: 100, green: 0, blue: 0, andVolume: 50)
 busylight.off()
 ```
 
+#### PomodoroManager (Singleton)
+Shared timer manager for synchronized state between ContentView and MenuBar:
+
+```swift
+// Access shared instance
+PomodoroManager.shared.start()
+PomodoroManager.shared.pause()
+PomodoroManager.shared.stop()
+
+// Properties
+PomodoroManager.shared.isRunning
+PomodoroManager.shared.currentPhase  // .work, .shortBreak, .longBreak
+PomodoroManager.shared.progress      // 0.0 to 1.0
+```
+
+#### Glassmorphism Styles
+Reusable glassmorphism components:
+
+```swift
+// Button styles
+.buttonStyle(.gradientWave(color: .green, prominent: true))
+.buttonStyle(.smallGradient(color: .blue))
+
+// Glass card
+GlassCard(title: "Title", icon: "icon.fill") { content }
+
+// Glass text field
+GlassTextField(placeholder: "Email", text: $text, icon: "envelope.fill")
+```
+
+#### Haptic Feedback
+Prolonged haptic feedback for main actions:
+
+```swift
+HapticFeedback.light()     // Light feedback
+HapticFeedback.medium()    // Medium feedback
+HapticFeedback.prolonged() // 3 sequential pulses (for Play/Pause/Stop)
+```
+
 #### BusylightLogger
 Singleton logger with file rotation:
 
@@ -202,23 +281,37 @@ Logs are stored in: `~/Library/Application Support/co.skyones.Busylight/Logs/`
 
 | File | Purpose |
 |------|---------|
-| `BusylightApp.swift` | `@main` app struct, window management, appearance |
-| `AppDelegate.swift` | NSApplicationDelegate, menu bar setup, dock control |
-| `ContentView.swift` | Main NavigationSplitView with sidebar and detail views |
-| `MenuBarView.swift` | Menu bar popover with quick controls |
-| `BusylightManager.swift` | ObservableObject for device control, color/audio methods |
+| **Core/** |
+| `BusylightApp.swift` | `@main` app struct, window management, SwiftData container |
+| `AppDelegate.swift` | NSApplicationDelegate, menu bar setup, NSPopover/NSWindow |
+| `Persistence.swift` | SwiftData ModelContainer configuration |
 | `BusylightLogger.swift` | File-based logging with rotation and cleanup |
+| **Views/** |
+| `ContentView.swift` | Main NavigationSplitView with sidebar (Pomodoro, Settings, Device) |
+| `MenuBarView.swift` | Menu bar popover with Pomodoro, colors, visibility controls |
 | `TimerView.swift` | Standalone Pomodoro timer window |
-| `Persistence.swift` | CoreData stack for data persistence |
-| `ViewController.swift` | Placeholder for future use |
+| **Styles/** |
+| `GlassmorphismStyles.swift` | Glassmorphism components, button styles, haptics |
+| **Utilities/** |
+| `BusylightManager.swift` | ObservableObject for device control, color/audio methods |
+| **Models/** |
+| `PomodoroSession.swift` | SwiftData @Model for session persistence |
+| **Resources/** |
+| `Localizable.xcstrings` | Multilanguage strings (English/Spanish) |
 
 ### Views in ContentView
 
-- **TestView**: Color buttons and jingle controls
-- **PomodoroView**: Timer configuration and status
-- **TeamsView**: Microsoft Teams integration UI
-- **ConfigurationView**: App settings (appearance, visibility)
-- **AboutView**: App info and device status
+- **PomodoroView**: Timer configuration and status with glassmorphism design
+- **SettingsView**: Unified settings (Appearance + Teams + About)
+- **DeviceView**: Color buttons, jingles, and quick actions
+
+### Sidebar Navigation (Simplified)
+
+| Item | Description |
+|------|-------------|
+| Pomodoro | Timer with phase management and visual effects |
+| Settings | Appearance, Teams integration, and About info |
+| Device | Light control and audio testing |
 
 ---
 
@@ -277,6 +370,40 @@ Log format:
 ```
 [2026-02-27T12:34:56Z] [INFO] [ContentView.swift:45] body: Message here
 ```
+
+---
+
+## 🔄 Recent Changes
+
+### Glassmorphism UI Redesign
+- Complete visual overhaul with glassmorphism design language
+- Glass cards with Material backgrounds and gradient borders
+- Animated gradient shimmer effects on buttons
+- Dynamic shadows and glow effects
+
+### Pomodoro Enhancements
+- Phase management: Work → Short Break → Work → Long Break
+- Phase label with glow + pulse + capsule effects (green when running, gray when stopped)
+- Progress bar with gradient and shadow
+- Haptic feedback on all main controls (prolonged 3-pulse)
+- Button validation states (gray when disabled, colored when active)
+
+### Architecture Improvements
+- Migrated from CoreData to SwiftData
+- Reorganized project structure (Core/, Views/, Styles/, Utilities/, Models/)
+- Extracted animated components to prevent layout recursion
+- Singleton PomodoroManager for cross-view synchronization
+
+### Menu Bar Enhancements
+- NSPopover with NSWindow fallback for full-screen support
+- Full timer controls in menu bar
+- Quick color buttons with hover effects
+- Phase label with visual effects
+
+### Simplified Navigation
+- Removed Teams and About from sidebar
+- Unified Settings view combining Appearance + Teams + About
+- Cleaner 3-item sidebar: Pomodoro, Settings, Device
 
 ---
 

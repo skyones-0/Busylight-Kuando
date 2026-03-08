@@ -9,9 +9,7 @@ import SwiftUI
 
 enum SidebarItem: String, CaseIterable, Identifiable {
     case pomodoro = "Pomodoro"
-    case teams = "Teams"
     case configuration = "Settings"
-    case about = "About"
     case device = "Device"
     
     var id: String { rawValue }
@@ -19,9 +17,7 @@ enum SidebarItem: String, CaseIterable, Identifiable {
     var icon: String {
         switch self {
         case .pomodoro: return "timer"
-        case .teams: return "person.2.fill"
         case .configuration: return "gearshape.fill"
-        case .about: return "info.circle.fill"
         case .device: return "lightbulb.fill"
         }
     }
@@ -101,12 +97,8 @@ struct ContentView: View {
                     switch selectedItem {
                     case .pomodoro:
                         PomodoroView(busylight: busylight)
-                    case .teams:
-                        TeamsView()
                     case .configuration:
-                        ConfigurationView()
-                    case .about:
-                        AboutView(busylight: busylight)
+                        SettingsView()
                     case .device:
                         DeviceView(busylight: busylight)
                     }
@@ -339,11 +331,11 @@ struct PomodoroView: View {
                 
                 Spacer()
                 
-                // Elegant Phase Pill
-                PhasePill(
-                    phase: manager.currentPhase.rawValue,
-                    icon: manager.currentPhase.icon,
-                    color: manager.currentPhase.color
+                // Elegant Phase Pill con efectos visuales
+                PhaseLabel(
+                    text: manager.currentPhase.rawValue,
+                    color: manager.currentPhase.color,
+                    isRunning: manager.isRunning
                 )
             }
             .padding(.horizontal, 24)
@@ -387,27 +379,27 @@ struct PomodoroView: View {
             .padding(.horizontal, 20)
             .shadow(color: manager.currentPhase.color.opacity(0.1), radius: 20, x: 0, y: 10)
             
-            // Config Summary Row
+            // Config Summary Row - solo iconos y valores (sin labels)
             HStack(spacing: 12) {
                 ConfigItem(
                     icon: "briefcase.fill",
-                    label: manager.currentPhase == .work && manager.isRunning ? NSLocalizedString("Working", comment: "Active work phase") : NSLocalizedString("Work", comment: "Work phase"),
+                    label: "",
                     value: "\(manager.workTimeMinutes)m",
                     color: manager.currentPhase == .work && manager.isRunning ? .green : .gray
                 )
                 ConfigItem(
                     icon: "cup.and.saucer.fill",
-                    label: manager.currentPhase == .shortBreak && manager.isRunning ? NSLocalizedString("Resting", comment: "Active break phase") : NSLocalizedString("Break", comment: "Break phase"),
+                    label: "",
                     value: "\(manager.shortBreakMinutes)m",
                     color: manager.currentPhase == .shortBreak && manager.isRunning ? .blue : .gray
                 )
                 ConfigItem(
                     icon: "sun.max.fill",
-                    label: manager.currentPhase == .longBreak && manager.isRunning ? NSLocalizedString("Relaxing", comment: "Active long break phase") : NSLocalizedString("Long", comment: "Long break phase"),
+                    label: "",
                     value: "\(manager.longBreakMinutes)m",
                     color: manager.currentPhase == .longBreak && manager.isRunning ? .orange : .gray
                 )
-                ConfigItem(icon: "number", label: NSLocalizedString("Sets", comment: "Number of sets"), value: "\(manager.configuredSets)", color: .purple)
+                ConfigItem(icon: "number", label: "", value: "\(manager.configuredSets)", color: .purple)
             }
             .padding(.horizontal, 24)
             
@@ -506,22 +498,24 @@ struct ConfigItem: View {
                 .foregroundStyle(color)
             Text(value)
                 .font(.system(.caption, design: .rounded).weight(.semibold))
-            Text(label)
-                .font(.system(.caption2, design: .rounded))
-                .foregroundStyle(.secondary)
+            if !label.isEmpty {
+                Text(label)
+                    .font(.system(.caption2, design: .rounded))
+                    .foregroundStyle(.secondary)
+            }
         }
         .frame(maxWidth: .infinity)
     }
 }
 
-// Elegant Stepper - Aumentado 15% para mejor interactividad
+// Elegant Stepper - Ajustado para mejor proporción
 struct ElegantStepper: View {
     let icon: String
     @Binding var value: Int
     let range: ClosedRange<Int>
     
     var body: some View {
-        HStack(spacing: 12) {
+        HStack(spacing: 11) {
             Button {
                 if value > range.lowerBound {
                     value -= 1
@@ -530,7 +524,7 @@ struct ElegantStepper: View {
             } label: {
                 Image(systemName: "minus")
                     .font(.callout.weight(.bold))
-                    .frame(width: 37, height: 37)
+                    .frame(width: 33, height: 33)
             }
             .buttonStyle(ElegantStepperButtonStyle())
             
@@ -541,7 +535,7 @@ struct ElegantStepper: View {
                 Text("\(value)")
                     .font(.system(.body, design: .rounded).weight(.semibold))
             }
-            .frame(minWidth: 46)
+            .frame(minWidth: 41)
             
             Button {
                 if value < range.upperBound {
@@ -551,11 +545,11 @@ struct ElegantStepper: View {
             } label: {
                 Image(systemName: "plus")
                     .font(.callout.weight(.bold))
-                    .frame(width: 37, height: 37)
+                    .frame(width: 33, height: 33)
             }
             .buttonStyle(ElegantStepperButtonStyle())
         }
-        .padding(10)
+        .padding(9)
         .background(
             RoundedRectangle(cornerRadius: 12)
                 .fill(.ultraThinMaterial)
@@ -654,275 +648,230 @@ struct ConfigLabel: View {
     }
 }
 
-// MARK: - Teams View (Glassmorphism)
-struct TeamsView: View {
-    @State private var username = ""
-    @State private var password = ""
-    @State private var isLoggedIn = false
-    @State private var microsoftStatus = "Disconnected"
+// MARK: - Settings View (Integrado: Appearance + Teams + Info)
+struct SettingsView: View {
+    @EnvironmentObject var appDelegate: AppDelegate
+    @AppStorage("appearanceMode") private var appearanceMode = 0
+    
+    // Teams state
+    @State private var teamsUsername = ""
+    @State private var teamsPassword = ""
+    @State private var isTeamsConnected = false
     @State private var teamsStatus = "Offline"
     
     var body: some View {
-        VStack(spacing: 24) {
-            // Header
-            VStack(spacing: 8) {
-                ZStack {
-                    Circle()
-                        .fill(
-                            LinearGradient(
-                                colors: [.blue.opacity(0.8), .purple.opacity(0.6)],
-                                startPoint: .topLeading,
-                                endPoint: .bottomTrailing
-                            )
-                        )
-                        .frame(width: 70, height: 70)
-                        .shadow(color: .blue.opacity(0.4), radius: 15, x: 0, y: 5)
-                    
-                    Image(systemName: "person.2.fill")
-                        .font(.system(size: 30))
-                        .foregroundStyle(.white)
+        ScrollView {
+            VStack(spacing: 20) {
+                // Header
+                HStack {
+                    Text("Settings")
+                        .font(.system(.largeTitle, design: .rounded).weight(.bold))
+                    Spacer()
                 }
+                .padding(.horizontal, 24)
+                .padding(.top, 20)
                 
-                Text("Microsoft Teams")
-                    .font(.system(.largeTitle, design: .rounded).weight(.bold))
-                
-                Text("Sync your presence status")
-                    .font(.subheadline)
-                    .foregroundStyle(.secondary)
-            }
-            .frame(maxWidth: .infinity)
-            .padding(.top, 20)
-            
-            // Login Card
-            GlassCard(
-                title: isLoggedIn ? "Account Connected" : "Sign In",
-                icon: isLoggedIn ? "checkmark.shield.fill" : "person.crop.circle.fill",
-                material: .ultraThinMaterial
-            ) {
-                VStack(spacing: 14) {
-                    if !isLoggedIn {
-                        GlassTextField(
-                            placeholder: "Email",
-                            text: $username,
-                            icon: "envelope.fill"
-                        )
+                // MARK: Appearance Section
+                GlassCard(title: "Appearance", icon: "paintbrush.fill") {
+                    VStack(spacing: 16) {
+                        Picker("Theme", selection: $appearanceMode) {
+                            Label("System", systemImage: "macpro.gen1").tag(0)
+                            Label("Light", systemImage: "sun.max.fill").tag(1)
+                            Label("Dark", systemImage: "moon.fill").tag(2)
+                        }
+                        .pickerStyle(.segmented)
                         
-                        GlassTextField(
-                            placeholder: "Password",
-                            text: $password,
-                            icon: "lock.fill",
-                            isSecure: true
-                        )
-                    } else {
+                        Divider().opacity(0.5)
+                        
+                        VStack(spacing: 8) {
+                            GlassToggleRow(
+                                icon: "dock.rectangle",
+                                title: "Show in Dock",
+                                isOn: $appDelegate.showInDock
+                            )
+                            
+                            GlassToggleRow(
+                                icon: "menubar.rectangle",
+                                title: "Show in Menu Bar",
+                                isOn: $appDelegate.showInMenuBar
+                            )
+                        }
+                    }
+                }
+                .padding(.horizontal, 20)
+                
+                // MARK: Microsoft Teams Section
+                GlassCard(title: "Microsoft Teams", icon: "person.2.fill") {
+                    VStack(spacing: 16) {
+                        // Connection Status
                         HStack(spacing: 12) {
-                            Image(systemName: "person.circle.fill")
-                                .font(.system(size: 40))
-                                .foregroundStyle(.blue)
+                            ZStack {
+                                Circle()
+                                    .fill(isTeamsConnected ? Color.blue.opacity(0.2) : Color.gray.opacity(0.2))
+                                    .frame(width: 44, height: 44)
+                                
+                                Image(systemName: isTeamsConnected ? "checkmark.shield.fill" : "person.crop.circle.badge.xmark")
+                                    .font(.title3)
+                                    .foregroundStyle(isTeamsConnected ? .blue : .secondary)
+                            }
                             
                             VStack(alignment: .leading, spacing: 2) {
-                                Text(username.isEmpty ? "user@company.com" : username)
-                                    .font(.system(.body, design: .rounded).weight(.medium))
-                                
-                                HStack(spacing: 6) {
-                                    Circle()
-                                        .fill(Color.green)
-                                        .frame(width: 8, height: 8)
-                                    Text("Connected")
-                                        .font(.caption)
-                                        .foregroundStyle(.secondary)
-                                }
+                                Text(isTeamsConnected ? "Connected" : "Disconnected")
+                                    .font(.system(.body, design: .rounded).weight(.semibold))
+                                Text(isTeamsConnected ? teamsUsername : "Sync your presence status")
+                                    .font(.caption)
+                                    .foregroundStyle(.secondary)
+                                    .lineLimit(1)
                             }
                             
                             Spacer()
+                            
+                            Toggle("", isOn: $isTeamsConnected)
+                                .toggleStyle(.switch)
+                                .controlSize(.small)
+                                .onChange(of: isTeamsConnected) { _, newValue in
+                                    teamsStatus = newValue ? "Available" : "Offline"
+                                    BusylightLogger.shared.info("Teams: \(newValue ? "Connected" : "Disconnected")")
+                                }
                         }
-                        .padding(12)
-                        .background(
-                            RoundedRectangle(cornerRadius: 10)
-                                .fill(Material.thinMaterial)
-                        )
+                        
+                        // Login fields when not connected
+                        if !isTeamsConnected {
+                            Divider().opacity(0.5)
+                            
+                            VStack(spacing: 10) {
+                                GlassTextField(
+                                    placeholder: "Email",
+                                    text: $teamsUsername,
+                                    icon: "envelope.fill"
+                                )
+                                
+                                GlassTextField(
+                                    placeholder: "Password",
+                                    text: $teamsPassword,
+                                    icon: "lock.fill",
+                                    isSecure: true
+                                )
+                            }
+                        }
+                        
+                        // Status selector when connected
+                        if isTeamsConnected {
+                            Divider().opacity(0.5)
+                            
+                            Text("Presence Status")
+                                .font(.caption)
+                                .foregroundStyle(.secondary)
+                                .frame(maxWidth: .infinity, alignment: .leading)
+                            
+                            // Status grid
+                            LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: 8) {
+                                TeamsStatusButton(
+                                    icon: "checkmark.circle.fill",
+                                    title: "Available",
+                                    color: .green,
+                                    isSelected: teamsStatus == "Available"
+                                ) { teamsStatus = "Available" }
+                                
+                                TeamsStatusButton(
+                                    icon: "minus.circle.fill",
+                                    title: "Busy",
+                                    color: .red,
+                                    isSelected: teamsStatus == "Busy"
+                                ) { teamsStatus = "Busy" }
+                                
+                                TeamsStatusButton(
+                                    icon: "moon.circle.fill",
+                                    title: "DND",
+                                    color: .purple,
+                                    isSelected: teamsStatus == "Do Not Disturb"
+                                ) { teamsStatus = "Do Not Disturb" }
+                                
+                                TeamsStatusButton(
+                                    icon: "clock.circle.fill",
+                                    title: "Away",
+                                    color: .orange,
+                                    isSelected: teamsStatus == "Away"
+                                ) { teamsStatus = "Away" }
+                            }
+                        }
                     }
-                    
-                    Button {
-                        BusylightLogger.shared.info("Teams: Login presionado")
-                        withAnimation(.spring(response: 0.4)) {
-                            isLoggedIn.toggle()
-                            microsoftStatus = isLoggedIn ? "Connected" : "Disconnected"
-                            teamsStatus = isLoggedIn ? "Available" : "Offline"
-                        }
-                    } label: {
-                        HStack(spacing: 8) {
-                            Image(systemName: isLoggedIn ? "xmark.circle.fill" : "arrow.right.circle.fill")
-                            Text(isLoggedIn ? "Disconnect" : "Connect Account")
-                        }
-                        .font(.system(.subheadline, design: .rounded).weight(.semibold))
-                        .frame(maxWidth: .infinity)
-                        .padding(.vertical, 12)
-                    }
-                    .buttonStyle(.gradientWave(color: isLoggedIn ? .red : .blue, prominent: !isLoggedIn))
                 }
-            }
-            .frame(maxWidth: 380)
-            
-            // Status Card (when logged in)
-            if isLoggedIn {
-                GlassCard(title: "Presence Status", icon: "status") {
-                    VStack(spacing: 12) {
-                        HStack(spacing: 12) {
-                            StatusOption(
-                                icon: "checkmark.circle.fill",
-                                title: "Available",
-                                color: .green,
-                                isSelected: teamsStatus == "Available"
-                            ) {
-                                teamsStatus = "Available"
-                            }
+                .padding(.horizontal, 20)
+                
+                // MARK: About Section
+                GlassCard(title: "About", icon: "info.circle.fill") {
+                    HStack(spacing: 16) {
+                        // App Icon
+                        ZStack {
+                            Circle()
+                                .fill(
+                                    LinearGradient(
+                                        colors: [.orange, .red],
+                                        startPoint: .topLeading,
+                                        endPoint: .bottomTrailing
+                                    )
+                                )
+                                .frame(width: 50, height: 50)
+                                .shadow(color: .orange.opacity(0.4), radius: 8)
                             
-                            StatusOption(
-                                icon: "minus.circle.fill",
-                                title: "Busy",
-                                color: .red,
-                                isSelected: teamsStatus == "Busy"
-                            ) {
-                                teamsStatus = "Busy"
-                            }
-                            
-                            StatusOption(
-                                icon: "moon.circle.fill",
-                                title: "DND",
-                                color: .purple,
-                                isSelected: teamsStatus == "Do Not Disturb"
-                            ) {
-                                teamsStatus = "Do Not Disturb"
-                            }
-                            
-                            StatusOption(
-                                icon: "clock.circle.fill",
-                                title: "Away",
-                                color: .orange,
-                                isSelected: teamsStatus == "Away"
-                            ) {
-                                teamsStatus = "Away"
-                            }
+                            Image(systemName: "lightbulb.fill")
+                                .font(.title3)
+                                .foregroundStyle(.white)
                         }
+                        
+                        VStack(alignment: .leading, spacing: 2) {
+                            Text("Busylight")
+                                .font(.system(.body, design: .rounded).weight(.semibold))
+                            Text("Version 1.0.0 (2026.03.07)")
+                                .font(.caption)
+                                .foregroundStyle(.secondary)
+                        }
+                        
+                        Spacer()
                     }
                 }
-                .frame(maxWidth: 380)
-                .transition(.move(edge: .bottom).combined(with: .opacity))
+                .padding(.horizontal, 20)
+                
+                Spacer(minLength: 20)
             }
-            
-            Spacer()
         }
-        .padding(.horizontal, 20)
     }
 }
 
-struct StatusOption: View {
+// Teams Status Button (compacto para Settings)
+struct TeamsStatusButton: View {
     let icon: String
     let title: String
     let color: Color
-    var isSelected: Bool
+    let isSelected: Bool
     let action: () -> Void
     
     var body: some View {
         Button(action: action) {
-            VStack(spacing: 6) {
+            HStack(spacing: 8) {
                 Image(systemName: icon)
-                    .font(.title2)
+                    .font(.callout)
                     .foregroundStyle(color)
                 
                 Text(title)
                     .font(.system(.caption, design: .rounded).weight(.medium))
                     .foregroundStyle(isSelected ? .primary : .secondary)
+                
+                Spacer()
             }
-            .frame(maxWidth: .infinity)
-            .padding(.vertical, 12)
+            .padding(.horizontal, 10)
+            .padding(.vertical, 8)
             .background(
-                ZStack {
-                    if isSelected {
-                        RoundedRectangle(cornerRadius: 10)
-                            .fill(color.opacity(0.15))
-                        
-                        RoundedRectangle(cornerRadius: 10)
-                            .stroke(color.opacity(0.4), lineWidth: 1.5)
-                    } else {
-                        RoundedRectangle(cornerRadius: 10)
-                            .fill(Material.thinMaterial)
-                        
-                        RoundedRectangle(cornerRadius: 10)
-                            .stroke(.white.opacity(0.1), lineWidth: 1)
-                    }
-                }
+                RoundedRectangle(cornerRadius: 8)
+                    .fill(isSelected ? color.opacity(0.15) : Color.gray.opacity(0.15))
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 8)
+                            .stroke(isSelected ? color.opacity(0.4) : .white.opacity(0.1), lineWidth: 1)
+                    )
             )
         }
         .buttonStyle(.plain)
-    }
-}
-
-// MARK: - Configuration View (Glassmorphism)
-struct ConfigurationView: View {
-    @EnvironmentObject var appDelegate: AppDelegate
-    @AppStorage("appearanceMode") private var appearanceMode = 0
-    
-    var body: some View {
-        VStack(spacing: 24) {
-            // Header
-            VStack(spacing: 4) {
-                Text("Settings")
-                    .font(.system(.largeTitle, design: .rounded).weight(.bold))
-                
-                Text("Customize your experience")
-                    .font(.subheadline)
-                    .foregroundStyle(.secondary)
-            }
-            .frame(maxWidth: .infinity, alignment: .leading)
-            .padding(.horizontal, 24)
-            .padding(.top, 20)
-            
-            // Appearance Card
-            GlassCard(title: "Appearance", icon: "paintbrush.fill") {
-                VStack(spacing: 16) {
-                    Picker("Theme", selection: $appearanceMode) {
-                        Label("System", systemImage: "macpro.gen1").tag(0)
-                        Label("Light", systemImage: "sun.max.fill").tag(1)
-                        Label("Dark", systemImage: "moon.fill").tag(2)
-                    }
-                    .pickerStyle(.segmented)
-                    .onChange(of: appearanceMode) { _, newValue in
-                        BusylightLogger.shared.info("Appearance: \(newValue)")
-                    }
-                    
-                    Divider()
-                        .opacity(0.5)
-                    
-                    HStack(spacing: 16) {
-                        GlassToggleRow(
-                            icon: "dock.rectangle",
-                            title: "Show in Dock",
-                            isOn: $appDelegate.showInDock
-                        )
-                        
-                        GlassToggleRow(
-                            icon: "menubar.rectangle",
-                            title: "Show in Menu Bar",
-                            isOn: $appDelegate.showInMenuBar
-                        )
-                    }
-                }
-            }
-            .padding(.horizontal, 20)
-            
-            // Info Card
-            GlassCard(title: "Application", icon: "app.badge.fill") {
-                VStack(spacing: 12) {
-                    InfoRowGlass(label: "Version", value: "1.0.0", icon: "number")
-                    InfoRowGlass(label: "Build", value: "2026.03.07", icon: "hammer.fill")
-                    InfoRowGlass(label: "Developer", value: "Sky One", icon: "person.fill")
-                }
-            }
-            .padding(.horizontal, 20)
-            
-            Spacer()
-        }
     }
 }
 
@@ -982,120 +931,6 @@ struct InfoRowGlass: View {
                 .font(.system(.callout, design: .rounded).weight(.medium))
         }
         .padding(.vertical, 4)
-    }
-}
-
-// MARK: - About View (Glassmorphism)
-struct AboutView: View {
-    @ObservedObject var busylight: BusylightManager
-    
-    var body: some View {
-        VStack(spacing: 24) {
-            // Header
-            VStack(spacing: 16) {
-                ZStack {
-                    // Glow effect
-                    Circle()
-                        .fill(
-                            RadialGradient(
-                                colors: [.orange.opacity(0.4), .clear],
-                                center: .center,
-                                startRadius: 20,
-                                endRadius: 60
-                            )
-                        )
-                        .frame(width: 120, height: 120)
-                    
-                    Circle()
-                        .fill(
-                            LinearGradient(
-                                colors: [.orange, .red],
-                                startPoint: .topLeading,
-                                endPoint: .bottomTrailing
-                            )
-                        )
-                        .frame(width: 80, height: 80)
-                        .shadow(color: .orange.opacity(0.5), radius: 20, x: 0, y: 8)
-                    
-                    Image(systemName: "lightbulb.fill")
-                        .font(.system(size: 36))
-                        .foregroundStyle(.white)
-                }
-                
-                VStack(spacing: 4) {
-                    Text("Busylight")
-                        .font(.system(.largeTitle, design: .rounded).weight(.bold))
-                    
-                    Text("Version 1.0.0")
-                        .font(.subheadline)
-                        .foregroundStyle(.secondary)
-                }
-            }
-            .padding(.top, 20)
-            
-            // Info Cards
-            HStack(spacing: 16) {
-                GlassCard(title: "Device", icon: "lightbulb.fill") {
-                    VStack(spacing: 10) {
-                        HStack(spacing: 10) {
-                            Image(systemName: busylight.isConnected ? "checkmark.circle.fill" : "xmark.circle.fill")
-                                .font(.title2)
-                                .foregroundStyle(busylight.isConnected ? .green : .red)
-                            
-                            VStack(alignment: .leading, spacing: 2) {
-                                Text(busylight.isConnected ? "Connected" : "Disconnected")
-                                    .font(.system(.body, design: .rounded).weight(.semibold))
-                                
-                                Text(busylight.deviceName)
-                                    .font(.caption)
-                                    .foregroundStyle(.secondary)
-                            }
-                            
-                            Spacer()
-                        }
-                        
-                        if busylight.isConnected {
-                            HStack(spacing: 8) {
-                                Text("Current Color:")
-                                    .font(.caption)
-                                    .foregroundStyle(.secondary)
-                                
-                                Circle()
-                                    .fill(busylight.color)
-                                    .frame(width: 16, height: 16)
-                                    .overlay(
-                                        Circle()
-                                            .stroke(.white.opacity(0.4), lineWidth: 1)
-                                    )
-                                    .shadow(color: busylight.color.opacity(0.5), radius: 4)
-                            }
-                            .frame(maxWidth: .infinity, alignment: .leading)
-                        }
-                    }
-                }
-                .frame(maxWidth: .infinity)
-                
-                GlassCard(title: "About", icon: "info.circle.fill") {
-                    VStack(spacing: 8) {
-                        Text("Professional USB status light control for modern workspaces.")
-                            .font(.callout)
-                            .foregroundStyle(.secondary)
-                            .multilineTextAlignment(.center)
-                        
-                        Divider()
-                            .opacity(0.5)
-                        
-                        Text("© 2026 Sky One")
-                            .font(.caption)
-                            .foregroundStyle(.secondary)
-                    }
-                }
-                .frame(maxWidth: .infinity)
-            }
-            .padding(.horizontal, 20)
-            
-            Spacer()
-        }
     }
 }
 
