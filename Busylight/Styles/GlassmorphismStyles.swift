@@ -575,6 +575,50 @@ struct GlassStatusBadge: View {
     }
 }
 
+// MARK: - Stepper Button Component
+struct StepperButton: View {
+    let icon: String
+    let action: () -> Void
+    @State private var isPressed = false
+    
+    var body: some View {
+        Button(action: {
+            HapticFeedback.light()
+            action()
+        }) {
+            Image(systemName: icon)
+                .font(.caption.weight(.bold))
+                .frame(width: 28, height: 28)
+                .foregroundStyle(isPressed ? .white : .primary)
+        }
+        .buttonStyle(.plain)
+        .background(
+            ZStack {
+                Circle()
+                    .fill(
+                        LinearGradient(
+                            colors: isPressed
+                                ? [Color.accentColor.opacity(0.8), Color.accentColor.opacity(0.6)]
+                                : [Color.gray.opacity(0.2), Color.gray.opacity(0.1)],
+                            startPoint: .topLeading,
+                            endPoint: .bottomTrailing
+                        )
+                    )
+                
+                Circle()
+                    .stroke(.white.opacity(0.2), lineWidth: 1)
+            }
+        )
+        .scaleEffect(isPressed ? 0.9 : 1)
+        .animation(.easeOut(duration: 0.1), value: isPressed)
+        .pressEvents {
+            isPressed = true
+        } onRelease: {
+            isPressed = false
+        }
+    }
+}
+
 // MARK: - Glass Stepper
 struct GlassStepper: View {
     @Binding var value: Int
@@ -583,46 +627,24 @@ struct GlassStepper: View {
     
     var body: some View {
         HStack(spacing: 8) {
-            Text("\(value)\(suffix.isEmpty ? "" : "\(suffix)")")
+            Text("\(value)\(suffix.isEmpty ? "" : " \(suffix)")")
                 .font(.system(.callout, design: .rounded).weight(.semibold))
-                .frame(minWidth: 40)
+                .frame(minWidth: 50, alignment: .leading)
             
             Spacer()
             
-            HStack(spacing: 4) {
-                Button {
+            HStack(spacing: 8) {
+                StepperButton(icon: "minus") {
                     if value > range.lowerBound {
                         value -= 1
-                        HapticFeedback.light()
                     }
-                } label: {
-                    Image(systemName: "minus")
-                        .font(.caption.weight(.bold))
-                        .frame(width: 24, height: 24)
                 }
-                .buttonStyle(.plain)
-                .background(
-                    Circle()
-                        .fill(Material.thinMaterial)
-                        .overlay(Circle().stroke(.white.opacity(0.15), lineWidth: 1))
-                )
                 
-                Button {
+                StepperButton(icon: "plus") {
                     if value < range.upperBound {
                         value += 1
-                        HapticFeedback.light()
                     }
-                } label: {
-                    Image(systemName: "plus")
-                        .font(.caption.weight(.bold))
-                        .frame(width: 24, height: 24)
                 }
-                .buttonStyle(.plain)
-                .background(
-                    Circle()
-                        .fill(Material.thinMaterial)
-                        .overlay(Circle().stroke(.white.opacity(0.15), lineWidth: 1))
-                )
             }
         }
         .padding(10)
