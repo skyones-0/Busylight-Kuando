@@ -71,14 +71,14 @@ class SmartFeaturesManager: ObservableObject {
     private func setupFeatures() {
         loadWorkProfile()
         loadTheme()
-        // TEMP: Deshabilitado para debugging
-        // setupCalendarSync()
-        // setupFocusModeSync()
-        // setupIdleDetection()
-        // setupVisualBreakTimer()
-        // setupWorkHoursChecker()
-        // setupMeetingDetection()
-        // setupPresentationDetection()
+        // Todos habilitados excepto visualBreakTimer que causa freeze
+        setupCalendarSync()
+        setupFocusModeSync()
+        setupIdleDetection()
+        // setupVisualBreakTimer()  // ← DESHABILITADO: Causa freeze por @Published updates cada 60s
+        setupWorkHoursChecker()
+        setupMeetingDetection()
+        setupPresentationDetection()
         updateDashboard()
     }
     
