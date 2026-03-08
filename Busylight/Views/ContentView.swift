@@ -338,7 +338,7 @@ struct PomodoroView: View {
                         .font(.title3)
                         .foregroundStyle(manager.currentPhase.color)
                     
-                    Text("Focus Session")
+                    Text(NSLocalizedString("Focus Session", comment: "Pomodoro session title"))
                         .font(.system(.title3, design: .rounded).weight(.semibold))
                 }
                 
@@ -364,7 +364,7 @@ struct PomodoroView: View {
                 
                 // Set Counter
                 HStack(spacing: 4) {
-                    Text("Session")
+                    Text(NSLocalizedString("Session", comment: "Session label"))
                         .foregroundStyle(.secondary)
                     Text("\(manager.currentSet)/\(manager.totalSets)")
                         .fontWeight(.semibold)
@@ -415,10 +415,25 @@ struct PomodoroView: View {
             
             // Config Summary Row
             HStack(spacing: 12) {
-                ConfigItem(icon: "briefcase.fill", label: "Work", value: "\(manager.workTimeMinutes)m", color: .green)
-                ConfigItem(icon: "cup.and.saucer.fill", label: "Break", value: "\(manager.shortBreakMinutes)m", color: .blue)
-                ConfigItem(icon: "sun.max.fill", label: "Long", value: "\(manager.longBreakMinutes)m", color: .orange)
-                ConfigItem(icon: "number", label: "Sets", value: "\(manager.configuredSets)", color: .purple)
+                ConfigItem(
+                    icon: "briefcase.fill",
+                    label: manager.currentPhase == .work && manager.isRunning ? NSLocalizedString("Working", comment: "Active work phase") : NSLocalizedString("Work", comment: "Work phase"),
+                    value: "\(manager.workTimeMinutes)m",
+                    color: manager.currentPhase == .work && manager.isRunning ? .green : .gray
+                )
+                ConfigItem(
+                    icon: "cup.and.saucer.fill",
+                    label: manager.currentPhase == .shortBreak && manager.isRunning ? NSLocalizedString("Resting", comment: "Active break phase") : NSLocalizedString("Break", comment: "Break phase"),
+                    value: "\(manager.shortBreakMinutes)m",
+                    color: manager.currentPhase == .shortBreak && manager.isRunning ? .blue : .gray
+                )
+                ConfigItem(
+                    icon: "sun.max.fill",
+                    label: manager.currentPhase == .longBreak && manager.isRunning ? NSLocalizedString("Relaxing", comment: "Active long break phase") : NSLocalizedString("Long", comment: "Long break phase"),
+                    value: "\(manager.longBreakMinutes)m",
+                    color: manager.currentPhase == .longBreak && manager.isRunning ? .orange : .gray
+                )
+                ConfigItem(icon: "number", label: NSLocalizedString("Sets", comment: "Number of sets"), value: "\(manager.configuredSets)", color: .purple)
             }
             .padding(.horizontal, 24)
             
@@ -443,7 +458,7 @@ struct PomodoroView: View {
             // Control Buttons
             HStack(spacing: 16) {
                 ControlButton(
-                    title: manager.isPaused ? "Resume" : "Start",
+                    title: manager.isPaused ? NSLocalizedString("Resume", comment: "Resume button") : NSLocalizedString("Start", comment: "Start button"),
                     icon: "play.fill",
                     color: .green,
                     isProminent: true,
@@ -452,7 +467,7 @@ struct PomodoroView: View {
                 .disabled(manager.isRunning && !manager.isPaused)
                 
                 ControlButton(
-                    title: "Pause",
+                    title: NSLocalizedString("Pause", comment: "Pause button"),
                     icon: "pause.fill",
                     color: .orange,
                     isProminent: false,
@@ -461,7 +476,7 @@ struct PomodoroView: View {
                 .disabled(!manager.isRunning || manager.isPaused)
                 
                 ControlButton(
-                    title: "Stop",
+                    title: NSLocalizedString("Stop", comment: "Stop button"),
                     icon: "stop.fill",
                     color: .red,
                     isProminent: false,
@@ -532,7 +547,7 @@ struct ElegantStepper: View {
     let range: ClosedRange<Int>
     
     var body: some View {
-        HStack(spacing: 8) {
+        HStack(spacing: 10) {
             Button {
                 if value > range.lowerBound {
                     value -= 1
@@ -540,19 +555,19 @@ struct ElegantStepper: View {
                 }
             } label: {
                 Image(systemName: "minus")
-                    .font(.caption.weight(.bold))
-                    .frame(width: 24, height: 24)
+                    .font(.callout.weight(.bold))
+                    .frame(width: 32, height: 32)
             }
             .buttonStyle(ElegantStepperButtonStyle())
             
-            VStack(spacing: 2) {
+            VStack(spacing: 4) {
                 Image(systemName: icon)
-                    .font(.caption2)
+                    .font(.caption)
                     .foregroundStyle(.secondary)
                 Text("\(value)")
-                    .font(.system(.subheadline, design: .rounded).weight(.semibold))
+                    .font(.system(.body, design: .rounded).weight(.semibold))
             }
-            .frame(minWidth: 32)
+            .frame(minWidth: 40)
             
             Button {
                 if value < range.upperBound {
@@ -561,17 +576,17 @@ struct ElegantStepper: View {
                 }
             } label: {
                 Image(systemName: "plus")
-                    .font(.caption.weight(.bold))
+                    .font(.callout.weight(.bold))
                     .frame(width: 24, height: 24)
             }
             .buttonStyle(ElegantStepperButtonStyle())
         }
-        .padding(6)
+        .padding(8)
         .background(
-            RoundedRectangle(cornerRadius: 10)
+            RoundedRectangle(cornerRadius: 12)
                 .fill(.ultraThinMaterial)
                 .overlay(
-                    RoundedRectangle(cornerRadius: 10)
+                    RoundedRectangle(cornerRadius: 12)
                         .stroke(.white.opacity(0.1), lineWidth: 1)
                 )
         )
