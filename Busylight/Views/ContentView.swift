@@ -10,6 +10,9 @@ import EventKit
 
 enum SidebarItem: String, CaseIterable, Identifiable {
     case pomodoro = "Pomodoro"
+    case deepWork = "Deep Work"
+    case workProfiles = "Profiles"
+    case teams = "Teams"
     case dashboard = "Dashboard"
     case configuration = "Settings"
     case device = "Device"
@@ -19,6 +22,9 @@ enum SidebarItem: String, CaseIterable, Identifiable {
     var icon: String {
         switch self {
         case .pomodoro: return "timer"
+        case .deepWork: return "flame.fill"
+        case .workProfiles: return "briefcase.fill"
+        case .teams: return "person.2.fill"
         case .dashboard: return "chart.bar.fill"
         case .configuration: return "gearshape.fill"
         case .device: return "lightbulb.fill"
@@ -100,6 +106,12 @@ struct ContentView: View {
                     switch selectedItem {
                     case .pomodoro:
                         PomodoroView(busylight: busylight)
+                    case .deepWork:
+                        DeepWorkView()
+                    case .workProfiles:
+                        WorkProfilesView()
+                    case .teams:
+                        TeamsView()
                     case .dashboard:
                         DashboardView()
                     case .configuration:
@@ -753,28 +765,6 @@ struct SettingsView: View {
                 .padding(.horizontal, 24)
                 .padding(.top, 20)
                 
-                // MARK: 7. Work Profiles
-                GlassCard(title: "Work Profile", icon: "briefcase.fill") {
-                    VStack(spacing: 12) {
-                        Text("Select a preset for your current activity")
-                            .font(.caption)
-                            .foregroundStyle(.secondary)
-                            .frame(maxWidth: .infinity, alignment: .leading)
-                        
-                        LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible()), GridItem(.flexible())], spacing: 8) {
-                            ForEach(WorkProfile.allCases, id: \.self) { profile in
-                                ProfileButton(
-                                    profile: profile,
-                                    isSelected: smartFeatures.currentWorkProfile == profile
-                                ) {
-                                    smartFeatures.setWorkProfile(profile)
-                                }
-                            }
-                        }
-                    }
-                }
-                .padding(.horizontal, 20)
-                
                 // MARK: Appearance Section
                 GlassCard(title: "Appearance", icon: "paintbrush.fill") {
                     VStack(spacing: 16) {
@@ -1294,6 +1284,458 @@ struct SettingsView: View {
                 .padding(.horizontal, 20)
                 
                 Spacer(minLength: 20)
+            }
+        }
+    }
+}
+
+// MARK: - Deep Work View (Nuevo)
+struct DeepWorkView: View {
+    @ObservedObject private var smartFeatures = SmartFeaturesManager.shared
+    @ObservedObject private var pomodoroManager = PomodoroManager.shared
+    
+    var body: some View {
+        ScrollView {
+            VStack(spacing: 20) {
+                // Header
+                HStack {
+                    Text("Deep Work")
+                        .font(.system(.largeTitle, design: .rounded).weight(.bold))
+                    Spacer()
+                }
+                .padding(.horizontal, 24)
+                .padding(.top, 20)
+                
+                // Status Card
+                GlassCard(title: "Session Status", icon: "brain.head.profile") {
+                    VStack(spacing: 16) {
+                        if smartFeatures.isDeepWorkActive {
+                            // Active session
+                            VStack(spacing: 12) {
+                                Image(systemName: "flame.fill")
+                                    .font(.system(size: 50))
+                                    .foregroundStyle(.orange)
+                                
+                                Text("Deep Work Active")
+                                    .font(.system(.title2, design: .rounded).weight(.bold))
+                                
+                                Text("\(smartFeatures.deepWorkRemainingMinutes) minutes remaining")
+                                    .font(.system(.title3, design: .rounded))
+                                    .foregroundStyle(.secondary)
+                                
+                                ProgressView(value: Double(smartFeatures.deepWorkRemainingMinutes), total: 90)
+                                    .progressViewStyle(.linear)
+                                    .tint(.orange)
+                                    .padding(.horizontal, 40)
+                                
+                                Button("End Session") {
+                                    smartFeatures.endDeepWorkMode()
+                                }
+                                .buttonStyle(.gradientWave(color: .red, prominent: true))
+                                .padding(.horizontal, 60)
+                                .padding(.top, 10)
+                            }
+                            .padding(.vertical, 20)
+                        } else {
+                            // No active session
+                            VStack(spacing: 12) {
+                                Image(systemName: "brain.head.profile")
+                                    .font(.system(size: 50))
+                                    .foregroundStyle(.secondary)
+                                
+                                Text("Ready to Focus")
+                                    .font(.system(.title2, design: .rounded).weight(.bold))
+                                
+                                Text("Choose a duration for your deep work session. Pomodoro will be paused automatically.")
+                                    .font(.callout)
+                                    .foregroundStyle(.secondary)
+                                    .multilineTextAlignment(.center)
+                                    .padding(.horizontal, 20)
+                                
+                                if pomodoroManager.isRunning {
+                                    HStack(spacing: 8) {
+                                        Image(systemName: "exclamationmark.triangle.fill")
+                                            .foregroundStyle(.orange)
+                                        Text("Pomodoro is running and will be paused")
+                                            .font(.caption)
+                                            .foregroundStyle(.orange)
+                                    }
+                                    .padding(8)
+                                    .background(Color.orange.opacity(0.1))
+                                    .cornerRadius(8)
+                                }
+                                
+                                HStack(spacing: 16) {
+                                    DeepWorkSessionButton(minutes: 60, color: .blue) {
+                                        smartFeatures.startDeepWorkMode(durationMinutes: 60)
+                                    }
+                                    DeepWorkSessionButton(minutes: 90, color: .orange) {
+                                        smartFeatures.startDeepWorkMode(durationMinutes: 90)
+                                    }
+                                    DeepWorkSessionButton(minutes: 120, color: .purple) {
+                                        smartFeatures.startDeepWorkMode(durationMinutes: 120)
+                                    }
+                                }
+                                .padding(.top, 10)
+                            }
+                            .padding(.vertical, 20)
+                        }
+                    }
+                }
+                .padding(.horizontal, 20)
+                
+                // Info Card
+                GlassCard(title: "About Deep Work", icon: "info.circle.fill") {
+                    VStack(alignment: .leading, spacing: 10) {
+                        InfoRow(icon: "checkmark.circle", text: "Blocks notifications and distractions")
+                        InfoRow(icon: "checkmark.circle", text: "Pauses Pomodoro timer automatically")
+                        InfoRow(icon: "checkmark.circle", text: "Sets light to red (busy status)")
+                        InfoRow(icon: "checkmark.circle", text: "Helps maintain flow state")
+                    }
+                    .padding(.vertical, 8)
+                }
+                .padding(.horizontal, 20)
+                
+                Spacer(minLength: 20)
+            }
+        }
+    }
+}
+
+struct DeepWorkSessionButton: View {
+    let minutes: Int
+    let color: Color
+    let action: () -> Void
+    
+    var body: some View {
+        Button(action: action) {
+            VStack(spacing: 4) {
+                Text("\(minutes)")
+                    .font(.system(.title2, design: .rounded).weight(.bold))
+                Text("min")
+                    .font(.caption)
+            }
+            .frame(width: 80, height: 80)
+            .background(
+                RoundedRectangle(cornerRadius: 16)
+                    .fill(color.opacity(0.15))
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 16)
+                            .stroke(color.opacity(0.4), lineWidth: 2)
+                    )
+            )
+            .foregroundStyle(color)
+        }
+        .buttonStyle(.plain)
+    }
+}
+
+struct InfoRow: View {
+    let icon: String
+    let text: String
+    
+    var body: some View {
+        HStack(spacing: 10) {
+            Image(systemName: icon)
+                .foregroundStyle(.green)
+            Text(text)
+                .font(.callout)
+            Spacer()
+        }
+    }
+}
+
+// MARK: - Work Profiles View (Nuevo)
+struct WorkProfilesView: View {
+    @ObservedObject private var smartFeatures = SmartFeaturesManager.shared
+    
+    var body: some View {
+        ScrollView {
+            VStack(spacing: 20) {
+                // Header
+                HStack {
+                    Text("Work Profiles")
+                        .font(.system(.largeTitle, design: .rounded).weight(.bold))
+                    Spacer()
+                }
+                .padding(.horizontal, 24)
+                .padding(.top, 20)
+                
+                // Current Profile
+                GlassCard(title: "Current Profile", icon: "briefcase.fill") {
+                    HStack(spacing: 16) {
+                        Image(systemName: smartFeatures.currentWorkProfile.icon)
+                            .font(.system(size: 40))
+                            .foregroundStyle(.blue)
+                        
+                        VStack(alignment: .leading, spacing: 4) {
+                            Text(smartFeatures.currentWorkProfile.displayName)
+                                .font(.system(.title2, design: .rounded).weight(.bold))
+                            Text(profileDescription)
+                                .font(.callout)
+                                .foregroundStyle(.secondary)
+                        }
+                        
+                        Spacer()
+                    }
+                    .padding(.vertical, 10)
+                }
+                .padding(.horizontal, 20)
+                
+                // Profile Selection
+                GlassCard(title: "Select Profile", icon: "arrow.swap") {
+                    LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: 12) {
+                        ForEach(WorkProfile.allCases, id: \.self) { profile in
+                            ProfileSelectionCard(
+                                profile: profile,
+                                isSelected: smartFeatures.currentWorkProfile == profile
+                            ) {
+                                smartFeatures.setWorkProfile(profile)
+                            }
+                        }
+                    }
+                    .padding(.vertical, 10)
+                }
+                .padding(.horizontal, 20)
+                
+                Spacer(minLength: 20)
+            }
+        }
+    }
+    
+    var profileDescription: String {
+        switch smartFeatures.currentWorkProfile {
+        case .standard:
+            return "25 min work / 5 min break (Classic Pomodoro)"
+        case .coding:
+            return "50 min work / 10 min break (Extended focus)"
+        case .meetings:
+            return "Calendar sync enabled for meeting detection"
+        case .deepWork:
+            return "90 min work / 15 min break (Deep focus)"
+        case .learning:
+            return "25 min work / 5 min break (Study mode)"
+        }
+    }
+}
+
+struct ProfileSelectionCard: View {
+    let profile: WorkProfile
+    let isSelected: Bool
+    let action: () -> Void
+    
+    var body: some View {
+        Button(action: action) {
+            VStack(spacing: 8) {
+                Image(systemName: profile.icon)
+                    .font(.system(size: 32))
+                
+                Text(profile.displayName)
+                    .font(.system(.callout, design: .rounded).weight(.semibold))
+            }
+            .frame(maxWidth: .infinity, minHeight: 100)
+            .padding(.vertical, 16)
+            .background(
+                RoundedRectangle(cornerRadius: 12)
+                    .fill(isSelected ? Color.accentColor.opacity(0.15) : Color.gray.opacity(0.1))
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 12)
+                            .stroke(isSelected ? Color.accentColor.opacity(0.5) : Color.clear, lineWidth: 2)
+                    )
+            )
+            .foregroundStyle(isSelected ? .blue : .primary)
+        }
+        .buttonStyle(.plain)
+    }
+}
+
+// MARK: - Teams View (Nuevo)
+struct TeamsView: View {
+    @State private var selectedTab = 0
+    @State private var username = ""
+    @State private var password = ""
+    @State private var isConnected = false
+    @State private var status = "Offline"
+    @State private var todayActivities = [
+        "9:00 AM - Standup meeting",
+        "10:30 AM - Project review",
+        "2:00 PM - Client call"
+    ]
+    
+    var body: some View {
+        ScrollView {
+            VStack(spacing: 16) {
+                // Header
+                HStack {
+                    Text("Microsoft Teams")
+                        .font(.system(.largeTitle, design: .rounded).weight(.bold))
+                    Spacer()
+                }
+                .padding(.horizontal, 24)
+                .padding(.top, 20)
+                
+                // Connection Status Card
+                GlassCard(title: "Connection", icon: "person.2.fill") {
+                    HStack(spacing: 16) {
+                        ZStack {
+                            Circle()
+                                .fill(isConnected ? Color.green.opacity(0.2) : Color.gray.opacity(0.2))
+                                .frame(width: 56, height: 56)
+                            
+                            Image(systemName: isConnected ? "checkmark.shield.fill" : "person.crop.circle.badge.xmark")
+                                .font(.title2)
+                                .foregroundStyle(isConnected ? .green : .secondary)
+                        }
+                        
+                        VStack(alignment: .leading, spacing: 4) {
+                            Text(isConnected ? "Connected" : "Disconnected")
+                                .font(.system(.title3, design: .rounded).weight(.semibold))
+                            Text(isConnected ? username : "Sync your Teams status")
+                                .font(.callout)
+                                .foregroundStyle(.secondary)
+                        }
+                        
+                        Spacer()
+                        
+                        Toggle("", isOn: $isConnected)
+                            .toggleStyle(.switch)
+                            .controlSize(.small)
+                    }
+                    .padding(.vertical, 8)
+                }
+                .padding(.horizontal, 20)
+                
+                // Tab Selector
+                Picker("View", selection: $selectedTab) {
+                    Text("Status").tag(0)
+                    Text("Credentials").tag(1)
+                    Text("Activities").tag(2)
+                }
+                .pickerStyle(.segmented)
+                .padding(.horizontal, 20)
+                
+                // Tab Content
+                Group {
+                    switch selectedTab {
+                    case 0:
+                        StatusTab(status: $status, isConnected: isConnected)
+                    case 1:
+                        CredentialsTab(username: $username, password: $password, isConnected: isConnected)
+                    case 2:
+                        ActivitiesTab(activities: todayActivities)
+                    default:
+                        EmptyView()
+                    }
+                }
+                .padding(.horizontal, 20)
+                
+                Spacer(minLength: 20)
+            }
+        }
+    }
+}
+
+struct StatusTab: View {
+    @Binding var status: String
+    let isConnected: Bool
+    
+    let statuses = [
+        ("Available", "checkmark.circle.fill", Color.green),
+        ("Busy", "minus.circle.fill", Color.red),
+        ("Do Not Disturb", "moon.circle.fill", Color.purple),
+        ("Away", "clock.circle.fill", Color.orange)
+    ]
+    
+    var body: some View {
+        GlassCard(title: "Presence Status", icon: "status") {
+            if isConnected {
+                LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: 8) {
+                    ForEach(statuses, id: \.0) { item in
+                        TeamsStatusButton(
+                            icon: item.1,
+                            title: item.0,
+                            color: item.2,
+                            isSelected: status == item.0
+                        ) {
+                            status = item.0
+                        }
+                    }
+                }
+                .padding(.vertical, 8)
+            } else {
+                HStack {
+                    Spacer()
+                    Text("Connect to Teams to set status")
+                        .font(.callout)
+                        .foregroundStyle(.secondary)
+                    Spacer()
+                }
+                .padding(.vertical, 20)
+            }
+        }
+    }
+}
+
+struct CredentialsTab: View {
+    @Binding var username: String
+    @Binding var password: String
+    let isConnected: Bool
+    
+    var body: some View {
+        GlassCard(title: "Account", icon: "key.fill") {
+            if !isConnected {
+                VStack(spacing: 12) {
+                    GlassTextField(placeholder: "Email", text: $username, icon: "envelope.fill")
+                    GlassTextField(placeholder: "Password", text: $password, icon: "lock.fill", isSecure: true)
+                }
+                .padding(.vertical, 8)
+            } else {
+                HStack {
+                    Spacer()
+                    VStack(spacing: 8) {
+                        Image(systemName: "checkmark.circle.fill")
+                            .font(.title2)
+                            .foregroundStyle(.green)
+                        Text("Connected as \(username)")
+                            .font(.callout)
+                            .foregroundStyle(.secondary)
+                    }
+                    Spacer()
+                }
+                .padding(.vertical, 20)
+            }
+        }
+    }
+}
+
+struct ActivitiesTab: View {
+    let activities: [String]
+    
+    var body: some View {
+        GlassCard(title: "Today's Activities", icon: "calendar.day.timeline.left") {
+            if activities.isEmpty {
+                HStack {
+                    Spacer()
+                    Text("No activities scheduled")
+                        .font(.callout)
+                        .foregroundStyle(.secondary)
+                    Spacer()
+                }
+                .padding(.vertical, 20)
+            } else {
+                VStack(alignment: .leading, spacing: 10) {
+                    ForEach(activities, id: \.self) { activity in
+                        HStack(spacing: 10) {
+                            Circle()
+                                .fill(Color.blue.opacity(0.5))
+                                .frame(width: 8, height: 8)
+                            Text(activity)
+                                .font(.callout)
+                            Spacer()
+                        }
+                    }
+                }
+                .padding(.vertical, 8)
             }
         }
     }

@@ -11,6 +11,7 @@ struct MenuBarView: View {
     @EnvironmentObject var appDelegate: AppDelegate
     @ObservedObject var busylight: BusylightManager
     @ObservedObject private var pomodoroManager = PomodoroManager.shared
+    @ObservedObject private var smartFeatures = SmartFeaturesManager.shared
     
     var body: some View {
         ScrollView {
@@ -27,6 +28,11 @@ struct MenuBarView: View {
                 // Visibility Card
                 GlassVisibilityCard()
                 
+                // Calendar Activity Card (nuevo)
+                if smartFeatures.calendarSyncEnabled {
+                    GlassCalendarCard()
+                }
+                
                 // Actions - más compactos, justo después de Visibility
                 HStack(spacing: 8) {
                     Button {
@@ -42,7 +48,7 @@ struct MenuBarView: View {
                         .frame(maxWidth: .infinity)
                         .padding(.vertical, 6)
                     }
-                    .buttonStyle(.smallGradient(color: .accentColor, prominent: true))
+                    .buttonStyle(.smallGradient(color: .blue, prominent: true))
                     
                     Button {
                         BusylightLogger.shared.info("MenuBar: Salir")
@@ -522,6 +528,91 @@ struct CompactProgressBar: View {
             withAnimation(.linear(duration: 0.5)) {
                 animatedProgress = newValue
             }
+        }
+    }
+}
+
+// MARK: - Glass Calendar Card (Nuevo)
+struct GlassCalendarCard: View {
+    @ObservedObject private var smartFeatures = SmartFeaturesManager.shared
+    
+    var body: some View {
+        VStack(alignment: .leading, spacing: 6) {
+            // Header
+            HStack {
+                Image(systemName: "calendar")
+                    .font(.caption2)
+                    .foregroundStyle(.secondary)
+                Text("Calendar")
+                    .font(.system(.caption, design: .rounded).weight(.semibold))
+                Spacer()
+            }
+            
+            // Current Status
+            HStack(spacing: 6) {
+                Circle()
+                    .fill(calendarColor)
+                    .frame(width: 8, height: 8)
+                
+                switch smartFeatures.calendarStatus {
+                case .inMeeting(let title):
+                    Text("In meeting: \(title.prefix(25))")
+                        .font(.caption2)
+                        .foregroundStyle(.primary)
+                        .lineLimit(1)
+                case .preparing(let title):
+                    Text("Starting soon: \(title.prefix(25))")
+                        .font(.caption2)
+                        .foregroundStyle(.primary)
+                        .lineLimit(1)
+                case .available:
+                    Text("✓ Available")
+                        .font(.caption2)
+                        .foregroundStyle(.secondary)
+                case .none:
+                    Text("No calendar access")
+                        .font(.caption2)
+                        .foregroundStyle(.secondary)
+                }
+                
+                Spacer()
+            }
+            
+            // Next Event Preview (si está disponible)
+            if case .available = smartFeatures.calendarStatus,
+               smartFeatures.calendarAccessGranted {
+                Divider().opacity(0.3)
+                
+                HStack(spacing: 4) {
+                    Text("Next →")
+                        .font(.caption2)
+                        .foregroundStyle(.secondary)
+                    Text("Check main window")
+                        .font(.caption2)
+                        .foregroundStyle(.secondary)
+                        .italic()
+                    Spacer()
+                }
+            }
+        }
+        .padding(8)
+        .background(
+            ZStack {
+                RoundedRectangle(cornerRadius: 8)
+                    .fill(Material.thinMaterial)
+                
+                RoundedRectangle(cornerRadius: 8)
+                    .stroke(calendarColor.opacity(0.3), lineWidth: 1)
+            }
+        )
+    }
+    
+    var calendarColor: Color {
+        switch smartFeatures.calendarStatus {
+        case .inMeeting: return .red
+        case .preparing: return .yellow
+        case .available: return .green
+        case .none: return .gray
         }
     }
 }
