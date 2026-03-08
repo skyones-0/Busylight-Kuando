@@ -1,0 +1,13 @@
+{
+  "MLModelDescriptionKey" : "ML for predict time hours",
+  "MLModelCreatorDefinedKey" : {
+    "com.apple.coreml.model.preview.type" : "tabularClassifier",
+    "com.apple.createml.training.started" : "2026-03-08T18:02:39Z",
+    "com.apple.createml.version" : "26.3.1",
+    "com.apple.createml.training.finished" : "2026-03-08T18:02:39Z",
+    "com.apple.createml.app.tag" : "175.7",
+    "com.apple.createml.model.created" : "2026-03-08T18:02:39Z",
+    "com.apple.createml.app.version" : "6.2"
+  },
+  "MLModelAuthorKey" : "Jose Araujo"
+}

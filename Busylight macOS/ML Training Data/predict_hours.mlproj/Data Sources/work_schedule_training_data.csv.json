@@ -1,0 +1,64 @@
+{
+  "activityEntities" : [
+    "dataSourceTrainingStarted",
+    [
+      {
+        "createdDate" : "2026-03-08T17:32:29Z",
+        "event" : "dataSourceTrainingStarted",
+        "id" : "04F643A9-73B7-496D-9AAE-22ACBBC9A75C",
+        "subtitle" : "Hours",
+        "title" : "Used By"
+      },
+      {
+        "createdDate" : "2026-03-08T17:36:45Z",
+        "event" : "dataSourceTrainingStarted",
+        "id" : "4BBB4DA1-7FC8-43E3-AFCD-BF49B8835DAA",
+        "subtitle" : "Hours End",
+        "title" : "Used By"
+      }
+    ],
+    "dataSourceMetrics",
+    [
+      {
+        "createdDate" : "2026-03-08T17:32:29Z",
+        "event" : "dataSourceMetrics",
+        "id" : "863F2D4E-B627-4C75-B3DB-B21238D1642E",
+        "subtitle" : "5 Classes, 30 Items",
+        "title" : "Data Summary"
+      },
+      {
+        "createdDate" : "2026-03-08T17:36:45Z",
+        "event" : "dataSourceMetrics",
+        "id" : "C57DE419-F80B-4135-9E87-3CA95EC8FC00",
+        "subtitle" : "6 Classes, 30 Items",
+        "title" : "Data Summary"
+      }
+    ]
+  ],
+  "createdDate" : "2026-03-08T17:22:50Z",
+  "dataPathRelativeToProjectURL" : "../../ML%20Training%20Data/work_schedule_training_data.csv/",
+  "dataResult" : {
+    "createdDate" : "2026-03-08T17:22:50Z",
+    "dataSourceID" : "29721B92-3FC8-4539-B40D-25C2B8084943",
+    "dataURL" : "file:///Users/skyones/Desktop/busylight.nosync/ML%20Training%20Data/work_schedule_training_data.csv",
+    "error" : {
+      "code" : 2,
+      "domain" : "MLRecipeCreateMLAdaptor.RecipeSession.DataAccessError",
+      "errorType" : "error",
+      "reason" : "File not present at \"work_schedule_training_data.csv\""
+    }
+  },
+  "dataURL" : "file:///Users/skyones/Desktop/busylight.nosync/ML%20Training%20Data/work_schedule_training_data.csv",
+  "experimentIDs" : [
+    "3EC2B88D-3B09-4A3C-BD08-981EB476E36F",
+    "7C88ABAF-77BF-4858-8173-FCDD81758560",
+    "9EE77BC2-8AED-44A9-B459-DECFB76AFBF7",
+    "72775010-6BFF-434D-9556-0E44099416E3"
+  ],
+  "id" : "29721B92-3FC8-4539-B40D-25C2B8084943",
+  "modifiedDate" : "2026-03-08T18:00:45Z",
+  "pathType" : 0,
+  "preferredFilename" : "work_schedule_training_data.csv",
+  "title" : "work_schedule_training_data.csv",
+  "version" : "1.0"
+}

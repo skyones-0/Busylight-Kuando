@@ -1,0 +1,24 @@
+{
+    "fileFormatVersion": "1.0.0",
+    "itemInfoEntries": {
+        "2A1AE3B5-8B88-45FF-A441-CDF25CF62E35": {
+            "author": "com.apple.CoreML",
+            "description": "CoreML Model Specification",
+            "name": "EndHours.mlmodel",
+            "path": "com.apple.CoreML/EndHours.mlmodel"
+        },
+        "2AB368EB-629E-4C91-BEF1-65470963A776": {
+            "author": "com.apple.CoreML",
+            "description": "External FeatureDescription Overlay",
+            "name": "FeatureDescriptions.json",
+            "path": "com.apple.CoreML/FeatureDescriptions.json"
+        },
+        "D7581225-463C-450B-850D-2029BAAB48C6": {
+            "author": "com.apple.CoreML",
+            "description": "External Metadata Overlay",
+            "name": "Metadata.json",
+            "path": "com.apple.CoreML/Metadata.json"
+        }
+    },
+    "rootModelIdentifier": "2A1AE3B5-8B88-45FF-A441-CDF25CF62E35"
+}

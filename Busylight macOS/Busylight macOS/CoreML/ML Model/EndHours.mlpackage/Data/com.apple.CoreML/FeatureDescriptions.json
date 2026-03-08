@@ -1,0 +1,36 @@
+{
+  "Inputs" : {
+    "calendarEventCount" : {
+      "MLFeatureShortDescription" : ""
+    },
+    "isHoliday" : {
+      "MLFeatureShortDescription" : ""
+    },
+    "dayOfWeek" : {
+      "MLFeatureShortDescription" : ""
+    },
+    "deepWorkMinutes" : {
+      "MLFeatureShortDescription" : ""
+    },
+    "isWeekend" : {
+      "MLFeatureShortDescription" : ""
+    },
+    "sessionCount" : {
+      "MLFeatureShortDescription" : ""
+    }
+  },
+  "Outputs" : {
+    "endHour" : {
+      "MLFeatureShortDescription" : ""
+    },
+    "endHourProbability" : {
+      "MLFeatureShortDescription" : ""
+    }
+  },
+  "TrainingInputs" : {
+
+  },
+  "States" : {
+
+  }
+}

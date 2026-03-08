@@ -1,0 +1,63 @@
+// swift-interface-format-version: 1.0
+// swift-compiler-version: Apple Swift version 5.10 (swiftlang-5.10.0.13 clang-1500.3.9.4)
+// swift-module-flags: -target arm64-apple-macos10.15 -enable-objc-interop -enable-library-evolution -swift-version 5 -enforce-exclusivity=checked -Onone -enable-bare-slash-regex -module-name BusylightSDK_Swift
+@_exported import BusylightSDK_Swift
+import Foundation
+import IOKit
+import Swift
+import _Concurrency
+import _StringProcessing
+import _SwiftConcurrencyShims
+import IOKit.hid
+@objc public protocol BusylightDelegate {
+  @objc func deviceConnected(devices: Swift.Dictionary<Swift.String, Swift.String>)
+  @objc func deviceDisconnected(devices: Swift.Dictionary<Swift.String, Swift.String>)
+}
+@_hasMissingDesignatedInitializers @objc public class BusylightDeviceProperties : ObjectiveC.NSObject {
+  @objc deinit
+}
+@_inheritsConvenienceInitializers @objc public class Busylight : ObjectiveC.NSObject {
+  @objc public var delegate: (any BusylightSDK_Swift.BusylightDelegate)? {
+    @objc get
+    @objc set(newValue)
+  }
+  @objc public func start()
+  @objc public func stop()
+  @objc public func Light(withColor: BusylightSDK_Swift.BusylightColor)
+  @objc public func Light(red: Swift.UInt8, green: Swift.UInt8, blue: Swift.UInt8)
+  @objc public func Off()
+  @objc public func Alert(withColor: BusylightSDK_Swift.BusylightColor, andSound: Swift.UInt8, andVolume: Swift.UInt8)
+  @objc public func Alert(red: Swift.UInt8, green: Swift.UInt8, blue: Swift.UInt8, andSound: Swift.UInt8, andVolume: Swift.UInt8)
+  @objc public func AlertSpecificTime(withColor: BusylightSDK_Swift.BusylightColor, andSound: Swift.UInt8, andVolume: Swift.UInt8, andRepeatsteps: Swift.UInt8)
+  @objc public func AlertSpecificTime(red: Swift.UInt8, green: Swift.UInt8, blue: Swift.UInt8, andSound: Swift.UInt8, andVolume: Swift.UInt8, repeatsteps: Swift.UInt8)
+  @objc public func ColorWithFlash(withColor: BusylightSDK_Swift.BusylightColor, andFlashColor: BusylightSDK_Swift.BusylightColor)
+  @objc public func ColorWithFlash(red: Swift.UInt8, green: Swift.UInt8, blue: Swift.UInt8, flashred: Swift.UInt8, flashgreen: Swift.UInt8, flashblue: Swift.UInt8)
+  @objc public func Blink(withColor: BusylightSDK_Swift.BusylightColor, ontime: Swift.UInt8, offtime: Swift.UInt8)
+  @objc public func Blink(red: Swift.UInt8, green: Swift.UInt8, blue: Swift.UInt8, ontime: Swift.UInt8, offtime: Swift.UInt8)
+  @objc public func Pulse(withColor: BusylightSDK_Swift.BusylightColor)
+  @objc public func Pulse(red: Swift.UInt8, green: Swift.UInt8, blue: Swift.UInt8)
+  @objc public func Jingle(withColor: BusylightSDK_Swift.BusylightColor, andSound: BusylightSDK_Swift.BusylightSound, andVolume: Swift.UInt8)
+  @objc public func Jingle(red: Swift.UInt8, green: Swift.UInt8, blue: Swift.UInt8, Sound: Swift.UInt8, andVolume: Swift.UInt8)
+  @objc public func Jingle(red: Swift.UInt8, green: Swift.UInt8, blue: Swift.UInt8, andSound: BusylightSDK_Swift.BusylightSound, andVolume: Swift.UInt8)
+  @objc public func setLightAndSound(lightAndSound: BusylightSDK_Swift.BusyLightAndSound)
+  @objc public func IsJingleClipSupported() -> Swift.Bool
+  @objc public func getDevicesArray() -> Swift.Array<Any>
+  public func mute()
+  @objc override dynamic public init()
+  @objc deinit
+}
+@_inheritsConvenienceInitializers @_hasMissingDesignatedInitializers @objc public class BusylightColor : ObjectiveC.NSObject {
+  @objc public init(red: Swift.UInt8, green: Swift.UInt8, blue: Swift.UInt8, shouldPulse: Swift.Bool = false)
+  @objc deinit
+}
+@_inheritsConvenienceInitializers @_hasMissingDesignatedInitializers @objc public class BusyLightAndSound : ObjectiveC.NSObject {
+  @objc public init(withColor color: BusylightSDK_Swift.BusylightColor, andSound sound: BusylightSDK_Swift.BusylightSound)
+  @objc deinit
+}
+@_hasMissingDesignatedInitializers @objc public class BusylightDevice : ObjectiveC.NSObject {
+  @objc deinit
+}
+@_inheritsConvenienceInitializers @_hasMissingDesignatedInitializers @objc public class BusylightSound : ObjectiveC.NSObject {
+  @objc override dynamic public init()
+  @objc deinit
+}
