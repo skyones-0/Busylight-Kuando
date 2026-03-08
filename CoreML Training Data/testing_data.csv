@@ -1,0 +1,11 @@
+dayOfWeek,isWeekend,isHoliday,sessionCount,deepWorkMinutes,calendarEventCount,startHour,endHour
+2,0,0,7,180,4,7,19
+3,0,0,3,75,2,9,16
+4,0,0,5,120,3,8,17
+5,0,0,6,165,5,7,18
+6,0,0,2,45,1,10,15
+7,1,0,1,15,0,11,13
+1,1,0,0,0,0,0,0
+2,0,0,4,105,2,9,17
+3,0,0,5,135,3,8,18
+4,0,1,0,0,0,0,0

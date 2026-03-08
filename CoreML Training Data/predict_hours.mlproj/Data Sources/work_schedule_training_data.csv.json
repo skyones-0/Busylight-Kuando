@@ -1,0 +1,41 @@
+{
+  "activityEntities" : [
+    "dataSourceTrainingStarted",
+    [
+      {
+        "createdDate" : "2026-03-08T23:10:29Z",
+        "event" : "dataSourceTrainingStarted",
+        "id" : "2C8924C0-6914-4E46-B3E0-C46845F0047C",
+        "subtitle" : "StartHour",
+        "title" : "Used By"
+      }
+    ],
+    "dataSourceMetrics",
+    [
+      {
+        "createdDate" : "2026-03-08T23:10:29Z",
+        "event" : "dataSourceMetrics",
+        "id" : "3D6EA086-345C-4C3E-A589-DE00A82DD83A",
+        "subtitle" : "5 Classes, 30 Items",
+        "title" : "Data Summary"
+      }
+    ]
+  ],
+  "createdDate" : "2026-03-08T23:09:08Z",
+  "dataPathRelativeToProjectURL" : "../work_schedule_training_data.csv/",
+  "dataResult" : {
+    "createdDate" : "2026-03-08T23:09:08Z",
+    "dataSourceID" : "35F722F9-DBBF-4D54-8A31-80D17840E446",
+    "dataURL" : "file:///Users/skyones/Desktop/busylight.nosync/CoreML%20Training%20Data/work_schedule_training_data.csv"
+  },
+  "dataURL" : "file:///Users/skyones/Desktop/busylight.nosync/CoreML%20Training%20Data/work_schedule_training_data.csv",
+  "experimentIDs" : [
+    "BB5E3B9D-12EE-4A71-88A6-F07D60DF4634"
+  ],
+  "id" : "35F722F9-DBBF-4D54-8A31-80D17840E446",
+  "modifiedDate" : "2026-03-08T23:10:29Z",
+  "pathType" : 0,
+  "preferredFilename" : "work_schedule_training_data.csv",
+  "title" : "work_schedule_training_data.csv",
+  "version" : "1.0"
+}
