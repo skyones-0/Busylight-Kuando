@@ -2244,45 +2244,16 @@ struct PulsingCircle: View {
     }
 }
 
-// Elegant Progress Bar - separado para evitar layout recursion
+// Elegant Progress Bar - sin GeometryReader para evitar layout loops
 struct ElegantProgressBar: View {
     let progress: Double
     let color: Color
-    @State private var animatedProgress: Double = 0
     
     var body: some View {
-        GeometryReader { geo in
-            ZStack(alignment: .leading) {
-                // Background
-                Capsule()
-                    .fill(Color.gray.opacity(0.15))
-                    .frame(height: 6)
-                
-                // Progress
-                Capsule()
-                    .fill(
-                        LinearGradient(
-                            colors: [
-                                color.opacity(0.8),
-                                color
-                            ],
-                            startPoint: .leading,
-                            endPoint: .trailing
-                        )
-                    )
-                    .frame(width: max(0, geo.size.width * animatedProgress), height: 6)
-                    .shadow(color: color.opacity(0.4), radius: 4, x: 0, y: 0)
-            }
-        }
-        .frame(height: 6)
-        .onAppear {
-            animatedProgress = progress
-        }
-        .onChange(of: progress) { _, newValue in
-            withAnimation(.linear(duration: 0.5)) {
-                animatedProgress = newValue
-            }
-        }
+        ProgressView(value: progress)
+            .progressViewStyle(LinearProgressViewStyle(tint: color))
+            .frame(height: 6)
+            .scaleEffect(y: 0.8)
     }
 }
 
@@ -2607,27 +2578,20 @@ struct HolidayCalendarView: View {
     }
 }
 
-// MARK: - ML Progress Bar (Vista separada para evitar layout loop)
+// MARK: - ML Progress Bar (sin GeometryReader)
 struct MLProgressBar: View {
     let daysCollected: Int
     let minDays: Int
     
+    private var progress: Double {
+        min(1.0, Double(daysCollected) / Double(minDays))
+    }
+    
     var body: some View {
-        GeometryReader { geo in
-            ZStack(alignment: .leading) {
-                // Background
-                RoundedRectangle(cornerRadius: 3)
-                    .fill(Material.thinMaterial)
-                    .frame(height: 6)
-                
-                // Progress - calculado una sola vez
-                let progress = min(1.0, Double(daysCollected) / Double(minDays))
-                RoundedRectangle(cornerRadius: 3)
-                    .fill(Color.blue.gradient)
-                    .frame(width: max(0, geo.size.width * CGFloat(progress)), height: 6)
-            }
-        }
-        .frame(height: 6)
+        ProgressView(value: progress)
+            .progressViewStyle(LinearProgressViewStyle(tint: .blue))
+            .frame(height: 6)
+            .scaleEffect(y: 0.8)
     }
 }
 
