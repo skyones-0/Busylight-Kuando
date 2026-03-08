@@ -186,28 +186,10 @@ struct GlassPomodoroCard: View {
             }
             
             // Progress bar glass
-            GeometryReader { geo in
-                ZStack(alignment: .leading) {
-                    RoundedRectangle(cornerRadius: 2)
-                        .fill(Material.thinMaterial)
-                        .frame(height: 4)
-                    
-                    RoundedRectangle(cornerRadius: 2)
-                        .fill(
-                            LinearGradient(
-                                colors: [
-                                    manager.currentPhase.color.opacity(0.8),
-                                    manager.currentPhase.color
-                                ],
-                                startPoint: .leading,
-                                endPoint: .trailing
-                            )
-                        )
-                        .frame(width: geo.size.width * manager.progress, height: 4)
-                        .shadow(color: manager.currentPhase.color.opacity(0.4), radius: 2)
-                        .animation(.linear(duration: 0.5), value: manager.progress)
-                }
-            }
+            CompactProgressBar(
+                progress: manager.progress,
+                color: manager.currentPhase.color
+            )
             .frame(height: 4)
             
             // Control buttons - más compactos
@@ -431,6 +413,45 @@ struct GlassQuickColorButton: View {
         .animation(.easeOut(duration: 0.15), value: isHovered)
         .onHover { hovering in
             isHovered = hovering
+        }
+    }
+}
+
+// Compact Progress Bar - separado para evitar layout recursion
+struct CompactProgressBar: View {
+    let progress: Double
+    let color: Color
+    @State private var animatedProgress: Double = 0
+    
+    var body: some View {
+        GeometryReader { geo in
+            ZStack(alignment: .leading) {
+                RoundedRectangle(cornerRadius: 2)
+                    .fill(Material.thinMaterial)
+                    .frame(height: 4)
+                
+                RoundedRectangle(cornerRadius: 2)
+                    .fill(
+                        LinearGradient(
+                            colors: [
+                                color.opacity(0.8),
+                                color
+                            ],
+                            startPoint: .leading,
+                            endPoint: .trailing
+                        )
+                    )
+                    .frame(width: geo.size.width * animatedProgress, height: 4)
+                    .shadow(color: color.opacity(0.4), radius: 2)
+            }
+        }
+        .onAppear {
+            animatedProgress = progress
+        }
+        .onChange(of: progress) { _, newValue in
+            withAnimation(.linear(duration: 0.5)) {
+                animatedProgress = newValue
+            }
         }
     }
 }

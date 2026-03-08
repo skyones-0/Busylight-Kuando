@@ -156,12 +156,7 @@ struct GlassStatusCard: View {
                     
                     // Pulse animation
                     if busylight.isConnected {
-                        Circle()
-                            .fill(Color.green)
-                            .frame(width: 10, height: 10)
-                            .opacity(0.5)
-                            .scaleEffect(1.5)
-                            .animation(.easeOut(duration: 1).repeatForever(autoreverses: true), value: busylight.isConnected)
+                        PulsingCircle()
                     }
                 }
                 
@@ -373,31 +368,10 @@ struct PomodoroView: View {
                 .font(.subheadline)
                 
                 // Elegant Progress Bar
-                GeometryReader { geo in
-                    ZStack(alignment: .leading) {
-                        // Background
-                        Capsule()
-                            .fill(Color.gray.opacity(0.15))
-                            .frame(height: 6)
-                        
-                        // Progress
-                        Capsule()
-                            .fill(
-                                LinearGradient(
-                                    colors: [
-                                        manager.currentPhase.color.opacity(0.8),
-                                        manager.currentPhase.color
-                                    ],
-                                    startPoint: .leading,
-                                    endPoint: .trailing
-                                )
-                            )
-                            .frame(width: max(0, geo.size.width * manager.progress), height: 6)
-                            .shadow(color: manager.currentPhase.color.opacity(0.4), radius: 4, x: 0, y: 0)
-                            .animation(.linear(duration: 0.5), value: manager.progress)
-                    }
-                }
-                .frame(height: 6)
+                ElegantProgressBar(
+                    progress: manager.progress,
+                    color: manager.currentPhase.color
+                )
                 .padding(.horizontal, 60)
                 .padding(.top, 4)
             }
@@ -1177,6 +1151,66 @@ struct GlassActionButton: View {
         .animation(.easeOut(duration: 0.2), value: isHovered)
         .onHover { hovering in
             isHovered = hovering
+        }
+    }
+}
+
+// Pulsing Circle Component - separado para evitar layout recursion
+struct PulsingCircle: View {
+    @State private var isAnimating = false
+    
+    var body: some View {
+        Circle()
+            .fill(Color.green)
+            .frame(width: 10, height: 10)
+            .opacity(isAnimating ? 0.3 : 0.6)
+            .scaleEffect(isAnimating ? 1.8 : 1.0)
+            .onAppear {
+                withAnimation(.easeInOut(duration: 1).repeatForever(autoreverses: true)) {
+                    isAnimating = true
+                }
+            }
+    }
+}
+
+// Elegant Progress Bar - separado para evitar layout recursion
+struct ElegantProgressBar: View {
+    let progress: Double
+    let color: Color
+    @State private var animatedProgress: Double = 0
+    
+    var body: some View {
+        GeometryReader { geo in
+            ZStack(alignment: .leading) {
+                // Background
+                Capsule()
+                    .fill(Color.gray.opacity(0.15))
+                    .frame(height: 6)
+                
+                // Progress
+                Capsule()
+                    .fill(
+                        LinearGradient(
+                            colors: [
+                                color.opacity(0.8),
+                                color
+                            ],
+                            startPoint: .leading,
+                            endPoint: .trailing
+                        )
+                    )
+                    .frame(width: max(0, geo.size.width * animatedProgress), height: 6)
+                    .shadow(color: color.opacity(0.4), radius: 4, x: 0, y: 0)
+            }
+        }
+        .frame(height: 6)
+        .onAppear {
+            animatedProgress = progress
+        }
+        .onChange(of: progress) { _, newValue in
+            withAnimation(.linear(duration: 0.5)) {
+                animatedProgress = newValue
+            }
         }
     }
 }
