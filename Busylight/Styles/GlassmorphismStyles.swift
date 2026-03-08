@@ -58,7 +58,6 @@ struct GradientWaveButtonStyle: ButtonStyle {
     var isProminent: Bool = false
     var cornerRadius: CGFloat = 12
     
-    @State private var isPressed: Bool = false
     @State private var shimmerOffset: CGFloat = -1
     
     func makeBody(configuration: Configuration) -> some View {
@@ -72,79 +71,32 @@ struct GradientWaveButtonStyle: ButtonStyle {
                     // Base gradient background
                     RoundedRectangle(cornerRadius: cornerRadius)
                         .fill(
-                            LinearGradient(
-                                colors: isProminent 
-                                    ? [color.opacity(0.9), color.opacity(0.6)]
-                                    : [Color.gray.opacity(0.25), Color.gray.opacity(0.15)],
-                                startPoint: .topLeading,
-                                endPoint: .bottomTrailing
-                            )
-                        )
-                    
-                    // Shimmer effect
-                    GeometryReader { geo in
-                        LinearGradient(
-                            colors: [
-                                .clear,
-                                .white.opacity(0.4),
-                                .clear
-                            ],
-                            startPoint: .leading,
-                            endPoint: .trailing
-                        )
-                        .frame(width: geo.size.width * 0.5)
-                        .offset(x: geo.size.width * shimmerOffset)
-                        .blur(radius: 5)
-                    }
-                    .clipShape(RoundedRectangle(cornerRadius: cornerRadius))
-                    
-                    // Pressed glow
-                    RoundedRectangle(cornerRadius: cornerRadius)
-                        .fill(
-                            RadialGradient(
-                                colors: [
-                                    color.opacity(isPressed ? 0.5 : 0.0),
-                                    .clear
-                                ],
-                                center: .center,
-                                startRadius: 0,
-                                endRadius: 60
-                            )
+                            configuration.isPressed
+                                ? color.opacity(isProminent ? 0.9 : 0.3)
+                                : color.opacity(isProminent ? 0.7 : 0.15)
                         )
                     
                     // Border
                     RoundedRectangle(cornerRadius: cornerRadius)
                         .stroke(
-                            LinearGradient(
-                                colors: isProminent
-                                    ? [color.opacity(0.8), color.opacity(0.4)]
-                                    : [.white.opacity(0.4), .white.opacity(0.2)],
-                                startPoint: .topLeading,
-                                endPoint: .bottomTrailing
-                            ),
+                            isProminent
+                                ? color.opacity(0.8)
+                                : .white.opacity(0.3),
                             lineWidth: 1.5
                         )
                 }
             )
             .shadow(
-                color: isProminent 
-                    ? color.opacity(isPressed ? 0.6 : 0.4)
+                color: isProminent
+                    ? color.opacity(configuration.isPressed ? 0.6 : 0.4)
                     : .black.opacity(0.1),
-                radius: isPressed ? 15 : 8,
+                radius: configuration.isPressed ? 12 : 6,
                 x: 0,
-                y: isPressed ? 6 : 3
+                y: configuration.isPressed ? 4 : 2
             )
-            .scaleEffect(isPressed ? 0.96 : 1)
             .onChange(of: configuration.isPressed) { _, pressed in
-                isPressed = pressed
                 if pressed {
                     HapticFeedback.medium()
-                    // Trigger shimmer
-                    withAnimation(.linear(duration: 0.6)) {
-                        shimmerOffset = 2
-                    }
-                } else {
-                    shimmerOffset = -1
                 }
             }
     }
@@ -163,9 +115,6 @@ struct SmallGradientButtonStyle: ButtonStyle {
     var isProminent: Bool = false
     var cornerRadius: CGFloat = 8
     
-    @State private var isPressed: Bool = false
-    @State private var shimmerOffset: CGFloat = -1
-    
     func makeBody(configuration: Configuration) -> some View {
         configuration.label
             .font(.system(.caption, design: .rounded).weight(.medium))
@@ -174,70 +123,33 @@ struct SmallGradientButtonStyle: ButtonStyle {
             .padding(.vertical, 6)
             .background(
                 ZStack {
-                    // Base gradient
                     RoundedRectangle(cornerRadius: cornerRadius)
                         .fill(
-                            LinearGradient(
-                                colors: isProminent
-                                    ? [color.opacity(0.85), color.opacity(0.55)]
-                                    : [Color.gray.opacity(0.2), Color.gray.opacity(0.12)],
-                                startPoint: .topLeading,
-                                endPoint: .bottomTrailing
-                            )
+                            configuration.isPressed
+                                ? color.opacity(isProminent ? 0.9 : 0.3)
+                                : color.opacity(isProminent ? 0.7 : 0.12)
                         )
                     
-                    // Shimmer
-                    GeometryReader { geo in
-                        LinearGradient(
-                            colors: [.clear, .white.opacity(0.5), .clear],
-                            startPoint: .leading,
-                            endPoint: .trailing
-                        )
-                        .frame(width: geo.size.width * 0.4)
-                        .offset(x: geo.size.width * shimmerOffset)
-                        .blur(radius: 3)
-                    }
-                    .clipShape(RoundedRectangle(cornerRadius: cornerRadius))
-                    
-                    // Press glow
-                    RoundedRectangle(cornerRadius: cornerRadius)
-                        .fill(
-                            RadialGradient(
-                                colors: [color.opacity(isPressed ? 0.4 : 0), .clear],
-                                center: .center,
-                                startRadius: 0,
-                                endRadius: 30
-                            )
-                        )
-                    
-                    // Border
                     RoundedRectangle(cornerRadius: cornerRadius)
                         .stroke(
                             isProminent
                                 ? color.opacity(0.6)
-                                : .white.opacity(0.3),
+                                : .white.opacity(0.25),
                             lineWidth: 1
                         )
                 }
             )
             .shadow(
                 color: isProminent
-                    ? color.opacity(isPressed ? 0.5 : 0.3)
+                    ? color.opacity(configuration.isPressed ? 0.5 : 0.3)
                     : .black.opacity(0.08),
-                radius: isPressed ? 8 : 4,
+                radius: configuration.isPressed ? 6 : 3,
                 x: 0,
-                y: isPressed ? 4 : 2
+                y: configuration.isPressed ? 3 : 1
             )
-            .scaleEffect(isPressed ? 0.95 : 1)
             .onChange(of: configuration.isPressed) { _, pressed in
-                isPressed = pressed
                 if pressed {
                     HapticFeedback.light()
-                    withAnimation(.linear(duration: 0.5)) {
-                        shimmerOffset = 2
-                    }
-                } else {
-                    shimmerOffset = -1
                 }
             }
     }
@@ -257,9 +169,6 @@ struct GlassColorButton: View {
     let action: () -> Void
     
     @State private var isHovered = false
-    @State private var isPressed = false
-    @State private var rippleScale: CGFloat = 0.5
-    @State private var rippleOpacity: Double = 0
     
     var body: some View {
         Button(action: {
@@ -267,7 +176,6 @@ struct GlassColorButton: View {
             action()
         }) {
             VStack(spacing: 8) {
-                // Color circle with wave effect
                 ZStack {
                     // Glow layer
                     Circle()
@@ -295,15 +203,9 @@ struct GlassColorButton: View {
                                 .stroke(.white.opacity(0.4), lineWidth: 1.5)
                         )
                         .shadow(color: color.opacity(0.5), radius: isHovered ? 10 : 4, x: 0, y: 2)
-                    
-                    // Wave ripple effect
-                    Circle()
-                        .stroke(color.opacity(0.6), lineWidth: 2)
-                        .frame(width: 40, height: 40)
-                        .scaleEffect(rippleScale)
-                        .opacity(rippleOpacity)
                 }
-                .scaleEffect(isPressed ? 0.9 : isHovered ? 1.1 : 1)
+                .scaleEffect(isHovered ? 1.1 : 1)
+                .animation(.easeOut(duration: 0.2), value: isHovered)
                 
                 Text(name)
                     .font(.system(.caption2, design: .rounded).weight(.medium))
@@ -311,50 +213,40 @@ struct GlassColorButton: View {
             }
             .frame(maxWidth: .infinity, minHeight: 70)
         }
-        .buttonStyle(.plain)
-        .padding(8)
-        .background(
-            ZStack {
-                RoundedRectangle(cornerRadius: 12)
-                    .fill(Material.thinMaterial)
-                
-                RoundedRectangle(cornerRadius: 12)
-                    .stroke(.white.opacity(isHovered ? 0.3 : 0.15), lineWidth: 1)
-                
-                // Subtle gradient overlay
-                RoundedRectangle(cornerRadius: 12)
-                    .fill(
-                        LinearGradient(
-                            colors: [
-                                color.opacity(isHovered ? 0.15 : 0.05),
-                                .clear
-                            ],
-                            startPoint: .top,
-                            endPoint: .bottom
-                        )
-                    )
-            }
-        )
-        .shadow(color: .black.opacity(0.08), radius: isHovered ? 12 : 4, x: 0, y: isHovered ? 6 : 2)
-        .scaleEffect(isPressed ? 0.95 : 1)
-        .animation(.easeOut(duration: 0.2), value: isHovered)
+        .buttonStyle(ColorButtonStyle(color: color))
         .onHover { hovering in
             isHovered = hovering
         }
-        .pressEvents {
-            isPressed = true
-            // Trigger wave
-            withAnimation(.easeOut(duration: 0.3)) {
-                rippleScale = 1.3
-                rippleOpacity = 0.8
-            }
-        } onRelease: {
-            isPressed = false
-            withAnimation(.easeIn(duration: 0.3)) {
-                rippleScale = 1.8
-                rippleOpacity = 0
-            }
-        }
+    }
+}
+
+// MARK: - Color Button Style
+struct ColorButtonStyle: ButtonStyle {
+    let color: Color
+    
+    func makeBody(configuration: Configuration) -> some View {
+        configuration.label
+            .padding(8)
+            .background(
+                ZStack {
+                    RoundedRectangle(cornerRadius: 12)
+                        .fill(Color.gray.opacity(0.1))
+                    
+                    RoundedRectangle(cornerRadius: 12)
+                        .stroke(
+                            configuration.isPressed
+                                ? color.opacity(0.5)
+                                : .white.opacity(0.15),
+                            lineWidth: configuration.isPressed ? 2 : 1
+                        )
+                }
+            )
+            .shadow(
+                color: .black.opacity(0.08),
+                radius: configuration.isPressed ? 8 : 4,
+                x: 0,
+                y: configuration.isPressed ? 4 : 2
+            )
     }
 }
 
@@ -363,11 +255,6 @@ struct GlassJingleButton: View {
     let number: Int
     let action: () -> Void
     
-    @State private var isHovered = false
-    @State private var isPressed = false
-    @State private var rippleScale: CGFloat = 0.5
-    @State private var rippleOpacity: Double = 0
-    
     var body: some View {
         Button(action: {
             HapticFeedback.light()
@@ -375,74 +262,120 @@ struct GlassJingleButton: View {
         }) {
             Text("\(number)")
                 .font(.system(.callout, design: .rounded).weight(.bold))
-                .foregroundStyle(
-                    isHovered ? .primary : .secondary
-                )
                 .frame(width: 50, height: 40)
         }
-        .buttonStyle(.plain)
+        .buttonStyle(JingleButtonStyle())
+    }
+}
+
+// MARK: - Jingle Button Style
+struct JingleButtonStyle: ButtonStyle {
+    func makeBody(configuration: Configuration) -> some View {
+        configuration.label
+            .foregroundStyle(configuration.isPressed ? .white : .secondary)
+            .background(
+                ZStack {
+                    RoundedRectangle(cornerRadius: 10)
+                        .fill(
+                            configuration.isPressed
+                                ? Color.accentColor.opacity(0.7)
+                                : Color.gray.opacity(0.1)
+                        )
+                    
+                    RoundedRectangle(cornerRadius: 10)
+                        .stroke(
+                            configuration.isPressed
+                                ? Color.accentColor.opacity(0.5)
+                                : .white.opacity(0.2),
+                            lineWidth: 1
+                        )
+                }
+            )
+            .shadow(
+                color: .black.opacity(0.1),
+                radius: configuration.isPressed ? 6 : 3,
+                x: 0,
+                y: configuration.isPressed ? 3 : 1
+            )
+    }
+}
+
+// MARK: - Stepper Button Component
+struct StepperButton: View {
+    let icon: String
+    let action: () -> Void
+    
+    var body: some View {
+        Button(action: {
+            HapticFeedback.light()
+            action()
+        }) {
+            Image(systemName: icon)
+                .font(.caption.weight(.bold))
+                .frame(width: 28, height: 28)
+        }
+        .buttonStyle(StepperButtonStyle())
+    }
+}
+
+// MARK: - Stepper Button Style
+struct StepperButtonStyle: ButtonStyle {
+    func makeBody(configuration: Configuration) -> some View {
+        configuration.label
+            .foregroundStyle(configuration.isPressed ? .white : .primary)
+            .background(
+                ZStack {
+                    Circle()
+                        .fill(
+                            configuration.isPressed
+                                ? Color.accentColor.opacity(0.7)
+                                : Color.gray.opacity(0.15)
+                        )
+                    
+                    Circle()
+                        .stroke(.white.opacity(0.2), lineWidth: 1)
+                }
+            )
+    }
+}
+
+// MARK: - Glass Stepper
+struct GlassStepper: View {
+    @Binding var value: Int
+    var suffix: String = ""
+    var range: ClosedRange<Int> = 1...99
+    
+    var body: some View {
+        HStack(spacing: 8) {
+            Text("\(value)\(suffix.isEmpty ? "" : " \(suffix)")")
+                .font(.system(.callout, design: .rounded).weight(.semibold))
+                .frame(minWidth: 50, alignment: .leading)
+            
+            Spacer()
+            
+            HStack(spacing: 8) {
+                StepperButton(icon: "minus") {
+                    if value > range.lowerBound {
+                        value -= 1
+                    }
+                }
+                
+                StepperButton(icon: "plus") {
+                    if value < range.upperBound {
+                        value += 1
+                    }
+                }
+            }
+        }
+        .padding(10)
         .background(
             ZStack {
                 RoundedRectangle(cornerRadius: 10)
-                    .fill(Material.thinMaterial)
-                
-                // Wave effect
+                    .fill(Color.gray.opacity(0.1))
                 RoundedRectangle(cornerRadius: 10)
-                    .stroke(.white.opacity(0.5), lineWidth: 1.5)
-                    .scaleEffect(rippleScale)
-                    .opacity(rippleOpacity)
-                
-                RoundedRectangle(cornerRadius: 10)
-                    .stroke(
-                        LinearGradient(
-                            colors: [
-                                .white.opacity(isHovered ? 0.5 : 0.2),
-                                .white.opacity(0.1)
-                            ],
-                            startPoint: .topLeading,
-                            endPoint: .bottomTrailing
-                        ),
-                        lineWidth: 1
-                    )
-                
-                // Inner highlight
-                RoundedRectangle(cornerRadius: 10)
-                    .fill(
-                        LinearGradient(
-                            colors: [
-                                .white.opacity(isHovered ? 0.1 : 0.05),
-                                .clear
-                            ],
-                            startPoint: .top,
-                            endPoint: .bottom
-                        )
-                    )
+                    .stroke(.white.opacity(0.15), lineWidth: 1)
             }
         )
-        .shadow(
-            color: .black.opacity(0.1),
-            radius: isHovered ? 8 : 3,
-            x: 0,
-            y: isHovered ? 4 : 1
-        )
-        .scaleEffect(isPressed ? 0.92 : isHovered ? 1.05 : 1)
-        .animation(.easeOut(duration: 0.15), value: isHovered)
-        .onHover { hovering in
-            isHovered = hovering
-        }
-        .pressEvents {
-            isPressed = true
-            withAnimation(.easeOut(duration: 0.25)) {
-                rippleScale = 1.1
-                rippleOpacity = 1.0
-            }
-        } onRelease: {
-            isPressed = false
-            withAnimation(.easeIn(duration: 0.25)) {
-                rippleScale = 1.4
-                rippleOpacity = 0
-            }
-        }
     }
 }
 
@@ -491,7 +424,6 @@ struct GlassCard<Content: View>: View {
                         lineWidth: 1
                     )
                 
-                // Top highlight
                 RoundedRectangle(cornerRadius: cornerRadius)
                     .fill(
                         LinearGradient(
@@ -575,90 +507,6 @@ struct GlassStatusBadge: View {
     }
 }
 
-// MARK: - Stepper Button Component
-struct StepperButton: View {
-    let icon: String
-    let action: () -> Void
-    @State private var isPressed = false
-    
-    var body: some View {
-        Button(action: {
-            HapticFeedback.light()
-            action()
-        }) {
-            Image(systemName: icon)
-                .font(.caption.weight(.bold))
-                .frame(width: 28, height: 28)
-                .foregroundStyle(isPressed ? .white : .primary)
-        }
-        .buttonStyle(.plain)
-        .background(
-            ZStack {
-                Circle()
-                    .fill(
-                        LinearGradient(
-                            colors: isPressed
-                                ? [Color.accentColor.opacity(0.8), Color.accentColor.opacity(0.6)]
-                                : [Color.gray.opacity(0.2), Color.gray.opacity(0.1)],
-                            startPoint: .topLeading,
-                            endPoint: .bottomTrailing
-                        )
-                    )
-                
-                Circle()
-                    .stroke(.white.opacity(0.2), lineWidth: 1)
-            }
-        )
-        .scaleEffect(isPressed ? 0.9 : 1)
-        .animation(.easeOut(duration: 0.1), value: isPressed)
-        .pressEvents {
-            isPressed = true
-        } onRelease: {
-            isPressed = false
-        }
-    }
-}
-
-// MARK: - Glass Stepper
-struct GlassStepper: View {
-    @Binding var value: Int
-    var suffix: String = ""
-    var range: ClosedRange<Int> = 1...99
-    
-    var body: some View {
-        HStack(spacing: 8) {
-            Text("\(value)\(suffix.isEmpty ? "" : " \(suffix)")")
-                .font(.system(.callout, design: .rounded).weight(.semibold))
-                .frame(minWidth: 50, alignment: .leading)
-            
-            Spacer()
-            
-            HStack(spacing: 8) {
-                StepperButton(icon: "minus") {
-                    if value > range.lowerBound {
-                        value -= 1
-                    }
-                }
-                
-                StepperButton(icon: "plus") {
-                    if value < range.upperBound {
-                        value += 1
-                    }
-                }
-            }
-        }
-        .padding(10)
-        .background(
-            ZStack {
-                RoundedRectangle(cornerRadius: 10)
-                    .fill(Material.thinMaterial)
-                RoundedRectangle(cornerRadius: 10)
-                    .stroke(.white.opacity(0.15), lineWidth: 1)
-            }
-        )
-    }
-}
-
 // MARK: - Glass Timer Card
 struct GlassTimerCard: View {
     let time: String
@@ -694,7 +542,6 @@ struct GlassTimerCard: View {
                 RoundedRectangle(cornerRadius: 12)
                     .stroke(.white.opacity(0.3), lineWidth: 1)
                 
-                // Highlight
                 RoundedRectangle(cornerRadius: 12)
                     .fill(
                         LinearGradient(
@@ -757,7 +604,7 @@ struct GlassSidebarItem: View {
     }
 }
 
-// MARK: - Press Events Helper
+// MARK: - Press Events Helper (deprecated - use ButtonStyle instead)
 struct PressEventsModifier: ViewModifier {
     var onPress: () -> Void
     var onRelease: () -> Void
@@ -811,10 +658,8 @@ struct MeshGradientBackground: View {
     var body: some View {
         GeometryReader { geometry in
             ZStack {
-                // Base gradient
                 Color(NSColor.windowBackgroundColor)
                 
-                // Animated blobs
                 Circle()
                     .fill(Color.purple.opacity(0.2))
                     .blur(radius: 60)
