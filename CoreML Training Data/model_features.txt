@@ -1,0 +1,19 @@
+Features de entrada (en orden):
+1. dayOfWeek
+2. isWeekend
+3. isHoliday
+4. totalMeetingCount
+5. earlyMeetingCount
+6. lateMeetingCount
+7. hasImportantDeadline
+8. hasUrgentDeadline
+9. backToBackMeetings
+10. externalEventCount
+11. videoCallCount
+12. freeTimeBlocks
+13. potentialDeepWorkBlocks
+14. meetingDensityScore
+15. interruptionRiskScore
+
+Target: dayCategory (0-6)
+0=Rest, 1=Calm, 2=Balanced, 3=Busy, 4=Intense, 5=DeepFocus, 6=BurnoutRisk

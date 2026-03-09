@@ -1,0 +1,57 @@
+{
+  "features": [
+    "dayOfWeek",
+    "isWeekend",
+    "isHoliday",
+    "totalMeetingCount",
+    "earlyMeetingCount",
+    "lateMeetingCount",
+    "hasImportantDeadline",
+    "hasUrgentDeadline",
+    "backToBackMeetings",
+    "externalEventCount",
+    "videoCallCount",
+    "freeTimeBlocks",
+    "potentialDeepWorkBlocks",
+    "meetingDensityScore",
+    "interruptionRiskScore"
+  ],
+  "categories": {
+    "0": {
+      "name": "Rest",
+      "emoji": "\ud83c\udf34",
+      "color": "gray"
+    },
+    "1": {
+      "name": "Calm",
+      "emoji": "\ud83e\uddd8",
+      "color": "green"
+    },
+    "2": {
+      "name": "Balanced",
+      "emoji": "\u26a1",
+      "color": "blue"
+    },
+    "3": {
+      "name": "Busy",
+      "emoji": "\ud83d\udcc5",
+      "color": "orange"
+    },
+    "4": {
+      "name": "Intense",
+      "emoji": "\ud83d\udd25",
+      "color": "red"
+    },
+    "5": {
+      "name": "DeepFocus",
+      "emoji": "\ud83c\udfaf",
+      "color": "purple"
+    },
+    "6": {
+      "name": "BurnoutRisk",
+      "emoji": "\ud83d\udea8",
+      "color": "pink"
+    }
+  },
+  "accuracy": 1.0
+}
