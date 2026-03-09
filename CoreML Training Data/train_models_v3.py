@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+4#!/usr/bin/env python3
 """
 Entrenador V3: Agrupa horas en categorías para mejor accuracy
 Early(6-8), Morning(9-10), Midday(11-12), Afternoon(13-16), Evening(17-20), None(0)
@@ -68,9 +68,9 @@ def train_categorical_model(train_df, val_df, test_df):
     # Entrenar modelo
     print("\n🌲 Entrenando Random Forest...")
     model = RandomForestClassifier(
-        n_estimators=200,
-        max_depth=10,
-        min_samples_leaf=5,
+        n_estimators=500,
+        max_depth=15,
+        min_samples_leaf=8,
         class_weight='balanced',
         random_state=42
     )
