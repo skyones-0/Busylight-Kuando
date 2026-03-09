@@ -1,447 +1,123 @@
 # Insights Dashboard ML
 
-Sistema de Machine Learning para analizar y predecir la eficiencia del día de trabajo.
+Sistema de Machine Learning para predecir el tipo de día laboral y eficiencia.
 
-## 🎯 Propósito
+## 🚀 Inicio Rápido
 
-Un **card de insight** que al inicio del día muestra:
-- Qué tipo de día te espera (categoría)
-- Tu nivel de productividad esperado (0-100)
-- Capacidad de concentración (0-100)
-- Nivel de estrés estimado (0-100)
-- Estrategia recomendada para el día
+Para entrenar el modelo en **Create ML**:
 
-## 📊 Categorías de Día
+1. Lee la guía: **`CREATE_ML_GUIDE.md`**
+2. Usa el dataset: **`CREATE_ML_READY.csv`**
+3. Sigue los pasos para entrenar y exportar
 
-| ID | Categoría | Emoji | Descripción | % Dataset |
-|----|-----------|-------|-------------|-----------|
-| 0 | Descanso | 🌴 | Sin trabajo programado | 7% |
-| 1 | Tranquilo | 🧘 | Pocas reuniones, día relax | 10% |
-| 2 | Balanceado | ⚡ | Mix ideal trabajo-reuniones | 13% |
-| 3 | Ocupado | 📅 | Muchas reuniones pero manejable | 20% |
-| 4 | Intenso | 🔥 | Día pesado, alta carga | 37% |
-| 5 | Foco Profundo | 🎯 | Deadline + tiempo para concentrarse | 8% |
-| 6 | Burnout Risk | 🚨 | Demasiado, necesitas cuidarte | 4% |
+## 🎯 Qué Predice
 
-## 📁 Archivos
+El modelo clasifica el día en **7 categorías**:
+
+| Código | Categoría | Emoji | % Dataset |
+|--------|-----------|-------|-----------|
+| 0 | Rest | 🌴 | 7.6% |
+| 1 | Calm | 🧘 | 10.4% |
+| 2 | Balanced | ⚡ | 13.6% |
+| 3 | Busy | 📅 | 19.7% |
+| 4 | Intense | 🔥 | 36.2% |
+| 5 | DeepFocus | 🎯 | 8.0% |
+| 6 | BurnoutRisk | 🚨 | 4.6% |
+
+## 📁 Archivos Principales
+
+### Para Create ML
+- **`CREATE_ML_READY.csv`** - Dataset optimizado (8 features, enteros)
+- **`CREATE_ML_WITH_NAMES.csv`** - Versión con nombres para referencia
+- **`CREATE_ML_GUIDE.md`** - Guía paso a paso
+
+### Datasets Completos
+- `training_data.csv` - Datos de entrenamiento (2,121 registros)
+- `validation_data.csv` - Datos de validación (454 registros)
+- `testing_data.csv` - Datos de prueba (455 registros)
+- `complete_dataset.csv` - Dataset completo (3,030 registros)
+
+### Scripts
+- `generate_insight_dataset.py` - Genera datos sintéticos
+- `train_simple.py` - Entrena modelo con Python
+- `train_and_export_coreml.py` - Intenta exportar a CoreML
+
+### Modelos Entrenados
+- `InsightsClassifier.pkl` - Modelo Python entrenado
+- `model_config.json` - Configuración del modelo
+
+## 📊 Features (8 inputs)
+
+Todas son **enteros** y se conocen al inicio del día:
 
 ```
-CoreML Training Data/
-├── generate_insight_dataset.py    # Generador de datos
-├── training_data.csv              # 2,121 registros (70%)
-├── validation_data.csv            # 454 registros (15%)
-├── testing_data.csv               # 455 registros (15%)
-├── complete_dataset.csv           # 3,030 registros (100%)
-└── README.md                      # Este archivo
+dayOfWeek              1-7 (1=Domingo, 2=Lunes...)
+isWeekend              0/1
+totalMeetingCount      0-10
+hasImportantDeadline   0/1
+backToBackMeetings     0/1
+freeTimeBlocks         0-9
+meetingDensityScore    0-100
+interruptionRiskScore  0-100
 ```
 
-## 📋 Features (15 inputs)
+## 🎯 Target (1 output)
 
-Todas conocidas al **inicio del día** (después de revisar calendario):
-
-### Básicas
-- `dayOfWeek` - Día de la semana (1-7)
-- `isWeekend` - Es fin de semana (0/1)
-- `isHoliday` - Es feriado (0/1)
-
-### Reuniones
-- `totalMeetingCount` - Total reuniones del día (0-10)
-- `earlyMeetingCount` - Reuniones antes 10am (0-5)
-- `lateMeetingCount` - Reuniones después 4pm (0-3)
-- `backToBackMeetings` - Reuniones consecutivas (0/1)
-
-### Presión
-- `hasImportantDeadline` - Tiene deadline hoy (0/1)
-- `hasUrgentDeadline` - Deadline urgente (0/1)
-
-### Distribución
-- `externalEventCount` - Eventos externos (0-3)
-- `videoCallCount` - Llamadas de video (0-10)
-- `freeTimeBlocks` - Bloques libres de 60+ min (0-9)
-- `potentialDeepWorkBlocks` - Bloques para trabajo profundo (0-6)
-
-### Scores calculados
-- `meetingDensityScore` - Densidad de reuniones (0-100)
-- `interruptionRiskScore` - Riesgo de interrupciones (0-100)
-
-## 🎯 Targets (5 modelos a entrenar)
-
-Entrena **un modelo por target** en Create ML:
-
-### 1. dayCategory (Clasificación)
 ```
-Type: Classifier
-Algorithm: Boosted Trees o Random Forest
-Classes: 0-6 (7 categorías)
-Expected Accuracy: 65-75%
+dayCategory            0-6 (categoría del día)
 ```
 
-### 2. productivityScore (Regresión)
-```
-Type: Regressor
-Algorithm: Random Forest
-Range: 0-100
-Expected MAE: ±8-12 puntos
-```
+## 📖 Documentación
 
-### 3. focusScore (Regresión)
-```
-Type: Regressor
-Range: 0-100
-Expected MAE: ±10-15 puntos
-```
+- **`CREATE_ML_GUIDE.md`** - Guía completa para Create ML
+- Incluye: paso a paso, troubleshooting, código Swift
 
-### 4. stressLevel (Regresión)
-```
-Type: Regressor
-Range: 0-100
-Expected MAE: ±12-18 puntos
-```
-
-### 5. recommendedStrategy (Clasificación)
-```
-Type: Classifier
-Classes: 0-6
-Expected Accuracy: 70-80%
-```
-
-## 🚀 Cómo usar en Create ML
-
-### Paso 1: Entrenar modelo de Categoría
-
-1. Abre **Create ML** (Xcode → Open Developer Tool → Create ML)
-2. Crea **New Project** → **Tabular Classification**
-3. Carga `training_data.csv`
-4. Configura:
-   - **Target**: `dayCategory`
-   - **Features**: Seleccionar todas las 15 features
-   - **Algorithm**: Boosted Trees (mejor para categorías)
-5. Click **Train**
-6. Exporta como `DayCategoryClassifier.mlmodel`
-
-### Paso 2: Entrenar modelo de Productividad
-
-1. Crea **New Project** → **Tabular Regressor**
-2. Carga `training_data.csv`
-3. Configura:
-   - **Target**: `productivityScore`
-   - **Features**: Las 15 features
-4. Exporta como `ProductivityRegressor.mlmodel`
-
-### Paso 3: Repetir para otros targets
-
-Entrena modelos separados para:
-- `focusScore` → `FocusRegressor.mlmodel`
-- `stressLevel` → `StressRegressor.mlmodel`
-- `recommendedStrategy` → `StrategyClassifier.mlmodel`
-
-## 💻 Integración en Swift
-
-### Estructura de datos
+## 💻 Uso en Swift (después de exportar)
 
 ```swift
-struct DayInsight {
-    let category: DayCategory
-    let productivityScore: Int  // 0-100
-    let focusScore: Int         // 0-100
-    let stressLevel: Int        // 0-100
-    let recommendedStrategy: Strategy
-    
-    var description: String {
-        return "\(category.emoji) \(category.rawValue)"
-    }
-}
+let model = DayCategoryClassifier()
 
-enum DayCategory: Int, CaseIterable {
-    case rest = 0
-    case calm = 1
-    case balanced = 2
-    case busy = 3
-    case intense = 4
-    case deepFocus = 5
-    case burnoutRisk = 6
-    
-    var emoji: String {
-        switch self {
-        case .rest: return "🌴"
-        case .calm: return "🧘"
-        case .balanced: return "⚡"
-        case .busy: return "📅"
-        case .intense: return "🔥"
-        case .deepFocus: return "🎯"
-        case .burnoutRisk: return "🚨"
-        }
-    }
-    
-    var rawValue: String {
-        switch self {
-        case .rest: return "Descanso"
-        case .calm: return "Tranquilo"
-        case .balanced: return "Balanceado"
-        case .busy: return "Ocupado"
-        case .intense: return "Intenso"
-        case .deepFocus: return "Foco Profundo"
-        case .burnoutRisk: return "Burnout Risk"
-        }
-    }
-    
-    var color: Color {
-        switch self {
-        case .rest: return .gray
-        case .calm: return .green
-        case .balanced: return .blue
-        case .busy: return .orange
-        case .intense: return .red
-        case .deepFocus: return .purple
-        case .burnoutRisk: return .pink
-        }
-    }
-}
+let result = model.predict(
+    dayOfWeek: 2,              // Lunes
+    isWeekend: 0,
+    totalMeetingCount: 5,
+    hasImportantDeadline: 1,
+    backToBackMeetings: 1,
+    freeTimeBlocks: 2,
+    meetingDensityScore: 50,
+    interruptionRiskScore: 40
+)
 
-enum Strategy: Int {
-    case rest = 0
-    case creative = 1
-    case routine = 2
-    case prioritize = 3
-    case pomodoro = 4
-    case deepWork = 5
-    case mandatoryBreaks = 6
-    
-    var description: String {
-        switch self {
-        case .rest: return "Disfruta tu día libre"
-        case .creative: return "Aprovecha para tareas creativas"
-        case .routine: return "Sigue tu rutina habitual"
-        case .prioritize: return "Prioriza solo lo urgente"
-        case .pomodoro: return "Usa técnica Pomodoro"
-        case .deepWork: return "Bloques de foco profundo"
-        case .mandatoryBreaks: return "Toma descansos obligatorios"
-        }
-    }
-}
+// result = 4 (Intense)
+let names = ["🌴", "🧘", "⚡", "📅", "🔥", "🎯", "🚨"]
+print("Hoy: \(names[result])")
 ```
 
-### ViewModel
+## ⚠️ Importante
 
-```swift
-import CoreML
+Si Create ML no funciona, el modelo entrenado en Python (`InsightsClassifier.pkl`) está listo para usar con:
+- Backend Python (Flask/FastAPI)
+- Predicciones offline
+- Otras herramientas ML
 
-class InsightsViewModel: ObservableObject {
-    @Published var todayInsight: DayInsight?
-    @Published var isLoading = false
-    
-    // Modelos CoreML
-    var categoryModel: DayCategoryClassifier?
-    var productivityModel: ProductivityRegressor?
-    var focusModel: FocusRegressor?
-    var stressModel: StressRegressor?
-    var strategyModel: StrategyClassifier?
-    
-    init() {
-        loadModels()
-    }
-    
-    func loadModels() {
-        // Cargar modelos desde bundle
-        categoryModel = try? DayCategoryClassifier(configuration: MLModelConfiguration())
-        productivityModel = try? ProductivityRegressor(configuration: MLModelConfiguration())
-        focusModel = try? FocusRegressor(configuration: MLModelConfiguration())
-        stressModel = try? StressRegressor(configuration: MLModelConfiguration())
-        strategyModel = try? StrategyClassifier(configuration: MLModelConfiguration())
-    }
-    
-    func analyzeToday(calendarEvents: [CalendarEvent]) {
-        isLoading = true
-        
-        // Extraer features del calendario
-        let features = extractFeatures(from: calendarEvents)
-        
-        // Predecir con cada modelo
-        do {
-            let categoryInput = DayCategoryClassifierInput(
-                dayOfWeek: features.dayOfWeek,
-                isWeekend: features.isWeekend,
-                isHoliday: features.isHoliday,
-                totalMeetingCount: features.totalMeetings,
-                earlyMeetingCount: features.earlyMeetings,
-                lateMeetingCount: features.lateMeetings,
-                hasImportantDeadline: features.hasDeadline,
-                hasUrgentDeadline: features.hasUrgentDeadline,
-                backToBackMeetings: features.backToBack,
-                externalEventCount: features.externalEvents,
-                videoCallCount: features.videoCalls,
-                freeTimeBlocks: features.freeBlocks,
-                potentialDeepWorkBlocks: features.deepWorkBlocks,
-                meetingDensityScore: features.meetingDensity,
-                interruptionRiskScore: features.interruptionRisk
-            )
-            
-            let categoryOutput = try categoryModel?.prediction(input: categoryInput)
-            let productivityOutput = try productivityModel?.prediction(input: /* ... */)
-            // ... otros modelos
-            
-            todayInsight = DayInsight(
-                category: DayCategory(rawValue: Int(categoryOutput?.dayCategory ?? 2)) ?? .balanced,
-                productivityScore: Int(productivityOutput?.productivityScore ?? 70),
-                focusScore: Int(focusOutput?.focusScore ?? 80),
-                stressLevel: Int(stressOutput?.stressLevel ?? 30),
-                recommendedStrategy: Strategy(rawValue: Int(strategyOutput?.recommendedStrategy ?? 2)) ?? .routine
-            )
-        } catch {
-            print("Error en predicción: \(error)")
-        }
-        
-        isLoading = false
-    }
-}
-```
+## 📊 Performance Esperada
 
-### UI Component
+| Métrica | Valor |
+|---------|-------|
+| Training Accuracy | 100% (datos sintéticos) |
+| Validation Accuracy | 100% (datos sintéticos) |
+| Real-world Expected | 65-75% |
 
-```swift
-struct InsightsCard: View {
-    @ObservedObject var viewModel: InsightsViewModel
-    
-    var body: some View {
-        VStack(alignment: .leading, spacing: 16) {
-            // Header
-            HStack {
-                Text("Análisis del día")
-                    .font(.headline)
-                    .foregroundColor(.primary)
-                
-                Spacer()
-                
-                if viewModel.isLoading {
-                    ProgressView()
-                }
-            }
-            
-            if let insight = viewModel.todayInsight {
-                // Categoría principal
-                HStack(spacing: 12) {
-                    Text(insight.category.emoji)
-                        .font(.system(size: 40))
-                    
-                    VStack(alignment: .leading) {
-                        Text(insight.category.rawValue)
-                            .font(.title2)
-                            .fontWeight(.bold)
-                            .foregroundColor(insight.category.color)
-                        
-                        Text(insight.recommendedStrategy.description)
-                            .font(.subheadline)
-                            .foregroundColor(.secondary)
-                    }
-                }
-                
-                Divider()
-                
-                // Scores
-                HStack(spacing: 20) {
-                    ScoreView(
-                        title: "Productividad",
-                        value: insight.productivityScore,
-                        color: .blue
-                    )
-                    
-                    ScoreView(
-                        title: "Focus",
-                        value: insight.focusScore,
-                        color: .green
-                    )
-                    
-                    ScoreView(
-                        title: "Estrés",
-                        value: insight.stressLevel,
-                        color: insight.stressLevel > 70 ? .red : .orange
-                    )
-                }
-                
-                // Alerta si es burnout risk
-                if insight.category == .burnoutRisk {
-                    HStack {
-                        Image(systemName: "exclamationmark.triangle.fill")
-                        Text("Día muy intenso - programa descansos obligatorios")
-                    }
-                    .padding()
-                    .background(Color.pink.opacity(0.2))
-                    .cornerRadius(8)
-                }
-            } else {
-                Button("Analizar mi día") {
-                    viewModel.analyzeToday(calendarEvents: fetchCalendarEvents())
-                }
-                .buttonStyle(.borderedProminent)
-            }
-        }
-        .padding()
-        .background(Color(.systemBackground))
-        .cornerRadius(16)
-        .shadow(radius: 2)
-    }
-}
-
-struct ScoreView: View {
-    let title: String
-    let value: Int
-    let color: Color
-    
-    var body: some View {
-        VStack(spacing: 4) {
-            Text("\(value)")
-                .font(.title2)
-                .fontWeight(.bold)
-                .foregroundColor(color)
-            
-            Text(title)
-                .font(.caption)
-                .foregroundColor(.secondary)
-            
-            // Barra de progreso
-            GeometryReader { geo in
-                ZStack(alignment: .leading) {
-                    RoundedRectangle(cornerRadius: 2)
-                        .fill(color.opacity(0.2))
-                        .frame(height: 4)
-                    
-                    RoundedRectangle(cornerRadius: 2)
-                        .fill(color)
-                        .frame(width: geo.size.width * CGFloat(value) / 100, height: 4)
-                }
-            }
-            .frame(height: 4)
-        }
-        .frame(maxWidth: .infinity)
-    }
-}
-```
-
-## 📊 Expected Performance
-
-| Modelo | Métrica | Valor Esperado |
-|--------|---------|----------------|
-| Categoría | Accuracy | 65-75% |
-| Productividad | MAE | ±8-12 puntos |
-| Focus | MAE | ±10-15 puntos |
-| Estrés | MAE | ±12-18 puntos |
-| Estrategia | Accuracy | 70-80% |
-
-## 🎨 Tips de UI/UX
-
-1. **Colores dinámicos**: Usa colores según la categoría
-2. **Animaciones**: Anima las barras de progreso al cargar
-3. **Contexto**: Muestra comparación con el promedio del usuario
-4. **Accionable**: La estrategia debe ser específica y útil
-5. **Alertas suaves**: Burnout risk no debe alarmar, sino sugerir cuidado
-
-## 🔄 Regenerar datos
-
-Si necesitas más datos o diferente distribución:
+## 🔄 Regenerar Datos
 
 ```bash
 cd "CoreML Training Data"
 python3 generate_insight_dataset.py
 ```
 
-Modifica los parámetros en el script para ajustar la distribución.
+## 📞 Soporte
+
+Si tienes problemas con Create ML:
+1. Revisa `CREATE_ML_GUIDE.md` sección "Troubleshooting"
+2. Asegúrate de seleccionar **"Tabular Classification"** (no Regressor)
+3. Verifica que el target sea tipo **"Categorical"**
