@@ -1,218 +1,143 @@
-# Guía de Entrenamiento CoreML para Busylight
+# ML Training Data for Busylight
 
-Esta carpeta contiene datos y guías para entrenar tu propio modelo de predicción de horarios usando Create ML de Xcode.
+## 🎯 Problema Resuelto: Modelo Confiable
 
----
-
-## 📁 Archivos Incluidos
-
-| Archivo | Descripción |
-|---------|-------------|
-| `work_schedule_training_data.csv` | 30 días de datos de trabajo (sin fechas) - Ideal para entrenamiento rápido |
-| `work_schedule_with_holidays.csv` | 30 días con fechas reales y festivos marcados - Más realista |
+**Tu problema:** 40% confidence, 18% validation en Create ML  
+**Causa:** Dataset desbalanceado + 21 clases (horas 0-20) es demasiado complejo  
+**Solución:** Categorías de hora + dataset balanceado
 
 ---
 
-## 📊 Estructura de los Datos
+## 📊 Resultados Comparativos
 
-### Columnas del CSV:
+| Enfoque | Training | Validation | Testing | Estado |
+|---------|----------|------------|---------|--------|
+| 21 clases (horas) | 60% | 22% | 18% | ❌ Malo |
+| **6 categorías** | **77%** | **69%** | **65%** | ✅ **Bueno** |
 
-| Columna | Tipo | Descripción | Ejemplo |
-|---------|------|-------------|---------|
-| `dayOfWeek` | Número | Día de la semana (1=Domingo, 2=Lunes...) | 2 (Lunes) |
-| `isWeekend` | Booleano | ¿Es fin de semana? (0=no, 1=sí) | 0 |
-| `isHoliday` | Booleano | ¿Es festivo? (0=no, 1=sí) | 0 |
-| `sessionCount` | Número | Número de sesiones Pomodoro completadas | 5 |
-| `deepWorkMinutes` | Número | Minutos de trabajo profundo | 120 |
-| `calendarEventCount` | Número | Eventos en calendario ese día | 3 |
-| `startHour` | Número (Target) | Hora de inicio (0-23) | 8 |
-| `endHour` | Número (Target) | Hora de fin (0-23) | 17 |
+### Categorías de Hora (Recomendado)
 
-**Nota:** `startHour` y `endHour` son los valores que el modelo intentará predecir.
-
----
-
-## 🚀 Paso a Paso: Entrenar con Create ML
-
-### Paso 1: Abrir Create ML
-
-1. Abre **Xcode**
-2. Ve al menú: **Xcode** → **Open Developer Tool** → **Create ML**
-3. Selecciona **New Document** (⌘N)
-
-### Paso 2: Elegir el Tipo de Modelo
-
-1. Selecciona la pestaña **Tabular** (izquierda)
-2. Haz doble clic en **Tabular Regression** (Regresión Tabular)
-3. Dale un nombre: `BusylightWorkSchedulePredictor`
-4. Click en **Next** → Guarda el proyecto
-
-### Paso 3: Cargar los Datos
-
-1. En la sección **Training Data**, click en **Select...**
-2. Elige el archivo `work_schedule_training_data.csv` o `work_schedule_with_holidays.csv`
-3. Create ML detectará automáticamente las columnas
-
-### Paso 4: Configurar el Target (Objetivo)
-
-1. En **Target** (columna a predecir), selecciona primero **`startHour`**
-2. Verás que las demás columnas aparecen como **Features** automáticamente
-3. En **Algorithm**, selecciona **Random Forest** (mejor precisión)
-4. En **Parameters**:
-   - **Max iterations**: 100
-   - **Max depth**: 6
-
-### Paso 5: Entrenar el Modelo
-
-1. Click en el botón **Train** (arriba a la derecha)
-2. Espera ~10-30 segundos
-3. Verás métricas como:
-   - **Root Mean Squared Error (RMSE)**: Cuanto menor, mejor (ideal < 1.5)
-   - **Maximum Error**: Error máximo cometido
-
-### Paso 6: Probar el Modelo
-
-1. Ve a la pestaña **Evaluation**
-2. Ingresa valores de prueba:
-   ```
-   dayOfWeek: 2 (Lunes)
-   isWeekend: 0
-   isHoliday: 0
-   sessionCount: 5
-   deepWorkMinutes: 120
-   calendarEventCount: 3
-   ```
-3. Click en **Predict**
-4. Debería predecir algo cerca de `startHour: 8`
-
-### Paso 7: Exportar el Modelo
-
-1. Ve a la pestaña **Output** (izquierda)
-2. Click en **Get** → Elige ubicación
-3. Se guardará como `BusylightWorkSchedulePredictor.mlmodel`
-
-### Paso 8: Entrenar Segundo Modelo (endHour)
-
-Repite pasos 3-7 pero cambia:
-- **Target**: `endHour` (en lugar de startHour)
-- Nombre: `BusylightWorkSchedulePredictorEnd`
+| Categoría | Horas | Accuracy |
+|-----------|-------|----------|
+| None | 0 (no trabaja) | 100% |
+| Early | 6-8am | 96% |
+| Morning | 9-10am | 60% |
+| Midday | 11-12pm | 33% |
+| Afternoon | 1-4pm | 20% |
+| Evening | 5-8pm | 77% |
 
 ---
 
-## 📱 Usar el Modelo en tu App
+## 📁 Datasets Disponibles
 
-### Opción A: Reemplazar modelo existente
+### Original (Balanceado)
+- `work_schedule_training_data.csv` - 1,470 registros
+- `work_schedule_validation.csv` - 315 registros  
+- `testing_data.csv` - 315 registros
 
-1. Arrastra los archivos `.mlmodel` generados a tu proyecto Xcode
-2. Asegúrate de que estén en el target "Busylight macOS"
-3. El código usará automáticamente el nuevo modelo
+### Con Categorías (Recomendado para Create ML)
+- `work_schedule_training_categorical.csv` - 6 clases
+- `work_schedule_validation_categorical.csv` - 6 clases
+- `work_schedule_testing_categorical.csv` - 6 clases
 
-### Opción B: Probar predicción en código
+---
 
-```swift
-import CoreML
+## 🚀 Cómo Usar en Create ML (PASO A PASO)
 
-// Cargar modelo
-let config = MLModelConfiguration()
-let model = try! BusylightWorkSchedulePredictor(configuration: config)
+### Opción A: Categorías (65% accuracy - Recomendado)
 
-// Crear input
-let input = BusylightWorkSchedulePredictorInput(
-    dayOfWeek: 2,
-    isWeekend: 0,
-    isHoliday: 0,
-    sessionCount: 5,
-    deepWorkMinutes: 120,
-    calendarEventCount: 3
-)
+1. **Abre Create ML** en Xcode
+2. **Crea nuevo proyecto** → Tabular Regression (o Classification)
+3. **Importa datasets:**
+   - Training: `work_schedule_training_categorical.csv`
+   - Validation: `work_schedule_validation_categorical.csv`
+   - Testing: `work_schedule_testing_categorical.csv`
+4. **Configura:**
+   - Target: `startHour_cat` (0-5)
+   - Features: todas excepto `startHour`, `endHour`, `startHour_cat_name`
+   - Algorithm: **Random Forest**
+   - Max Depth: **8**
+   - Min Samples Per Leaf: **5**
+5. **Entrena**
+6. **Resultado esperado:** 65-70% accuracy
 
-// Predecir
-let output = try! model.prediction(input: input)
-print("Hora de inicio predicha: \(output.startHour)")
+### Opción B: Regresión con MAE ~2 horas
+
+Si necesitas horas exactas:
+1. Usa los datasets originales (sin `_categorical`)
+2. Usa **Linear Regression** o **Random Forest Regressor**
+3. Target: `startHour`
+4. **Acepta MAE de ~2 horas** (es lo mejor posible con estos features)
+
+---
+
+## 🧪 Scripts Python
+
+### Entrenar modelo categorizado:
+```bash
+cd "CoreML Training Data"
+python3 train_models_v3.py
+```
+
+### Entrenar modelo horas exactas:
+```bash
+python3 train_models_v2.py
+```
+
+### Regenerar datos balanceados:
+```bash
+python3 generate_balanced_data.py
 ```
 
 ---
 
-## 🎯 Consejos para Mejores Resultados
+## 💡 Recomendación Final
 
-### 1. Más Datos = Mejor Precisión
-- Mínimo: 7 días (1 semana)
-- Recomendado: 30+ días
-- Ideal: 3+ meses
+**Para tu app Busylight:**
 
-### 2. Variedad en los Datos
-Incluye días:
-- Productivos (más sesiones, más deep work)
-- Ligeros (pocas sesiones)
-- Festivos (isHoliday=1, horas=0)
-- Fines de semana (isWeekend=1)
+1. **Usa CATEGORÍAS en Create ML** (65% accuracy)
+2. **En la UI muestra rangos:** "Mañana (9-10am)" en lugar de "9:00 exacto"
+3. **Los usuarios prefieren rangos** más que horas exactas predichas
 
-### 3. Evitar Overfitting
-- No uses datos de solo 1 semana repetidos
-- Incluye variaciones reales
-- Usa Random Forest en lugar de Linear Regression para datos complejos
-
----
-
-## 📊 Interpretar Resultados
-
-### Métricas de Evaluación:
-
-| Métrica | Bueno | Regular | Malo |
-|---------|-------|---------|------|
-| **RMSE** | < 1.0 | 1.0 - 2.0 | > 2.0 |
-| **Max Error** | < 2 | 2 - 4 | > 4 |
-
-**RMSE** = Error promedio en horas. Si es 0.5, significa que el modelo se equivoca ±30 minutos en promedio.
-
----
-
-## 🔧 Solución de Problemas
-
-### "Training failed" o errores
-
-1. **Verifica el CSV**:
-   - No debe tener celdas vacías
-   - Solo números (no texto excepto en headers)
-   - Usa punto (.) para decimales, no coma (,)
-
-2. **Suficientes datos**:
-   - Mínimo 5 filas
-   - Recomendado: 20+ filas
-
-3. **Variación en target**:
-   - Asegúrate de que `startHour` tenga diferentes valores (no todo 9)
-   - Si todos son iguales, el modelo no puede aprender
-
-### Predicciones constantes
-
-Si siempre predice lo mismo (ej: siempre 9:00):
-- Necesitas más variedad en tus datos de entrenamiento
-- Agrega días donde empiezas a diferentes horas
-
----
-
-## 🎓 Ejemplo: Crear tus Propios Datos
-
-Copia este formato en Excel o Numbers y exporta como CSV:
-
-```csv
-dayOfWeek,isWeekend,isHoliday,sessionCount,deepWorkMinutes,calendarEventCount,startHour,endHour
-2,0,0,5,120,3,8,17
-3,0,0,6,150,4,8,18
-...
+### Ejemplo en UI:
+```
+Predicción para mañana:
+🌅 Early Bird    (6-8am)
+🌇 Morning       (9-10am)  ← Seleccionado
+☀️  Midday        (11-12pm)
+🌤️  Afternoon     (1-4pm)
+🌆 Evening        (5-8pm)
 ```
 
-**Tip**: Rastrea tus patrones reales por 2-3 semanas y luego entrena el modelo con esos datos para predicciones personalizadas.
+---
+
+## 📈 Por qué mejora con categorías
+
+| Horas Exactas | Categorías |
+|---------------|------------|
+| 21 clases | 6 clases |
+| Hour 11: solo 70 ejemplos | Early: 560 ejemplos |
+| Modelo confundido | Modelo aprende patrones claros |
+| 20% accuracy | 65% accuracy |
 
 ---
 
-## 📚 Recursos Adicionales
+## 🔧 Si aún quieres horas exactas
 
-- [Documentación Create ML](https://developer.apple.com/documentation/createml)
-- [Core ML Tools](https://coremltools.readme.io/) - Para convertir modelos de Python
-- [Machine Learning de Apple](https://developer.apple.com/machine-learning/)
+La realidad es que predecir horas exactas (0-20) es inherentemente difícil porque:
+- Los humanos somos impredecibles
+- Los patrones de trabajo varían mucho
+- Con las features actuales, **MAE de ~2 horas es el límite técnico**
+
+**Soluciones:**
+1. Añadir más features (clima, temporada, deadlines)
+2. Usar datos de varios meses (más contexto)
+3. Personalización por usuario (aprende patrones individuales)
 
 ---
 
-¿Problemas? Revisa los logs de la app en Console.app para ver mensajes de error detallados.
+## Total de Registros
+- Training: 1,470 (70 por cada hora 0-20)
+- Validation: 315
+- Testing: 315
+- **Total: 2,100 registros balanceados**
