@@ -60,8 +60,6 @@
 				Core/BusylightManager.swift,
 				Core/Persistence.swift,
 				Core/PomodoroManager.swift,
-				"CoreML/ML Model/EndHours.mlpackage",
-				"CoreML/ML Model/StartHours.mlpackage",
 				CoreML/TrainedModelLoader.swift,
 				CoreML/WorkSchedulePredictor.swift,
 				Info.plist,
