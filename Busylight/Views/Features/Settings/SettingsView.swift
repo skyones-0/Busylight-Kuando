@@ -156,6 +156,28 @@ struct SettingsView: View {
                 
                 Divider()
                 
+                // Auto-detect location
+                GlassToggleRow(
+                    icon: "location.fill",
+                    title: "Detectar país automáticamente",
+                    subtitle: "Usa GPS para suscribirte a festivos de tu país",
+                    isOn: Binding(
+                        get: { settings.autoDetectLocation },
+                        set: { newValue in
+                            settings.autoDetectLocation = newValue
+                            settings.updatedAt = Date()
+                            saveSettings()
+                            if newValue {
+                                Task { @MainActor in
+                                    LocationManager.shared.requestAuthorization()
+                                }
+                            }
+                        }
+                    )
+                )
+                
+                Divider()
+                
                 // Auto sync
                 GlassToggleRow(
                     icon: "arrow.triangle.2.circlepath",
