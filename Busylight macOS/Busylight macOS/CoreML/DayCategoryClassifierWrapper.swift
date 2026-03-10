@@ -175,7 +175,7 @@ class DayCategoryClassifierWrapper: ObservableObject {
                 BusylightLogger.shared.info("✅ DayCategoryClassifier cargado (.mlmodelc)")
                 return
             } catch {
-                BusylightLogger.shared.error("❌ Error cargando .mlmodelc: \(error)")
+                BusylightLogger.shared.info("❌ Error cargando .mlmodelc: \(error)")
             }
         }
         
@@ -190,11 +190,11 @@ class DayCategoryClassifierWrapper: ObservableObject {
                 BusylightLogger.shared.info("✅ DayCategoryClassifier cargado (.mlmodel)")
                 return
             } catch {
-                BusylightLogger.shared.error("❌ Error compilando .mlmodel: \(error)")
+                BusylightLogger.shared.info("❌ Error compilando .mlmodel: \(error)")
             }
         }
         
-        BusylightLogger.shared.warning("⚠️ DayCategoryClassifier no encontrado. Se usará predicción estadística.")
+        BusylightLogger.shared.info("⚠️ DayCategoryClassifier no encontrado. Se usará predicción estadística.")
     }
     
     // MARK: - Prediction API
@@ -287,7 +287,7 @@ class DayCategoryClassifierWrapper: ObservableObject {
             return prediction
             
         } catch {
-            BusylightLogger.shared.error("❌ Error en predicción CoreML: \(error)")
+            BusylightLogger.shared.info("❌ Error en predicción CoreML: \(error)")
             return predictStatistically(input: input)
         }
     }
@@ -456,3 +456,4 @@ struct PredictionStatistics {
         return Double(burnoutRiskDays) / Double(totalPredictions) * 100
     }
 }
+

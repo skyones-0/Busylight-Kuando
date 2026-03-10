@@ -134,7 +134,7 @@ func bringWindowToFront() {
         
         // Si no encontramos ventana, intentar crear una nueva
         if !foundWindow {
-            BusylightLogger.shared.warning("No se encontró ventana válida, intentando crear nueva...")
+            BusylightLogger.shared.info("No se encontró ventana válida, intentando crear nueva...")
             createNewWindow()
         }
     }
@@ -151,7 +151,7 @@ private func createNewWindow() {
     BusylightLogger.shared.info("Creando ventana manualmente...")
     
     guard let appDelegate = NSApp.delegate as? AppDelegate else {
-        BusylightLogger.shared.error("No se pudo obtener AppDelegate")
+        BusylightLogger.shared.info("No se pudo obtener AppDelegate")
         return
     }
     

@@ -279,7 +279,7 @@ class WorkSchedulePredictor: ObservableObject {
             isModelReady = true
             BusylightLogger.shared.info("CoreML: ✅ Modelo cargado exitosamente")
         } catch {
-            BusylightLogger.shared.error("CoreML: Error cargando modelo - \(error.localizedDescription)")
+            BusylightLogger.shared.info("CoreML: Error cargando modelo - \(error.localizedDescription)")
         }
     }
 }

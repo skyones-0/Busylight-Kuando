@@ -1,0 +1,45 @@
+{
+  "Inputs" : {
+    "interruptionRiskScore" : {
+      "MLFeatureShortDescription" : ""
+    },
+    "totalMeetingCount" : {
+      "MLFeatureShortDescription" : ""
+    },
+    "freeTimeBlocks" : {
+      "MLFeatureShortDescription" : ""
+    },
+    "backToBackMeetings" : {
+      "MLFeatureShortDescription" : ""
+    },
+    "isWeekend" : {
+      "MLFeatureShortDescription" : ""
+    },
+    "isHoliday" : {
+      "MLFeatureShortDescription" : ""
+    },
+    "hasImportantDeadline" : {
+      "MLFeatureShortDescription" : ""
+    },
+    "meetingDensityScore" : {
+      "MLFeatureShortDescription" : ""
+    },
+    "dayOfWeek" : {
+      "MLFeatureShortDescription" : ""
+    }
+  },
+  "Outputs" : {
+    "dayCategory" : {
+      "MLFeatureShortDescription" : ""
+    },
+    "classProbability" : {
+      "MLFeatureShortDescription" : ""
+    }
+  },
+  "TrainingInputs" : {
+
+  },
+  "States" : {
+
+  }
+}

@@ -329,7 +329,7 @@ struct WeeklyPatternAnalysis {
     }
     
     var dayNames: [String] {
-        ["Dom", "Lun", "Mar", "Mié", "Jue", "Vie", "Sáb"]
+        ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"]
     }
 }
 

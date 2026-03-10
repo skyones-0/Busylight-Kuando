@@ -32,14 +32,14 @@
 /* Begin PBXCopyFilesBuildPhase section */
 		68A1E3E72F5DE06400D6AA36 /* Embed Frameworks */ = {
 			isa = PBXCopyFilesBuildPhase;
-			buildActionMask = 2147483647;
+			buildActionMask = 8;
 			dstPath = "";
 			dstSubfolderSpec = 10;
 			files = (
 				68A1E3E62F5DE06400D6AA36 /* BusylightSDK_Swift.framework in Embed Frameworks */,
 			);
 			name = "Embed Frameworks";
-			runOnlyForDeploymentPostprocessing = 0;
+			runOnlyForDeploymentPostprocessing = 1;
 		};
 /* End PBXCopyFilesBuildPhase section */
 
@@ -60,21 +60,20 @@
 				Core/BusylightManager.swift,
 				Core/Persistence.swift,
 				Core/PomodoroManager.swift,
-				CoreML/TrainedModelLoader.swift,
+				"CoreML/ML Model/DayCategoryClassifier.mlpackage",
 				CoreML/WorkSchedulePredictor.swift,
 				Info.plist,
-				Models/MLWorkPattern.swift,
 				Models/PomodoroSession.swift,
 				Resources/Localizable.xcstrings,
 				Styles/GlassmorphismStyles.swift,
 				Utilities/BusylightLogger.swift,
 				Utilities/HolidayData.swift,
-				Utilities/MLScheduleManager.swift,
 				Utilities/SmartFeaturesManager.swift,
 				Utilities/UserInteractionLogger.swift,
 				Utilities/ViewController.swift,
 				Utilities/WebhookServer.swift,
 				Views/ContentView.swift,
+				Views/Features/Dashboard/DashboardView.swift,
 				Views/MenuBarView.swift,
 				Views/TimerView.swift,
 			);
@@ -89,21 +88,20 @@
 				Core/BusylightManager.swift,
 				Core/Persistence.swift,
 				Core/PomodoroManager.swift,
-				CoreML/TrainedModelLoader.swift,
+				"CoreML/ML Model/DayCategoryClassifier.mlpackage",
 				CoreML/WorkSchedulePredictor.swift,
 				Info.plist,
-				Models/MLWorkPattern.swift,
 				Models/PomodoroSession.swift,
 				Resources/Localizable.xcstrings,
 				Styles/GlassmorphismStyles.swift,
 				Utilities/BusylightLogger.swift,
 				Utilities/HolidayData.swift,
-				Utilities/MLScheduleManager.swift,
 				Utilities/SmartFeaturesManager.swift,
 				Utilities/UserInteractionLogger.swift,
 				Utilities/ViewController.swift,
 				Utilities/WebhookServer.swift,
 				Views/ContentView.swift,
+				Views/Features/Dashboard/DashboardView.swift,
 				Views/MenuBarView.swift,
 				Views/TimerView.swift,
 			);
@@ -425,7 +423,7 @@
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
 				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
-				MACOSX_DEPLOYMENT_TARGET = 26.2;
+				MACOSX_DEPLOYMENT_TARGET = 26.0;
 				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
 				MTL_FAST_MATH = YES;
 				ONLY_ACTIVE_ARCH = YES;
@@ -483,7 +481,7 @@
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
 				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
-				MACOSX_DEPLOYMENT_TARGET = 26.2;
+				MACOSX_DEPLOYMENT_TARGET = 26.0;
 				MTL_ENABLE_DEBUG_INFO = NO;
 				MTL_FAST_MATH = YES;
 				SDKROOT = macosx;

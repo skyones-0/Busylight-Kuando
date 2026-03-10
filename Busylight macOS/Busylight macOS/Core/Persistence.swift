@@ -97,7 +97,7 @@ extension ModelContext {
         do {
             try save()
         } catch {
-            BusylightLogger.shared.error("Failed to save context: \(error)")
+            BusylightLogger.shared.info("Failed to save context: \(error)")
         }
     }
 }

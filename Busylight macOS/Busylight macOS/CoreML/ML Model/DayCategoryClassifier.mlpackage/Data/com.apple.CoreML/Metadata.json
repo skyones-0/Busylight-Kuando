@@ -1,0 +1,9 @@
+{
+  "MLModelDescriptionKey" : "Clasifica días laborales en 7 categorías: Rest, Calm, Balanced, Busy, Intense, DeepFocus, BurnoutRisk",
+  "MLModelCreatorDefinedKey" : {
+    "com.github.apple.coremltools.version" : "9.0",
+    "com.github.apple.coremltools.source" : "scikit-learn==1.5.1"
+  },
+  "MLModelAuthorKey" : "Busylight Team",
+  "MLModelLicenseKey" : "MIT"
+}
