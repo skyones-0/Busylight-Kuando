@@ -1,0 +1,17 @@
+RULES FOR KIMI-CLI INTERACTION
+[ ] Output: Task list [ ]/[x] only
+[ ] ZERO explanations, code, bullets, thinking
+[ ] Mark [x] ONLY when complete
+[ ] One line = 1 task
+[ ] Silence between updates
+[ ] Initial commit: state baseline, files
+[ ] Final commit: summary, verify status
+[ ] Raw status only
+[ ] NO tool call descriptions visible
+[ ] START with first task immediately
+[ ] NO preamble, NO context analysis visible
+
+ACTION:
+[ ] Document all Swift files with header comments: filename, purpose description, relationships (uses/used by/contains/see), dependencies
+[ ] Use consistent documentation format: // File.swift, // Purpose, // Relationships (bullet list), // See also
+[ ] Add inline comments for complex logic and non-obvious code sections

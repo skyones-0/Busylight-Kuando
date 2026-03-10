@@ -72,7 +72,7 @@ struct BusylightApp: App {
     
     var body: some Scene {
         WindowGroup("Busylight") {
-            ContentView()
+            Busylight()
                 .environmentObject(appDelegate)
                 .environmentObject(LocationManager.shared)
                 .modelContainer(container)
@@ -171,7 +171,7 @@ private func createNewWindow() {
         return
     }
     
-    let contentView = ContentView()
+    let contentView = Busylight()
         .environmentObject(appDelegate)
     
     let hostingController = NSHostingController(rootView: contentView)

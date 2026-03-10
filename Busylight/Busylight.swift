@@ -6,7 +6,7 @@
 import SwiftUI
 import SwiftData
 
-struct BusylightApp: View {
+struct Busylight: View {
     @State private var isHovered = false
     @StateObject private var busylight = BusylightManager()
     @StateObject private var locationManager = LocationManager.shared

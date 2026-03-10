@@ -2,352 +2,173 @@
 //  BusylightManager.swift
 //  Busylight
 //
-//  Manager for Busylight USB device control via HID protocol.
-//  Handles color changes, jingles, and connection state.
-//
-//  Relationships:
-//  - Used by: PomodoroManager (timer colors), SmartFeaturesManager (calendar/focus colors)
-//  - Notifications: Posts BusylightColorChanged notification
-//  - See: DeviceView.swift for manual color controls
-//
 
 import Foundation
 import SwiftUI
 import Combine
 
-#if !TESTING
-import BusylightSDK_Swift
-#endif
+// MARK: - Device Model
+struct BusylightDevice: Identifiable {
+    let id: String
+    let name: String
+}
 
-class BusylightManager: ObservableObject {
+@MainActor
+final class BusylightManager: NSObject, ObservableObject {
     static let shared = BusylightManager()
-    
-    #if !TESTING
-    private var bl: Busylight?
-    #else
-    private var bl: Any? // Mock para tests
-    #endif
-    
-    @Published var color: Color = .gray
-    @Published var status = "No device"
+
     @Published var isConnected = false
-    @Published var deviceName = "No Busylight connected"
-    @Published var deviceModel = ""
-    
-    init() {
-        setupBusylight()
-    }
-    
-    func setupBusylight() {
-        #if !TESTING
-        bl = Busylight()
+    @Published var currentDevice: BusylightDevice?
+    @Published var currentColor: Color = .gray
+
+    private var bl: BusylightWrapper?
+
+    override init() {
+        super.init()
+        print("[BusylightManager] Inicializando...")
+        bl = BusylightWrapper()
+        print("[BusylightManager] Wrapper creado: \(bl != nil)")
         bl?.delegate = self
         bl?.start()
-        #endif
-        checkDevices()
+        print("[BusylightManager] start() llamado")
+        scanDevices()
     }
-    
-    func checkDevices() {
-        #if !TESTING
+
+    // MARK: - Computed Properties for UI
+    var deviceName: String {
+        currentDevice?.name ?? "Unknown Device"
+    }
+
+    var color: Color {
+        isConnected ? currentColor : .gray
+    }
+
+    func scanDevices() {
         let devices = bl?.getDevicesArray() ?? []
-        print("Dispositivos encontrados: \(devices.count)")
-        
-        if let firstDevice = devices.first as? [String: String],
-           let deviceKey = firstDevice.keys.first {
-            
+        print("[BusylightManager] Dispositivos encontrados: \(devices.count)")
+
+        if let firstDevice = devices.first as? String {
             isConnected = true
-            status = "Connected"
-            deviceName = deviceKey
-            deviceModel = ""
-            
-            print("Primer dispositivo: \(deviceKey)")
+            currentDevice = BusylightDevice(id: firstDevice, name: firstDevice)
+            print("[BusylightManager] Device CONNECTED: \(firstDevice)")
         } else {
             isConnected = false
-            status = "Disconnected"
-            deviceName = "No Busylight connected"
-            deviceModel = ""
+            currentDevice = nil
         }
-        #else
-        // Mock para tests
-        isConnected = false
-        status = "Disconnected (Test Mode)"
-        deviceName = "No Busylight connected"
-        deviceModel = ""
-        #endif
     }
-    
+
+    // MARK: - Colors
     func red() {
-        #if !TESTING
-        bl?.Light(red: 100, green: 0, blue: 0)
-        #endif
-        color = .red
-        status = "Red"
+        print("[BusylightManager] red() llamado")
+        setColor(.red)
+        bl?.light(withRed: 100, green: 0, blue: 0)
+        print("[BusylightManager] light() ejecutado")
     }
-    
     func green() {
-        #if !TESTING
-        bl?.Light(red: 0, green: 100, blue: 0)
-        #endif
-        color = .green
-        status = "Green"
+        print("[BusylightManager] green() llamado")
+        setColor(.green)
+        bl?.light(withRed: 0, green: 100, blue: 0)
     }
-    
-    func yellow() {
-        #if !TESTING
-        bl?.Pulse(red: 100, green: 100, blue: 0)
-        #endif
-        color = .yellow
-        status = "Yellow Pulse"
-    }
-    
     func blue() {
-        #if !TESTING
-        bl?.Light(red: 0, green: 0, blue: 100)
-        #endif
-        color = Color(red: 0, green: 0, blue: 1)
-        status = "Blue"
+        print("[BusylightManager] blue() llamado")
+        setColor(.blue)
+        bl?.light(withRed: 0, green: 0, blue: 100)
     }
-    
+    func yellow() {
+        setColor(.yellow)
+        bl?.light(withRed: 100, green: 100, blue: 0)
+    }
     func cyan() {
-        #if !TESTING
-        bl?.Light(red: 0, green: 100, blue: 100)
-        #endif
-        color = Color(red: 0, green: 1, blue: 1)
-        status = "Cyan"
+        setColor(.cyan)
+        bl?.light(withRed: 0, green: 100, blue: 100)
     }
-
     func magenta() {
-        #if !TESTING
-        bl?.Light(red: 100, green: 0, blue: 100)
-        #endif
-        color = Color(red: 1, green: 0, blue: 1)
-        status = "Magenta"
+        setColor(Color(red: 1, green: 0, blue: 1))
+        bl?.light(withRed: 100, green: 0, blue: 100)
     }
-
     func white() {
-        #if !TESTING
-        bl?.Light(red: 100, green: 100, blue: 100)
-        #endif
-        color = .white
-        status = "White"
+        setColor(.white)
+        bl?.light(withRed: 100, green: 100, blue: 100)
     }
-
     func orange() {
-        #if !TESTING
-        bl?.Light(red: 100, green: 65, blue: 0)
-        #endif
-        color = .orange
-        status = "Orange"
+        setColor(.orange)
+        bl?.light(withRed: 100, green: 65, blue: 0)
     }
-
     func purple() {
-        #if !TESTING
-        bl?.Light(red: 75, green: 0, blue: 100)
-        #endif
-        color = .purple
-        status = "Purple"
+        setColor(.purple)
+        bl?.light(withRed: 75, green: 0, blue: 100)
     }
-
     func pink() {
-        #if !TESTING
-        bl?.Light(red: 100, green: 75, blue: 80)
-        #endif
-        color = .pink
-        status = "Pink"
+        setColor(.pink)
+        bl?.light(withRed: 100, green: 75, blue: 80)
     }
-    
-    // ============================================
-    // EFECTOS PULSE
-    // ============================================
-        
-    func pulseRed() {
-        #if !TESTING
-        bl?.Pulse(red: 100, green: 0, blue: 0)
-        #endif
-        color = .red
-        status = "Red Pulse"
+
+    private func setColor(_ color: Color) {
+        currentColor = color
     }
-        
-    func pulseGreen() {
-        #if !TESTING
-        bl?.Pulse(red: 0, green: 100, blue: 0)
-        #endif
-        color = .green
-        status = "Green Pulse"
+
+    // MARK: - Pulse
+    func pulseRed() { bl?.pulse(withRed: 100, green: 0, blue: 0) }
+    func pulseGreen() { bl?.pulse(withRed: 0, green: 100, blue: 0) }
+    func pulseBlue() { bl?.pulse(withRed: 0, green: 0, blue: 100) }
+    func pulseYellow() { bl?.pulse(withRed: 100, green: 100, blue: 0) }
+    func pulseCyan() { bl?.pulse(withRed: 0, green: 100, blue: 100) }
+    func pulseMagenta() { bl?.pulse(withRed: 100, green: 0, blue: 100) }
+    func pulseWhite() { bl?.pulse(withRed: 100, green: 100, blue: 100) }
+
+    // MARK: - Blink
+    func blinkRedSlow() { bl?.blink(withRed: 100, green: 0, blue: 0, ontime: 10, offtime: 10) }
+    func blinkRedMedium() { bl?.blink(withRed: 100, green: 0, blue: 0, ontime: 5, offtime: 5) }
+    func blinkRedFast() { bl?.blink(withRed: 100, green: 0, blue: 0, ontime: 2, offtime: 2) }
+    func blinkGreenSlow() { bl?.blink(withRed: 0, green: 100, blue: 0, ontime: 10, offtime: 10) }
+    func blinkYellow() { bl?.blink(withRed: 100, green: 100, blue: 0, ontime: 3, offtime: 3) }
+
+    // MARK: - Alert
+    func alertRed() {
+        print("[BusylightManager] alertRed() llamado")
+        bl?.alert(withRed: 100, green: 0, blue: 0, andSound: 8, andVolume: 100)
     }
-        
-    func pulseBlue() {
-        #if !TESTING
-        bl?.Pulse(red: 0, green: 0, blue: 100)
-        #endif
-        color = .blue
-        status = "Blue Pulse"
-    }
-        
-    func pulseYellow() {
-        #if !TESTING
-        bl?.Pulse(red: 100, green: 100, blue: 0)
-        #endif
-        color = .yellow
-        status = "Yellow Pulse"
-    }
-        
-    func pulseCyan() {
-        #if !TESTING
-        bl?.Pulse(red: 0, green: 100, blue: 100)
-        #endif
-        color = Color(red: 0, green: 1, blue: 1)
-        status = "Cyan Pulse"
-    }
-        
-    func pulseMagenta() {
-        #if !TESTING
-        bl?.Pulse(red: 100, green: 0, blue: 100)
-        #endif
-        color = Color(red: 1, green: 0, blue: 1)
-        status = "Magenta Pulse"
-    }
-        
-    func pulseWhite() {
-        #if !TESTING
-        bl?.Pulse(red: 100, green: 100, blue: 100)
-        #endif
-        color = .white
-        status = "White Pulse"
-    }
-        
-    // ============================================
-    // EFECTOS BLINK
-    // ============================================
-        
-    func blinkRedSlow() {
-        #if !TESTING
-        bl?.Blink(red: 100, green: 0, blue: 0, ontime: 10, offtime: 10)
-        #endif
-        color = .red
-        status = "Red Blink Slow"
-    }
-        
-    func blinkRedMedium() {
-        #if !TESTING
-        bl?.Blink(red: 100, green: 0, blue: 0, ontime: 5, offtime: 5)
-        #endif
-        color = .red
-        status = "Red Blink Medium"
-    }
-        
-    func blinkRedFast() {
-        #if !TESTING
-        bl?.Blink(red: 100, green: 0, blue: 0, ontime: 2, offtime: 2)
-        #endif
-        color = .red
-        status = "Red Blink Fast"
-    }
-        
-    func blinkGreenSlow() {
-        #if !TESTING
-        bl?.Blink(red: 0, green: 100, blue: 0, ontime: 10, offtime: 10)
-        #endif
-        color = .green
-        status = "Green Blink Slow"
-    }
-        
-    func blinkYellowFast() {
-        #if !TESTING
-        bl?.Blink(red: 100, green: 100, blue: 0, ontime: 3, offtime: 3)
-        #endif
-        color = .yellow
-        status = "Yellow Blink Fast"
-    }
-        
-    // ============================================
-    // EFECTOS ESPECIALES
-    // ============================================
-    
-    func alertLoud() {
-        #if !TESTING
-        bl?.Alert(red: 100, green: 0, blue: 0, andSound: 8, andVolume: 100)
-        #endif
-        color = .red
-        status = "Alert Loud!"
-    }
-        
-    func soundOnly(soundNumber: Int) {
-        #if !TESTING
-        bl?.Jingle(red: 0, green: 0, blue: 0, Sound: UInt8(soundNumber), andVolume: 50)
-        #endif
-        status = "Sound \(soundNumber)"
-    }
-    
+
+    // Alias para PomodoroManager
+    func alert() { alertRed() }
+
+    // MARK: - Jingle
     func jingle(soundNumber: Int, red: Int, green: Int, blue: Int, andVolume: Int) {
-        #if !TESTING
-        bl?.Alert(
-            red: UInt8(red),
-            green: UInt8(green),
-            blue: UInt8(blue),
-            andSound: UInt8(soundNumber),
-            andVolume: UInt8(andVolume)
-        )
-        #endif
-        color = Color(red: Double(red)/100.0, green: Double(green)/100.0, blue: Double(blue)/100.0)
-        status = "Jingle \(soundNumber)"
-        
-        DispatchQueue.main.asyncAfter(deadline: .now() + 10.0) { [weak self] in
-            #if !TESTING
-            self?.bl?.Off()
-            #endif
-            self?.color = .gray
-            self?.status = "Listo"
-        }
+        print("[BusylightManager] jingle(sound:\(soundNumber))")
+        bl?.jingle(withRed: UInt8(red), green: UInt8(green), blue: UInt8(blue), sound: UInt8(soundNumber), andVolume: UInt8(andVolume))
     }
-    
+
+    // MARK: - Off
     func off() {
-        #if !TESTING
-        bl?.Off()
-        #endif
-        color = .gray
-        status = "Off"
+        print("[BusylightManager] off() llamado")
+        bl?.off()
+        currentColor = .gray
     }
-    
-    func alert() {
-        #if !TESTING
-        bl?.Alert(red: 100, green: 0, blue: 0, andSound: 5, andVolume: 50)
-        #endif
+
+    // MARK: - Timer
+    func scheduleOff(after seconds: TimeInterval) {
+        DispatchQueue.main.asyncAfter(deadline: .now() + seconds) { [weak self] in
+            self?.off()
+        }
     }
 }
 
-#if !TESTING
-extension BusylightManager: BusylightDelegate {
-    func deviceConnected(devices: [String : String]) {
+// MARK: - BusylightWrapperDelegate
+extension BusylightManager: BusylightWrapperDelegate {
+    func deviceConnected(_ devices: [String: String]) {
         isConnected = true
-        status = "Connected"
-        
-        if let firstKey = devices.keys.first {
-            deviceName = firstKey
-            deviceModel = ""
-        } else {
-            deviceName = "Busylight"
-            deviceModel = ""
+        if let (id, name) = devices.first {
+            currentDevice = BusylightDevice(id: id, name: name)
         }
-        
-        print(">>> DISPOSITIVO CONECTADO <<<")
-        print("Nombre: \(deviceName)")
-        print("Datos completos: \(devices)")
+        print("[BusylightManager] >>> DISPOSITIVO CONECTADO <<<")
+        print("[BusylightManager] Nombre: \(currentDevice?.name ?? "Unknown")")
+        print("[BusylightManager] Datos completos: \(devices)")
     }
-    
-    func deviceDisconnected(devices: [String : String]) {
-        print(">>> DISPOSITIVO DESCONECTADO <<<")
-        print("Datos: \(devices)")
-        
+
+    func deviceDisconnected(_ devices: [String: String]) {
         isConnected = false
-        status = "Disconnected"
-        deviceName = "No Busylight connected"
-        deviceModel = ""
+        currentDevice = nil
+        currentColor = .gray
+        print("[BusylightManager] >>> DISPOSITIVO DESCONECTADO <<<")
     }
 }
-#else
-// Mock extension para tests
-extension BusylightManager {
-    // Métodos mock para testing
-}
-#endif

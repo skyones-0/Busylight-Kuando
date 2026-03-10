@@ -7,10 +7,10 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		68B0A2FF2F5FA90300BAA1CB /* Info.plist in Resources */ = {isa = PBXBuildFile; fileRef = 68B0A2CC2F5FA90300BAA1CB /* Info.plist */; };
+		682B6B072F609C1900D1E20E /* Busylight.swift in Sources */ = {isa = PBXBuildFile; fileRef = 682B6AF52F609C1900D1E20E /* Busylight.swift */; };
+		682B6B192F609C1900D1E20E /* Busylight.swift in Sources */ = {isa = PBXBuildFile; fileRef = 682B6AF52F609C1900D1E20E /* Busylight.swift */; };
+		682B6B2B2F609C1900D1E20E /* Busylight.swift in Sources */ = {isa = PBXBuildFile; fileRef = 682B6AF52F609C1900D1E20E /* Busylight.swift */; };
 		68B0A3252F5FA90300BAA1CB /* BusylightSDK_Swift.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 68B0A2952F5FA90300BAA1CB /* BusylightSDK_Swift.framework */; };
-		68B0A34E2F5FA90300BAA1CB /* Info.plist in Resources */ = {isa = PBXBuildFile; fileRef = 68B0A2CC2F5FA90300BAA1CB /* Info.plist */; };
-		68B0A3C02F5FA90300BAA1CB /* Info.plist in Resources */ = {isa = PBXBuildFile; fileRef = 68B0A2CC2F5FA90300BAA1CB /* Info.plist */; };
 		68B0A3E62F5FA90300BAA1CB /* BusylightSDK_Swift.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 68B0A2952F5FA90300BAA1CB /* BusylightSDK_Swift.framework */; };
 		68B0A3E72F5FA91300BAA1CB /* BusylightSDK_Swift.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 68B0A2952F5FA90300BAA1CB /* BusylightSDK_Swift.framework */; };
 		68B0A3E82F5FA91300BAA1CB /* BusylightSDK_Swift.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 68B0A2952F5FA90300BAA1CB /* BusylightSDK_Swift.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
@@ -46,16 +46,37 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
+		682B6AF52F609C1900D1E20E /* Busylight.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Busylight.swift; sourceTree = "<group>"; };
 		6838BD802F5FA5F900FF5933 /* Busylight.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Busylight.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		6838BD8F2F5FA5FA00FF5933 /* BusylightTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = BusylightTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		6838BD992F5FA5FA00FF5933 /* BusylightUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = BusylightUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		68B0A2932F5FA90300BAA1CB /* Busylight.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = Busylight.entitlements; sourceTree = "<group>"; };
 		68B0A2942F5FA90300BAA1CB /* Busylight.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; path = Busylight.xcodeproj; sourceTree = "<group>"; };
 		68B0A2952F5FA90300BAA1CB /* BusylightSDK_Swift.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; path = BusylightSDK_Swift.framework; sourceTree = "<group>"; };
-		68B0A2CC2F5FA90300BAA1CB /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
+		685375F02F607F6600DCB2DE /* Exceptions for "Resources" folder in "BusylightTests" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				Tracks/Distant.aac,
+			);
+			target = 6838BD8E2F5FA5FA00FF5933 /* BusylightTests */;
+		};
+		685375F12F607F6600DCB2DE /* Exceptions for "Resources" folder in "BusylightUITests" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				Tracks/Distant.aac,
+			);
+			target = 6838BD982F5FA5FA00FF5933 /* BusylightUITests */;
+		};
+		68A40DE72F60A2F700F4E6EE /* Exceptions for "Services" folder in "Busylight" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				BusylightWrapper.h,
+			);
+			target = 6838BD7F2F5FA5F900FF5933 /* Busylight */;
+		};
 		68ED95622F5FBD400076CCA5 /* Exceptions for "BusylightTests" folder in "Busylight" target */ = {
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
@@ -71,6 +92,19 @@
 			target = 6838BD982F5FA5FA00FF5933 /* BusylightUITests */;
 		};
 /* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
+
+/* Begin PBXFileSystemSynchronizedGroupBuildPhaseMembershipExceptionSet section */
+		68A40DEA2F60A33000F4E6EE /* Exceptions for "Services" folder in "Headers" phase from "Busylight" target */ = {
+			isa = PBXFileSystemSynchronizedGroupBuildPhaseMembershipExceptionSet;
+			attributesByRelativePath = {
+				BusylightWrapper.m = (Public, );
+			};
+			buildPhase = 68A40DE82F60A31500F4E6EE /* Headers */;
+			membershipExceptions = (
+				BusylightWrapper.m,
+			);
+		};
+/* End PBXFileSystemSynchronizedGroupBuildPhaseMembershipExceptionSet section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
 		68B0A3EA2F5FAAD600BAA1CB /* BusylightTests */ = {
@@ -99,6 +133,10 @@
 		};
 		68ED94D82F5FBBAA0076CCA5 /* Resources */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
+			exceptions = (
+				685375F02F607F6600DCB2DE /* Exceptions for "Resources" folder in "BusylightTests" target */,
+				685375F12F607F6600DCB2DE /* Exceptions for "Resources" folder in "BusylightUITests" target */,
+			);
 			path = Resources;
 			sourceTree = "<group>";
 		};
@@ -124,6 +162,10 @@
 		};
 		68ED95F22F5FD2770076CCA5 /* Services */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
+			exceptions = (
+				68A40DE72F60A2F700F4E6EE /* Exceptions for "Services" folder in "Busylight" target */,
+				68A40DEA2F60A33000F4E6EE /* Exceptions for "Services" folder in "Headers" phase from "Busylight" target */,
+			);
 			path = Services;
 			sourceTree = "<group>";
 		};
@@ -155,8 +197,8 @@
 			isa = PBXGroup;
 			children = (
 				68B0A2932F5FA90300BAA1CB /* Busylight.entitlements */,
+				682B6AF52F609C1900D1E20E /* Busylight.swift */,
 				68B0A2952F5FA90300BAA1CB /* BusylightSDK_Swift.framework */,
-				68B0A2CC2F5FA90300BAA1CB /* Info.plist */,
 				68B0A2942F5FA90300BAA1CB /* Busylight.xcodeproj */,
 				68ED95F12F5FD2280076CCA5 /* App */,
 				68B0A3EA2F5FAAD600BAA1CB /* BusylightTests */,
@@ -189,11 +231,20 @@
 		};
 /* End PBXGroup section */
 
+/* Begin PBXHeadersBuildPhase section */
+		68A40DE82F60A31500F4E6EE /* Headers */ = {
+			isa = PBXHeadersBuildPhase;
+			files = (
+			);
+		};
+/* End PBXHeadersBuildPhase section */
+
 /* Begin PBXNativeTarget section */
 		6838BD7F2F5FA5F900FF5933 /* Busylight */ = {
 			isa = PBXNativeTarget;
 			buildConfigurationList = 6838BDA32F5FA5FA00FF5933 /* Build configuration list for PBXNativeTarget "Busylight" */;
 			buildPhases = (
+				68A40DE82F60A31500F4E6EE /* Headers */,
 				6838BD7C2F5FA5F900FF5933 /* Sources */,
 				6838BD7D2F5FA5F900FF5933 /* Frameworks */,
 				6838BD7E2F5FA5F900FF5933 /* Resources */,
@@ -290,13 +341,16 @@
 				TargetAttributes = {
 					6838BD7F2F5FA5F900FF5933 = {
 						CreatedOnToolsVersion = 26.3;
+						LastSwiftMigration = 2630;
 					};
 					6838BD8E2F5FA5FA00FF5933 = {
 						CreatedOnToolsVersion = 26.3;
+						LastSwiftMigration = 2630;
 						TestTargetID = 6838BD7F2F5FA5F900FF5933;
 					};
 					6838BD982F5FA5FA00FF5933 = {
 						CreatedOnToolsVersion = 26.3;
+						LastSwiftMigration = 2630;
 						TestTargetID = 6838BD7F2F5FA5F900FF5933;
 					};
 				};
@@ -332,19 +386,16 @@
 		6838BD7E2F5FA5F900FF5933 /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			files = (
-				68B0A34E2F5FA90300BAA1CB /* Info.plist in Resources */,
 			);
 		};
 		6838BD8D2F5FA5FA00FF5933 /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			files = (
-				68B0A3C02F5FA90300BAA1CB /* Info.plist in Resources */,
 			);
 		};
 		6838BD972F5FA5FA00FF5933 /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			files = (
-				68B0A2FF2F5FA90300BAA1CB /* Info.plist in Resources */,
 			);
 		};
 /* End PBXResourcesBuildPhase section */
@@ -353,16 +404,19 @@
 		6838BD7C2F5FA5F900FF5933 /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			files = (
+				682B6B072F609C1900D1E20E /* Busylight.swift in Sources */,
 			);
 		};
 		6838BD8B2F5FA5FA00FF5933 /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			files = (
+				682B6B192F609C1900D1E20E /* Busylight.swift in Sources */,
 			);
 		};
 		6838BD952F5FA5FA00FF5933 /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			files = (
+				682B6B2B2F609C1900D1E20E /* Busylight.swift in Sources */,
 			);
 		};
 /* End PBXSourcesBuildPhase section */
@@ -507,6 +561,7 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				ASSETCATALOG_COMPILER_INCLUDE_ALL_APPICON_ASSETS = YES;
+				CLANG_ENABLE_MODULES = YES;
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
 				CURRENT_PROJECT_VERSION = 1;
@@ -546,6 +601,8 @@
 				SWIFT_APPROACHABLE_CONCURRENCY = YES;
 				SWIFT_DEFAULT_ACTOR_ISOLATION = MainActor;
 				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_OBJC_BRIDGING_HEADER = "$(PROJECT_DIR)/Services/Busylight-Bridging-Header.h";
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
 				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
 				SWIFT_VERSION = 5.0;
 			};
@@ -558,6 +615,7 @@
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				ASSETCATALOG_COMPILER_INCLUDE_ALL_APPICON_ASSETS = YES;
 				AUTOMATION_APPLE_EVENTS = NO;
+				CLANG_ENABLE_MODULES = YES;
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
 				CURRENT_PROJECT_VERSION = 1;
@@ -604,6 +662,7 @@
 				SWIFT_APPROACHABLE_CONCURRENCY = YES;
 				SWIFT_DEFAULT_ACTOR_ISOLATION = MainActor;
 				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_OBJC_BRIDGING_HEADER = "$(PROJECT_DIR)/Services/Busylight-Bridging-Header.h";
 				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
 				SWIFT_VERSION = 5.0;
 			};
@@ -613,6 +672,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				BUNDLE_LOADER = "$(TEST_HOST)";
+				CLANG_ENABLE_MODULES = YES;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = 55S9K2V3AG;
@@ -628,6 +688,7 @@
 				STRING_CATALOG_GENERATE_SYMBOLS = NO;
 				SWIFT_APPROACHABLE_CONCURRENCY = YES;
 				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
 				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
 				SWIFT_VERSION = 5.0;
 				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/Busylight.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/Busylight";
@@ -638,6 +699,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				BUNDLE_LOADER = "$(TEST_HOST)";
+				CLANG_ENABLE_MODULES = YES;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = 55S9K2V3AG;
@@ -662,6 +724,7 @@
 		6838BDAA2F5FA5FA00FF5933 /* Debug configuration for PBXNativeTarget "BusylightUITests" */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				CLANG_ENABLE_MODULES = YES;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = 55S9K2V3AG;
@@ -676,6 +739,7 @@
 				STRING_CATALOG_GENERATE_SYMBOLS = NO;
 				SWIFT_APPROACHABLE_CONCURRENCY = YES;
 				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
 				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
 				SWIFT_VERSION = 5.0;
 				TEST_TARGET_NAME = Busylight;
@@ -685,6 +749,7 @@
 		6838BDAB2F5FA5FA00FF5933 /* Release configuration for PBXNativeTarget "BusylightUITests" */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				CLANG_ENABLE_MODULES = YES;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = 55S9K2V3AG;
