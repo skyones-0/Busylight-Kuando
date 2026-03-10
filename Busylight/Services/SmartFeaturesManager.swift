@@ -21,9 +21,10 @@ import SwiftData
 import UserNotifications
 
 // MARK: - Smart Features Manager (Singleton)
-class SmartFeaturesManager: ObservableObject {
+@MainActor
+final class SmartFeaturesManager: ObservableObject {
     static let shared = SmartFeaturesManager()
-    
+
     // MARK: - Published States
     @Published var calendarStatus: CalendarStatus = .none
     @Published var calendarAccessGranted = false
@@ -36,14 +37,15 @@ class SmartFeaturesManager: ObservableObject {
     @Published var dashboardData: ProductivityDashboard = ProductivityDashboard()
     @Published var isWithinWorkHours: Bool = true
     @Published var deepWorkRemainingMinutes: Int = 0
-    
+
     // MARK: - Private Properties
     private var cancellables = Set<AnyCancellable>()
     private var workHoursTimer: Timer?
     private var meetingCheckTimer: Timer?
+    private var deepWorkTimer: Timer?
     private var eventStore = EKEventStore()
     private var captureSession: AVCaptureSession?
-    
+
     // MARK: - Settings
     @AppStorage("calendarSyncEnabled") var calendarSyncEnabled = true
     @AppStorage("selectedCalendarIdentifier") var selectedCalendarIdentifier: String = ""
@@ -56,11 +58,11 @@ class SmartFeaturesManager: ObservableObject {
     @AppStorage("workDays") var workDays = "1,2,3,4,5" // Mon-Fri
     @AppStorage("selectedWorkProfile") var selectedWorkProfile = "standard"
     @AppStorage("zoomDetectionEnabled") var zoomDetectionEnabled = true
-    
+
     private init() {
         setupFeatures()
     }
-    
+
     // MARK: - Setup
     private func setupFeatures() {
         loadWorkProfile()
@@ -71,54 +73,53 @@ class SmartFeaturesManager: ObservableObject {
         setupPresentationDetection()
         updateDashboard()
     }
-    
+
     // MARK: - 1. Calendar Sync
     private var isCalendarSetupAttempted = false
-    
+
     func requestCalendarAccess() {
-        // Prevent multiple requests
         guard !isCalendarSetupAttempted else { return }
         isCalendarSetupAttempted = true
-        
-        // Check if already authorized
+
         let status = EKEventStore.authorizationStatus(for: .event)
-        
+
         if status == .fullAccess {
             calendarAccessGranted = true
             NotificationCenter.default.post(name: NSNotification.Name("CalendarStatusChanged"), object: nil)
             startCalendarMonitoring()
             return
         }
-        
-        // Request access - wrapped in try/catch for sandbox safety
+
         eventStore.requestFullAccessToEvents { [weak self] granted, error in
-            DispatchQueue.main.async {
-                self?.calendarAccessGranted = granted
+            Task { @MainActor [weak self] in
+                guard let self = self else { return }
+                self.calendarAccessGranted = granted
                 NotificationCenter.default.post(name: NSNotification.Name("CalendarStatusChanged"), object: nil)
                 if granted {
-                    self?.startCalendarMonitoring()
+                    self.startCalendarMonitoring()
                 } else if let error = error {
                     print("Calendar access denied: \(error.localizedDescription)")
                 }
             }
         }
     }
-    
+
     private func setupCalendarSync() {
         guard calendarSyncEnabled, !isCalendarSetupAttempted else { return }
-        
-        // Check current authorization status
+
         let status = EKEventStore.authorizationStatus(for: .event)
-        
+
         switch status {
         case .fullAccess, .writeOnly:
             calendarAccessGranted = true
             NotificationCenter.default.post(name: NSNotification.Name("CalendarStatusChanged"), object: nil)
             startCalendarMonitoring()
         case .notDetermined:
-            // Delay request to avoid sandbox issues at startup
             DispatchQueue.main.asyncAfter(deadline: .now() + 2) { [weak self] in
-                self?.requestCalendarAccess()
+                Task { @MainActor [weak self] in
+                    guard let self = self else { return }
+                    self.requestCalendarAccess()
+                }
             }
         case .denied, .restricted:
             calendarAccessGranted = false
@@ -130,57 +131,45 @@ class SmartFeaturesManager: ObservableObject {
             break
         }
     }
-    
+
     private func startCalendarMonitoring() {
         guard calendarAccessGranted else { return }
-        
-        // Load available calendars
         loadAvailableCalendars()
-        
-        // TEMPORALMENTE DESHABILITADO para debugging
-        /*
-        Timer.publish(every: 300, on: .main, in: .common) // Cada 5 minutos
-            .autoconnect()
-            .sink { _ in self.checkCalendarStatus() }
-            .store(in: &cancellables)
-        */
         checkCalendarStatus()
     }
-    
+
     func loadAvailableCalendars() {
         guard calendarAccessGranted else { return }
         availableCalendars = eventStore.calendars(for: .event)
     }
-    
+
     func setSelectedCalendar(_ identifier: String) {
         selectedCalendarIdentifier = identifier
     }
-    
+
     private func checkCalendarStatus() {
         guard calendarAccessGranted else { return }
-        
+
         let now = Date()
-        
-        // Get calendars to check
         var calendarsToCheck: [EKCalendar]
-        
+
         if !selectedCalendarIdentifier.isEmpty,
            let selectedCalendar = availableCalendars.first(where: { $0.calendarIdentifier == selectedCalendarIdentifier }) {
             calendarsToCheck = [selectedCalendar]
         } else {
             calendarsToCheck = availableCalendars.isEmpty ? eventStore.calendars(for: .event) : availableCalendars
         }
-        
+
         guard !calendarsToCheck.isEmpty else {
             calendarStatus = .none
             return
         }
-        
-        let predicate = eventStore.predicateForEvents(withStart: now.addingTimeInterval(-3600), 
-                                                       end: now.addingTimeInterval(3600), 
+
+        let predicate = eventStore.predicateForEvents(withStart: now.addingTimeInterval(-3600),
+                                                       end: now.addingTimeInterval(3600),
                                                        calendars: calendarsToCheck)
         let events = eventStore.events(matching: predicate)
-        
+
         if let currentEvent = events.first(where: { $0.startDate <= now && $0.endDate >= now }) {
             calendarStatus = .inMeeting(currentEvent.title ?? "Meeting")
         } else if let upcomingEvent = events.first(where: { $0.startDate > now && $0.startDate.timeIntervalSince(now) < 300 }) {
@@ -188,16 +177,14 @@ class SmartFeaturesManager: ObservableObject {
         } else {
             calendarStatus = .available
         }
-        
-        // Notificar cambio para UI no-observable
+
         NotificationCenter.default.post(name: NSNotification.Name("CalendarStatusChanged"), object: nil)
-        
         updateLightFromCalendar()
     }
-    
+
     private func updateLightFromCalendar() {
         guard calendarSyncEnabled else { return }
-        
+
         switch calendarStatus {
         case .inMeeting:
             BusylightManager.shared.red()
@@ -211,11 +198,10 @@ class SmartFeaturesManager: ObservableObject {
             break
         }
     }
-    
+
     // MARK: - 2. Focus Mode Sync
     private func setupFocusModeSync() {
         guard focusModeSyncEnabled else { return }
-        // Monitor Focus Mode changes via distributed notifications
         DistributedNotificationCenter.default.addObserver(
             self,
             selector: #selector(focusModeChanged),
@@ -223,12 +209,12 @@ class SmartFeaturesManager: ObservableObject {
             object: nil
         )
     }
-    
+
     @objc private func focusModeChanged(_ notification: Notification) {
         guard focusModeSyncEnabled,
               let userInfo = notification.userInfo,
               let mode = userInfo["focusMode"] as? String else { return }
-        
+
         switch mode {
         case "com.apple.focus.work":
             focusMode = .work
@@ -244,39 +230,34 @@ class SmartFeaturesManager: ObservableObject {
             BusylightManager.shared.blue()
         }
     }
-    
+
     // MARK: - 3. Dashboard Data
     func updateDashboard() {
-        // Simplified dashboard without SwiftData fetch
         dashboardData = ProductivityDashboard()
     }
-    
+
     // MARK: - 6. Deep Work Mode
-    private var deepWorkTimer: Timer?
-    
     func startDeepWorkMode(durationMinutes: Int = 90) {
-        // Stop Pomodoro if running
         if PomodoroManager.shared.isRunning {
             PomodoroManager.shared.stop()
         }
-        
+
         isDeepWorkActive = true
         deepWorkRemainingMinutes = durationMinutes
-        
-        // Set light
         BusylightManager.shared.red()
-        
-        // Start countdown timer (updates every minute)
+
         deepWorkTimer?.invalidate()
         deepWorkTimer = Timer.scheduledTimer(withTimeInterval: 60, repeats: true) { [weak self] _ in
-            guard let self = self else { return }
-            self.deepWorkRemainingMinutes -= 1
-            if self.deepWorkRemainingMinutes <= 0 {
-                self.endDeepWorkMode()
+            Task { @MainActor [weak self] in
+                guard let self = self else { return }
+                self.deepWorkRemainingMinutes -= 1
+                if self.deepWorkRemainingMinutes <= 0 {
+                    self.endDeepWorkMode()
+                }
             }
         }
     }
-    
+
     func endDeepWorkMode() {
         isDeepWorkActive = false
         deepWorkRemainingMinutes = 0
@@ -284,19 +265,19 @@ class SmartFeaturesManager: ObservableObject {
         deepWorkTimer = nil
         BusylightManager.shared.off()
     }
-    
+
     // MARK: - 7. Work Profiles
     private func loadWorkProfile() {
         currentWorkProfile = WorkProfile(rawValue: selectedWorkProfile) ?? .standard
     }
-    
+
     func setWorkProfile(_ profile: WorkProfile) {
         currentWorkProfile = profile
         selectedWorkProfile = profile.rawValue
         UserInteractionLogger.shared.profileChanged(to: profile.displayName)
         applyWorkProfile(profile)
     }
-    
+
     private func applyWorkProfile(_ profile: WorkProfile) {
         switch profile {
         case .coding:
@@ -315,93 +296,84 @@ class SmartFeaturesManager: ObservableObject {
             PomodoroManager.shared.shortBreakMinutes = 5
         }
     }
-    
+
     // MARK: - 10. Zoom/Meet Detection
     private func setupMeetingDetection() {
         guard zoomDetectionEnabled else { return }
-        
-        meetingCheckTimer = Timer.scheduledTimer(withTimeInterval: 10, repeats: true) { _ in
-            self.checkCameraAndMicrophone()
+
+        meetingCheckTimer = Timer.scheduledTimer(withTimeInterval: 10, repeats: true) { [weak self] _ in
+            Task { @MainActor [weak self] in
+                self?.checkCameraAndMicrophone()
+            }
         }
     }
-    
+
     private func checkCameraAndMicrophone() {
-        // Check for running video apps
         let runningApps = NSWorkspace.shared.runningApplications
         let videoApps = ["zoom.us", "com.microsoft.teams", "com.google.Chrome"]
         let isVideoAppRunning = runningApps.contains { app in
             videoApps.contains(app.bundleIdentifier ?? "")
         }
-        
+
         let wasInMeeting = isInMeeting
         isInMeeting = isVideoAppRunning
-        
+
         if isInMeeting && !wasInMeeting {
             BusylightManager.shared.red()
         } else if !isInMeeting && wasInMeeting {
             BusylightManager.shared.green()
         }
     }
-    
+
     // MARK: - 12. Presentation Mode
     private func setupPresentationDetection() {
         guard presentationModeEnabled else { return }
-        
-        // TEMPORALMENTE DESHABILITADO para debugging
-        /*
-        Timer.publish(every: 30, on: .main, in: .common)
-            .autoconnect()
-            .sink { _ in self.checkPresentationMode() }
-            .store(in: &cancellables)
-        */
     }
-    
+
     private func checkPresentationMode() {
         let runningApps = NSWorkspace.shared.runningApplications
-        
-        // Check for presentation apps
         let presentationApps = ["com.apple.iWork.Keynote", "com.microsoft.Powerpoint"]
         let isPresentingNow = runningApps.contains { app in
             presentationApps.contains(app.bundleIdentifier ?? "") && app.isActive
         }
-        
+
         let wasPresenting = isPresenting
         isPresenting = isPresentingNow
-        
+
         if isPresenting && !wasPresenting {
             BusylightManager.shared.red()
         } else if !isPresenting && wasPresenting {
             BusylightManager.shared.off()
         }
     }
-    
+
     // MARK: - 13. Work Hours
     private func setupWorkHoursChecker() {
         guard workHoursEnabled else { return }
-        
+
         checkWorkHours()
-        
-        workHoursTimer = Timer.scheduledTimer(withTimeInterval: 300, repeats: true) { _ in
-            self.checkWorkHours()
+
+        workHoursTimer = Timer.scheduledTimer(withTimeInterval: 300, repeats: true) { [weak self] _ in
+            Task { @MainActor [weak self] in
+                self?.checkWorkHours()
+            }
         }
     }
-    
+
     private func checkWorkHours() {
         let calendar = Calendar.current
         let now = Date()
         let hour = calendar.component(.hour, from: now)
         let weekday = calendar.component(.weekday, from: now)
-        
+
         let workDaysArray = workDays.split(separator: ",").compactMap { Int($0) }
         let isWorkDay = workDaysArray.contains(weekday)
         let isWorkHour = hour >= workStartTime && hour < workEndTime
-        
+
         isWithinWorkHours = isWorkDay && isWorkHour
     }
-    
+
     // MARK: - Work Hours Management
-    // Note: Auto-adjustment by ML has been removed. Work hours are now manual only.
-    // To update work hours, modify workStartTime and workEndTime AppStorage properties directly.
 }
 
 // MARK: - User Interaction Logger (forward declaration)
@@ -434,7 +406,7 @@ enum WorkProfile: String, CaseIterable {
     case meetings = "meetings"
     case deepWork = "deepWork"
     case learning = "learning"
-    
+
     var displayName: String {
         switch self {
         case .standard: return "Standard"
@@ -444,7 +416,7 @@ enum WorkProfile: String, CaseIterable {
         case .learning: return "Learning"
         }
     }
-    
+
     var icon: String {
         switch self {
         case .standard: return "timer"
@@ -465,12 +437,12 @@ struct ProductivityDashboard {
     var bestDay: String = "Monday"
     var bestDayHours: Double = 6.5
     var weeklyData: [DailyData] = []
-    
+
     struct DailyData {
         let date: Date
         let hours: Double
         let pomodoros: Int
     }
-    
+
     init() {}
 }

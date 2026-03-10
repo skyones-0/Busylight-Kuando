@@ -14,6 +14,7 @@
 import SwiftUI
 import Combine
 
+@MainActor
 class AppDelegate: NSObject, NSApplicationDelegate, ObservableObject {
     var statusItem: NSStatusItem?
     var popover = NSPopover()
