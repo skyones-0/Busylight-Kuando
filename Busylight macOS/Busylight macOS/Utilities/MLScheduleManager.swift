@@ -191,6 +191,9 @@ class MLScheduleManager: ObservableObject {
     
     // MARK: - Prediction
     
+    /// Historial de predicciones para análisis con ML Tensor
+    private var predictionHistory: [DayCategoryPrediction] = []
+    
     func predictTodayCategory() async {
         // Obtener datos actuales
         let dataCollector = DayDataCollector.shared
@@ -202,23 +205,67 @@ class MLScheduleManager: ObservableObject {
         // Estimar minutos de reunión (aproximación)
         let estimatedMeetingMinutes = meetings * 45 // 45 min promedio por reunión
         
-        // Hacer predicción
-        if let prediction = await DayCategoryClassifierWrapper.shared.predictToday(
+        // Hacer predicción base
+        guard let prediction = await DayCategoryClassifierWrapper.shared.predictToday(
             meetings: meetings,
             totalMeetingMinutes: estimatedMeetingMinutes,
             freeTimeSlots: freeSlots
-        ) {
-            await MainActor.run {
-                self.todayCategory = prediction.category
-                self.todayConfidence = prediction.confidence
+        ) else {
+            BusylightLogger.shared.warning("⚠️ ML Prediction failed")
+            return
+        }
+        
+        // Guardar en historial
+        predictionHistory.append(prediction)
+        if predictionHistory.count > 30 { // Mantener últimas 30 predicciones
+            predictionHistory.removeFirst()
+        }
+        
+        // Mejorar con ML Tensor (macOS 13+)
+        var finalCategory = prediction.category
+        var finalConfidence = prediction.confidence
+        var enhancedRecommendation = prediction.recommendation
+        
+        if #available(macOS 13.0, *), predictionHistory.count >= 3 {
+            let tensorManager = MLTensorManager.shared
+            let enhanced = await tensorManager.enhancePrediction(
+                basePrediction: prediction,
+                historicalData: predictionHistory
+            )
+            
+            finalConfidence = enhanced.adjustedConfidence
+            enhancedRecommendation = enhanced.enhancedRecommendation
+            
+            // Log de mejora
+            if enhanced.trend != .stable {
+                BusylightLogger.shared.info("📈 ML Tensor: Tendencia detectada - \(enhanced.trend)")
             }
             
-            BusylightLogger.shared.info("📊 ML Prediction: \(prediction.category.displayName) (\(Int(prediction.confidence * 100))%)")
-            
-            // Notificar si es burnout risk
-            if prediction.category == .burnoutRisk && configuration?.notificationOnAutoTrain == true {
-                NotificationCenterManager.shared.showBurnoutWarningNotification()
+            // Detectar anomalías
+            let anomalies = tensorManager.detectAnomalies(recentPredictions: predictionHistory)
+            for anomaly in anomalies {
+                BusylightLogger.shared.warning("🚨 Anomalía detectada: \(anomaly.description)")
+                
+                // Notificar anomalías graves
+                if anomaly.severity == .high {
+                    NotificationCenterManager.shared.showInfoNotification(
+                        title: "Patrón Inusual Detectado",
+                        body: anomaly.suggestion
+                    )
+                }
             }
+        }
+        
+        await MainActor.run {
+            self.todayCategory = finalCategory
+            self.todayConfidence = finalConfidence
+        }
+        
+        BusylightLogger.shared.info("📊 ML Prediction: \(finalCategory.displayName) (\(Int(finalConfidence * 100))%)")
+        
+        // Notificar si es burnout risk
+        if finalCategory == .burnoutRisk && configuration?.notificationOnAutoTrain == true {
+            NotificationCenterManager.shared.showBurnoutWarningNotification()
         }
     }
     
@@ -299,6 +346,20 @@ class MLScheduleManager: ObservableObject {
         let holiday = HolidayCalendar(date: date, name: name, isEnabled: isEnabled)
         context.insert(holiday)
         try? context.save()
+    }
+    
+    // MARK: - ML Tensor Analytics (macOS 13+)
+    
+    @available(macOS 13.0, *)
+    func getWeeklyPatternAnalysis() -> WeeklyPatternAnalysis? {
+        guard predictionHistory.count >= 7 else { return nil }
+        return MLTensorManager.shared.analyzeWeeklyPatterns(predictions: predictionHistory)
+    }
+    
+    @available(macOS 13.0, *)
+    func getRecentAnomalies() -> [Anomaly] {
+        guard predictionHistory.count >= 3 else { return [] }
+        return MLTensorManager.shared.detectAnomalies(recentPredictions: predictionHistory)
     }
     
     // MARK: - Analytics
