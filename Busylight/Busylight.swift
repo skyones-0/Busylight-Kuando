@@ -6,7 +6,7 @@
 import SwiftUI
 import SwiftData
 
-struct ContentView: View {
+struct BusylightApp: View {
     @State private var isHovered = false
     @StateObject private var busylight = BusylightManager()
     @StateObject private var locationManager = LocationManager.shared
@@ -15,6 +15,7 @@ struct ContentView: View {
     @Query private var appSettings: [AppSettings]
     @State private var selectedItem: SidebarItem = .pomodoro
     @State private var isSidebarCollapsed: Bool = SidebarState.isCollapsed
+    @StateObject private var audio = AudioManager.shared
 
     private let expandedWidth: CGFloat = 200
     private let collapsedWidth: CGFloat = 60
@@ -33,7 +34,6 @@ struct ContentView: View {
 
     var body: some View {
         ZStack {
-            // Gradient más visible
             LinearGradient(
                 colors: [
                     Color.blue.opacity(0.15),
@@ -58,20 +58,24 @@ struct ContentView: View {
                     .background(Color.clear)
             }
         }
-        .toolbar {
-            ToolbarItem(placement: .navigation) {
-                Button(action: {
-                    print("Toolbar button presionado")
-                    toggleSidebar()
-                }) {
+        .overlay(alignment: .topLeading) {
+            HStack(spacing: 12) {
+                Button(action: toggleSidebar) {
                     Image(systemName: "sidebar.left")
+                        .foregroundStyle(.primary)
                 }
+                .buttonStyle(.plain)
+                .padding(8)
+                .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: 8))
                 .help("Mostrar/Ocultar sidebar")
+
+                AudioMenuView()
             }
+            .padding(.leading, 80)
+            .padding(.top, 8)
         }
     }
 
-    // MARK: - Sidebar Content
     private var sidebarContent: some View {
         ZStack {
             Color.clear
@@ -79,7 +83,7 @@ struct ContentView: View {
                 .ignoresSafeArea()
 
             VStack(spacing: 0) {
-                HStack { /* Espacio reservado para toolbar */ }
+                HStack { }
 
                 if !isSidebarCollapsed {
                     expandedHeader
@@ -178,7 +182,6 @@ struct ContentView: View {
         .padding(.bottom, 16)
     }
 
-    // MARK: - Detail Content (CORREGIDO)
     private var detailContent: some View {
         ScrollView {
             VStack {
@@ -203,11 +206,10 @@ struct ContentView: View {
             }
             .frame(maxWidth: .infinity)
         }
-        .id(selectedItem)  // ← ESTO ES LO QUE FALTABA: fuerza recreación al cambiar selección
+        .id(selectedItem)
         .contentMargins(.all, 20, for: .scrollContent)
     }
 
-    // MARK: - Actions
     private func toggleSidebar() {
         withAnimation(.interactiveSpring(response: 0.25, dampingFraction: 0.8)) {
             isSidebarCollapsed.toggle()
@@ -219,28 +221,87 @@ struct ContentView: View {
         selectedItem = item
         UserInteractionLogger.shared.navigation(to: item.rawValue)
     }
+}
 
-    private func syncSettingsToAppDelegate() {
-        appDelegate.showInDock = settings.showInDock
-        appDelegate.showInMenuBar = settings.showInMenuBar
-    }
+struct AudioMenuView: View {
+    @StateObject private var audio = AudioManager.shared
+    @State private var isExpanded = false
 
-    private func bringWindowToFront() {
-        NSApp.activate(ignoringOtherApps: true)
-        NSApp.unhide(nil)
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
-            for window in NSApp.windows {
-                if window.isVisible || !window.isMiniaturized {
-                    window.makeKeyAndOrderFront(nil)
-                    window.orderFrontRegardless()
-                    return
+    var body: some View {
+        ZStack(alignment: .topLeading) {
+            Button {
+                withAnimation(.spring(response: 0.3, dampingFraction: 0.8)) {
+                    isExpanded.toggle()
                 }
+            } label: {
+                HStack(spacing: 6) {
+                    Image(systemName: audio.isPlaying ? "speaker.wave.2.fill" : "speaker.slash.fill")
+                        .foregroundStyle(audio.isPlaying ? .green : .secondary)
+                    if audio.isPlaying, let track = audio.currentTrack {
+                        Text(track)
+                            .font(.caption)
+                            .lineLimit(1)
+                    }
+                    Image(systemName: "chevron.down")
+                        .font(.caption2)
+                        .rotationEffect(.degrees(isExpanded ? 180 : 0))
+                }
+                .padding(.horizontal, 10)
+                .padding(.vertical, 6)
+            }
+            .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: 8))
+            .overlay(RoundedRectangle(cornerRadius: 8).stroke(Color.white.opacity(0.2), lineWidth: 0.5))
+
+            if isExpanded {
+                VStack(alignment: .leading, spacing: 2) {
+                    ForEach(audio.tracks, id: \.self) { track in
+                        Button {
+                            audio.currentTrack == track ? audio.stop() : audio.play(track)
+                            isExpanded = false
+                        } label: {
+                            HStack {
+                                Text(track)
+                                Spacer()
+                                if audio.currentTrack == track {
+                                    Image(systemName: "checkmark")
+                                        .foregroundStyle(.green)
+                                }
+                            }
+                            .padding(.horizontal, 12)
+                            .padding(.vertical, 8)
+                        }
+                        .buttonStyle(.plain)
+                    }
+
+                    Divider()
+
+                    Button("Stop") {
+                        audio.stop()
+                        isExpanded = false
+                    }
+                    .padding(.horizontal, 12)
+                    .padding(.vertical, 8)
+
+                    HStack {
+                        Image(systemName: "speaker.fill")
+                        Slider(value: $audio.volume, in: 0...1)
+                            .controlSize(.mini)
+                    }
+                    .padding(.horizontal, 12)
+                    .padding(.vertical, 8)
+                }
+                .frame(width: 160)
+                .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: 12))
+                .overlay(RoundedRectangle(cornerRadius: 12).stroke(Color.white.opacity(0.15), lineWidth: 0.5))
+                .shadow(color: .black.opacity(0.3), radius: 10, x: 0, y: 5)
+                .offset(y: 36)
+                .zIndex(100)
             }
         }
+        .zIndex(isExpanded ? 100 : 1)
     }
 }
 
-// MARK: - Sidebar State Persistence
 private struct SidebarState {
     private static let key = "sidebarCollapsed"
     static var isCollapsed: Bool {
@@ -249,7 +310,6 @@ private struct SidebarState {
     }
 }
 
-// MARK: - Collapsed Sidebar Item
 struct CollapsedSidebarItem: View {
     let item: SidebarItem
     let isSelected: Bool
