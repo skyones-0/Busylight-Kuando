@@ -140,7 +140,7 @@ struct WorkProfilesView: View {
         default: BusylightManager.shared.blue()
         }
         
-        NotificationManager.shared.showInfoNotification(
+        NotificationCenterManager.shared.showInfoNotification(
             title: "Perfil Aplicado",
             body: "Se aplicó el perfil \(profile.name)"
         )

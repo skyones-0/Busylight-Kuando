@@ -239,6 +239,50 @@ class PomodoroManager: ObservableObject {
         }
     }
     
+    
+    // MARK: - Timer State & Stats (Added for PomodoroView compatibility)
+    
+    enum TimerState: String {
+        case idle, running, paused
+    }
+    
+    var timerState: TimerState {
+        if isRunning { return .running }
+        if isPaused { return .paused }
+        return .idle
+    }
+    
+    var phaseDescription: String {
+        switch currentPhase {
+        case .work: return "Tiempo de concentración"
+        case .shortBreak: return "Descanso corto"
+        case .longBreak: return "Descanso largo"
+        }
+    }
+    
+    var timeRemaining: Int { remainingSeconds }
+    var totalTime: Int { totalSecondsForPhase(currentPhase) }
+    
+    // Stats (persisted)
+    @AppStorage("pomodoroSessionsCompleted") var sessionsCompleted: Int = 0
+    @AppStorage("pomodoroTotalFocusTime") var totalFocusTime: Int = 0
+    @AppStorage("pomodoroStreak") var streak: Int = 0
+    @AppStorage("pomodoroMaxSets") var maxSets: Int = 4
+    
+    func reset() {
+        stop()
+    }
+    
+    func resume() {
+        start()
+    }
+    
+    func setDuration(_ minutes: Int) {
+        guard !isRunning && !isPaused else { return }
+        workTimeMinutes = minutes
+        remainingSeconds = minutes * 60
+    }
+
     func updateConfiguration() {
         totalSets = configuredSets
         if !isRunning && !isPaused {
