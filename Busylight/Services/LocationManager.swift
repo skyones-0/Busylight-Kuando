@@ -2,182 +2,129 @@
 //  LocationManager.swift
 //  Busylight
 //
-//  Servicio de GPS para detección automática de país y suscripción a calendario de festivos
+//  Servicio de detección de país vía Locale (sin GPS, sandbox-friendly)
 //
 
 import Foundation
-import CoreLocation
 import SwiftData
 import Combine
 
 @MainActor
-class LocationManager: NSObject, ObservableObject {
+class LocationManager: ObservableObject {
     static let shared = LocationManager()
-    
-    private let manager = CLLocationManager()
+
     private var modelContext: ModelContext?
     private var hasAutoSubscribed = false
-    
+
     @Published var detectedCountryCode: String?
     @Published var detectedCountryName: String?
     @Published var detectedCountryFlag: String?
-    @Published var authorizationStatus: CLAuthorizationStatus = .notDetermined
-    @Published var isLoading = false
-    @Published var locationError: String?
-    
-    private override init() {
-        super.init()
-        manager.delegate = self
-        manager.desiredAccuracy = kCLLocationAccuracyThreeKilometers
-    }
-    
+
+    private init() {}
+
     func configure(with context: ModelContext) {
         self.modelContext = context
-        loadSavedCountry()
+        detectCountryFromLocale()
     }
-    
-    private func loadSavedCountry() {
-        guard let context = modelContext else { return }
-        let descriptor = FetchDescriptor<AppSettings>()
-        if let settings = try? context.fetch(descriptor).first,
-           let savedCountry = settings.detectedCountryCode {
-            detectedCountryCode = savedCountry
-            if let country = CalendarConfiguration.supportedCountries.first(where: { $0.code == savedCountry }) {
-                detectedCountryName = country.name
-                detectedCountryFlag = country.flag
-            }
-        }
+
+    private func detectCountryFromLocale() {
+        let locale = Locale.current
+        let countryCode = locale.region?.identifier ?? "US"
+        processCountry(countryCode)
+        BusylightLogger.shared.info("Locale detectado: \(locale.identifier)")
+        BusylightLogger.shared.info("Región del sistema: \(locale.region?.identifier ?? "nil")")
+        BusylightLogger.shared.info("País detectado: \(countryCode)")
+
     }
-    
-    func requestAuthorization() {
-        let status = manager.authorizationStatus
-        authorizationStatus = status
-        
-        switch status {
-        case .notDetermined:
-            manager.requestWhenInUseAuthorization()
-        case .authorizedAlways, .authorizedWhenInUse:
-            startLocationUpdate()
-        case .denied, .restricted:
-            locationError = "Acceso a ubicación denegado. Por favor habilítalo en Preferencias del Sistema."
-        @unknown default:
-            break
-        }
+
+    func manualSelectCountry(code: String) {
+        processCountry(code)
     }
-    
-    func startLocationUpdate() {
-        isLoading = true
-        locationError = nil
-        manager.startUpdatingLocation()
-    }
-    
-    private func geocodeCountry(from location: CLLocation) async {
-        let geocoder = CLGeocoder()
-        do {
-            let placemarks = try await geocoder.reverseGeocodeLocation(location)
-            if let placemark = placemarks.first,
-               let countryCode = placemark.isoCountryCode {
-                await processDetectedCountry(countryCode)
-            }
-        } catch {
-            locationError = "Error al obtener ubicación: \(error.localizedDescription)"
-        }
-        isLoading = false
-    }
-    
-    private func processDetectedCountry(_ countryCode: String) async {
-        guard let country = CalendarConfiguration.supportedCountries.first(where: { $0.code == countryCode }) else {
+
+    private func processCountry(_ countryCode: String) {
+        guard let country = CountryData.supportedCountries.first(where: { $0.code == countryCode }) else {
             detectedCountryCode = countryCode
             detectedCountryName = countryCode
             detectedCountryFlag = "🌎"
             return
         }
-        
+
         detectedCountryCode = country.code
         detectedCountryName = country.name
         detectedCountryFlag = country.flag
-        
-        // Guardar en AppSettings
-        if let context = modelContext {
-            let descriptor = FetchDescriptor<AppSettings>()
-            let settings = (try? context.fetch(descriptor).first) ?? AppSettings()
-            if settings.detectedCountryCode == nil {
-                context.insert(settings)
-            }
-            settings.detectedCountryCode = country.code
-            settings.detectedCountryName = country.name
-            settings.detectedCountryFlag = country.flag
-            settings.updatedAt = Date()
-            try? context.save()
+
+        saveAndAutoSubscribe(country: country)
+    }
+
+    private func saveAndAutoSubscribe(country: Country) {
+        guard let context = modelContext else { return }
+
+        let descriptor = FetchDescriptor<AppSettings>()
+        let settings = (try? context.fetch(descriptor).first) ?? AppSettings()
+        if settings.detectedCountryCode == nil {
+            context.insert(settings)
         }
-        
-        // Auto-subscribir a calendario de festivos si no hay uno configurado
+        settings.detectedCountryCode = country.code
+        settings.detectedCountryName = country.name
+        settings.detectedCountryFlag = country.flag
+        settings.updatedAt = Date()
+        try? context.save()
+
         if !hasAutoSubscribed {
             hasAutoSubscribed = true
-            await autoSubscribeToHolidayCalendar(countryCode: country.code)
+            autoSubscribeToHolidayCalendar(country: country)
         }
     }
-    
-    private func autoSubscribeToHolidayCalendar(countryCode: String) async {
+
+    private func autoSubscribeToHolidayCalendar(country: Country) {
         guard let context = modelContext else { return }
-        
-        // Verificar si ya tiene calendario de festivos
+
         let descriptor = FetchDescriptor<CalendarConfiguration>(
             predicate: #Predicate { $0.calendarType == "holiday" }
         )
-        let existingHolidays = (try? context.fetch(descriptor)) ?? []
-        
-        guard existingHolidays.isEmpty else {
-            BusylightLogger.shared.info("Ya existe calendario de festivos configurado")
-            return
-        }
-        
-        // Crear configuración de festivos
-        let country = CalendarConfiguration.supportedCountries.first { $0.code == countryCode }
+        guard (try? context.fetch(descriptor))?.isEmpty == true else { return }
+
         let holidayConfig = CalendarConfiguration(
-            calendarIdentifier: "holidays.\(countryCode)",
-            calendarName: "\(country?.flag ?? "🌎") Festivos \(country?.name ?? countryCode)",
+            calendarIdentifier: "holidays.\(country.code)",
+            calendarName: "\(country.flag) Festivos \(country.name)",
             calendarType: "holiday"
         )
         context.insert(holidayConfig)
         try? context.save()
-        
-        // Generar festivos para ML
-        let holidays = HolidayData.holidays(for: countryCode, year: Calendar.current.component(.year, from: Date()))
-        BusylightLogger.shared.info("GPS: Auto-suscrito a festivos de \(country?.name ?? countryCode) - \(holidays.count) días")
+
+        let holidays = HolidayData.holidays(for: country.code, year: Calendar.current.component(.year, from: Date()))
+        BusylightLogger.shared.info("Locale: Auto-suscrito a festivos de \(country.name) - \(holidays.count) días")
     }
 }
 
-extension LocationManager: CLLocationManagerDelegate {
-    nonisolated func locationManager(_ manager: CLLocationManager, didUpdateLocations locations: [CLLocation]) {
-        guard let location = locations.last else { return }
-        manager.stopUpdatingLocation()
-        Task { @MainActor in
-            await geocodeCountry(from: location)
-        }
-    }
-    
-    nonisolated func locationManager(_ manager: CLLocationManager, didFailWithError error: Error) {
-        Task { @MainActor in
-            isLoading = false
-            locationError = "Error de GPS: \(error.localizedDescription)"
-        }
-    }
-    
-    nonisolated func locationManagerDidChangeAuthorization(_ manager: CLLocationManager) {
-        Task { @MainActor in
-            authorizationStatus = manager.authorizationStatus
-            switch manager.authorizationStatus {
-            case .authorizedAlways, .authorizedWhenInUse:
-                startLocationUpdate()
-            case .denied, .restricted:
-                isLoading = false
-                locationError = "Permiso de ubicación denegado"
-            case .notDetermined:
-                break
-            @unknown default:
-                break
-            }
-        }
-    }
+// MARK: - Country Data
+struct Country: Codable {
+    let code: String
+    let name: String
+    let flag: String
+}
+
+enum CountryData {
+    static let supportedCountries: [Country] = [
+        Country(code: "US", name: "Estados Unidos", flag: "🇺🇸"),
+        Country(code: "MX", name: "México", flag: "🇲🇽"),
+        Country(code: "ES", name: "España", flag: "🇪🇸"),
+        Country(code: "AR", name: "Argentina", flag: "🇦🇷"),
+        Country(code: "CO", name: "Colombia", flag: "🇨🇴"),
+        Country(code: "CL", name: "Chile", flag: "🇨🇱"),
+        Country(code: "PE", name: "Perú", flag: "🇵🇪"),
+        Country(code: "VE", name: "Venezuela", flag: "🇻🇪"),
+        Country(code: "EC", name: "Ecuador", flag: "🇪🇨"),
+        Country(code: "BO", name: "Bolivia", flag: "🇧🇴"),
+        Country(code: "PY", name: "Paraguay", flag: "🇵🇾"),
+        Country(code: "UY", name: "Uruguay", flag: "🇺🇾"),
+        Country(code: "BR", name: "Brasil", flag: "🇧🇷"),
+        Country(code: "GB", name: "Reino Unido", flag: "🇬🇧"),
+        Country(code: "DE", name: "Alemania", flag: "🇩🇪"),
+        Country(code: "FR", name: "Francia", flag: "🇫🇷"),
+        Country(code: "IT", name: "Italia", flag: "🇮🇹"),
+        Country(code: "CA", name: "Canadá", flag: "🇨🇦"),
+        Country(code: "AU", name: "Australia", flag: "🇦🇺"),
+        Country(code: "JP", name: "Japón", flag: "🇯🇵")
+    ]
 }

@@ -1,3 +1,16 @@
+//
+//  AppDelegate.swift
+//  Busylight
+//
+//  Manages macOS-specific app lifecycle events, dock visibility,
+//  and menu bar status item with popover/ detached window support.
+//
+//  Relationships:
+//  - Used by: ContentView.swift (syncs settings), MenuBarView.swift (visibility toggles)
+//  - Manages: BusylightManager (shared instance)
+//  - See: SettingsView.swift for dock/menubar toggle UI
+//
+
 import SwiftUI
 import Combine
 

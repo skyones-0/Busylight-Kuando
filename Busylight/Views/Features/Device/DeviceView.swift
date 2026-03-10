@@ -2,14 +2,12 @@
 //  DeviceView.swift
 //  Busylight
 //
-//  Device control interface for Busylight hardware
-//
 
 import SwiftUI
 
 struct DeviceView: View {
-    @ObservedObject var busylight: BusylightManager
-    
+    @EnvironmentObject var busylight: BusylightManager  // ← Cambiado: @ObservedObject → @EnvironmentObject
+
     private var colors: [(name: String, color: Color, action: () -> Void)] {
         [
             ("Red", .red, { busylight.red() }),
@@ -24,14 +22,14 @@ struct DeviceView: View {
             ("Pink", .pink, { busylight.pink() })
         ]
     }
-    
+
     var body: some View {
         VStack(spacing: 20) {
             // Header
             VStack(spacing: 4) {
                 Text("Light Control")
                     .font(.system(.largeTitle, design: .rounded).weight(.bold))
-                
+
                 Text("Test your Busylight device")
                     .font(.subheadline)
                     .foregroundStyle(.secondary)
@@ -39,14 +37,14 @@ struct DeviceView: View {
             .frame(maxWidth: .infinity, alignment: .leading)
             .padding(.horizontal, 24)
             .padding(.top, 20)
-            
+
             // Colors Section
-            GlassCard(title: "Solid Colors", icon: "paintpalette.fill") {
+            LiquidCard(title: "Solid Colors", icon: "paintpalette.fill") {
                 LazyVGrid(columns: [
                     GridItem(.adaptive(minimum: 75, maximum: 85), spacing: 10)
                 ], spacing: 10) {
                     ForEach(colors, id: \.name) { item in
-                        GlassColorButton(
+                        LiquidGlassColorButton(
                             name: item.name,
                             color: item.color,
                             action: {
@@ -59,14 +57,14 @@ struct DeviceView: View {
                 }
             }
             .padding(.horizontal, 20)
-            
+
             // Jingles Section
-            GlassCard(title: "Audio Jingles", icon: "speaker.wave.2.fill") {
+            LiquidCard(title: "Audio Jingles", icon: "speaker.wave.2.fill") {
                 LazyVGrid(columns: [
                     GridItem(.adaptive(minimum: 50, maximum: 60), spacing: 8)
                 ], spacing: 8) {
                     ForEach(1...16, id: \.self) { number in
-                        GlassJingleButton(number: number) {
+                        LiquidGlassJingleButton(number: number) {
                             BusylightLogger.shared.info("DeviceView: Jingle \(number) pressed")
                             UserInteractionLogger.shared.deviceJinglePlayed(number: number)
                             busylight.jingle(
@@ -81,11 +79,11 @@ struct DeviceView: View {
                 }
             }
             .padding(.horizontal, 20)
-            
+
             // Quick Actions
-            GlassCard(title: "Quick Actions", icon: "bolt.fill") {
+            LiquidCard(title: "Quick Actions", icon: "bolt.fill") {
                 HStack(spacing: 12) {
-                    GlassActionButton(
+                    LiquidGlassActionButton(
                         title: "Off",
                         icon: "power",
                         color: .gray,
@@ -94,8 +92,8 @@ struct DeviceView: View {
                             busylight.off()
                         }
                     )
-                    
-                    GlassActionButton(
+
+                    LiquidGlassActionButton(
                         title: "Pulse",
                         icon: "waveform",
                         color: .blue,
@@ -104,8 +102,8 @@ struct DeviceView: View {
                             busylight.pulseBlue()
                         }
                     )
-                    
-                    GlassActionButton(
+
+                    LiquidGlassActionButton(
                         title: "Blink",
                         icon: "exclamationmark.triangle.fill",
                         color: .orange,
@@ -117,32 +115,26 @@ struct DeviceView: View {
                 }
             }
             .padding(.horizontal, 20)
-            
+
             Spacer(minLength: 20)
         }
     }
 }
 
-// MARK: - Supporting Views for Device
-
-struct GlassColorButton: View {
+// MARK: - Supporting Views (sin cambios)
+struct LiquidGlassColorButton: View {
+    @State private var isHovered = false
     let name: String
     let color: Color
     let action: () -> Void
-    @State private var isHovered = false
-    
+
     var body: some View {
         Button(action: action) {
             VStack(spacing: 4) {
                 Circle()
                     .fill(color)
                     .frame(width: 40, height: 40)
-                    .overlay(
-                        Circle()
-                            .stroke(.white.opacity(0.4), lineWidth: 1)
-                    )
-                    .shadow(color: color.opacity(0.5), radius: 4)
-                
+
                 Text(name)
                     .font(.system(.caption2, design: .rounded))
                     .foregroundStyle(.secondary)
@@ -151,35 +143,25 @@ struct GlassColorButton: View {
         }
         .buttonStyle(.plain)
         .focusable(false)
-        .scaleEffect(isHovered ? 1.05 : 1)
-        .onHover { isHovered = $0 }
-        .animation(.easeOut(duration: 0.2), value: isHovered)
+        .onHover { hovering in
+            isHovered = hovering
+        }
     }
 }
 
-struct GlassJingleButton: View {
+struct LiquidGlassJingleButton: View {
     let number: Int
     let action: () -> Void
-    @State private var isHovered = false
-    
+
     var body: some View {
         Button(action: action) {
-            ZStack {
-                RoundedRectangle(cornerRadius: 8)
-                    .fill(Material.thinMaterial)
-                
-                Text("\(number)")
-                    .font(.system(.body, design: .rounded).weight(.medium))
-                    .foregroundStyle(.primary)
-            }
-            .frame(height: 44)
+            Text("\(number)")
+                .font(.system(.body, design: .rounded).weight(.medium))
+                .foregroundStyle(.primary)
+                .frame(height: 44)
+                .frame(maxWidth: .infinity)
         }
-        .buttonStyle(.plain)
+        .buttonStyle(.liquidGlass)
         .focusable(false)
-        .scaleEffect(isHovered ? 1.05 : 1)
-        .onHover { isHovered = $0 }
-        .animation(.easeOut(duration: 0.2), value: isHovered)
     }
 }
-
-

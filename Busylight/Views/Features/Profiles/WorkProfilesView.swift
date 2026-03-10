@@ -62,6 +62,7 @@ struct WorkProfilesView: View {
                     .font(.title2)
             }
             .buttonStyle(.borderedProminent)
+            .focusable(false)
         }
     }
     
@@ -86,7 +87,7 @@ struct WorkProfilesView: View {
     
     // MARK: - Active Profile Section
     private func activeProfileSection(profile: WorkProfileConfig) -> some View {
-        GlassCard(title: "Perfil Activo: \(profile.name)", icon: profile.icon) {
+        LiquidCard(title: "Perfil Activo: \(profile.name)", icon: profile.icon) {
             VStack(alignment: .leading, spacing: 16) {
                 // Settings
                 VStack(alignment: .leading, spacing: 12) {
@@ -112,6 +113,7 @@ struct WorkProfilesView: View {
                     .cornerRadius(12)
                 }
                 .buttonStyle(.plain)
+                .focusable(false)
             }
         }
     }
@@ -239,6 +241,7 @@ struct ProfileCard: View {
                             .foregroundColor(.secondary)
                     }
                     .buttonStyle(.plain)
+                    .focusable(false)
                 }
                 
                 Image(systemName: profile.icon)
@@ -269,6 +272,7 @@ struct ProfileCard: View {
             .cornerRadius(12)
         }
         .buttonStyle(.plain)
+        .focusable(false)
     }
 }
 
@@ -276,37 +280,37 @@ struct ProfileCard: View {
 
 struct EditProfileView: View {
     @Environment(\.dismiss) private var dismiss
-    
+
     let profile: WorkProfileConfig?
-    let onSave: (WorkProfileConfig) -> Void
-    
+    var onSave: (WorkProfileConfig) -> Void  // Sin @escaping, es escaping por defecto en propiedades
+
     @State private var name: String
     @State private var workStartHour: Int
     @State private var workEndHour: Int
     @State private var pomodoroDuration: Int
-    
+
     init(profile: WorkProfileConfig?, onSave: @escaping (WorkProfileConfig) -> Void) {
         self.profile = profile
         self.onSave = onSave
-        
+
         _name = State(initialValue: profile?.name ?? "Nuevo Perfil")
         _workStartHour = State(initialValue: profile?.workStartHour ?? 9)
         _workEndHour = State(initialValue: profile?.workEndHour ?? 18)
         _pomodoroDuration = State(initialValue: profile?.pomodoroDuration ?? 25)
     }
-    
+
     var body: some View {
         NavigationStack {
             Form {
                 Section("Información") {
                     TextField("Nombre", text: $name)
                 }
-                
+
                 Section("Horario") {
                     Stepper("Inicio: \(workStartHour):00", value: $workStartHour, in: 5...12)
                     Stepper("Fin: \(workEndHour):00", value: $workEndHour, in: 13...23)
                 }
-                
+
                 Section("Pomodoro") {
                     Picker("Duración", selection: $pomodoroDuration) {
                         Text("15 min").tag(15)
@@ -315,33 +319,35 @@ struct EditProfileView: View {
                     }
                     .pickerStyle(.segmented)
                 }
-            }
-            .navigationTitle(profile == nil ? "Nuevo Perfil" : "Editar Perfil")
-            #if os(iOS)
-            .navigationBarTitleDisplayMode(.inline)
-            #endif
-            .toolbar {
-                ToolbarItem(placement: .cancellationAction) {
-                    Button("Cancelar") { dismiss() }
-                }
-                
-                ToolbarItem(placement: .confirmationAction) {
-                    Button("Guardar") {
-                        let newProfile = WorkProfileConfig(
-                            name: name,
-                            icon: profile?.icon ?? "briefcase.fill",
-                            color: profile?.color ?? .blue,
-                            workStartHour: workStartHour,
-                            workEndHour: workEndHour,
-                            notificationMode: profile?.notificationMode ?? "Todas",
-                            defaultLightColor: profile?.defaultLightColor ?? "Azul",
-                            pomodoroDuration: pomodoroDuration
-                        )
-                        onSave(newProfile)
-                        dismiss()
+
+                // Botones movidos aquí (fuera del toolbar)
+                Section {
+                    HStack {
+                        Button("Cancelar") { dismiss() }
+                            .buttonStyle(.bordered)
+
+                        Spacer()
+
+                        Button("Guardar") {
+                            let newProfile = WorkProfileConfig(
+                                name: name,
+                                icon: profile?.icon ?? "briefcase.fill",
+                                color: profile?.color ?? .blue,
+                                workStartHour: workStartHour,
+                                workEndHour: workEndHour,
+                                notificationMode: profile?.notificationMode ?? "Todas",
+                                defaultLightColor: profile?.defaultLightColor ?? "Azul",
+                                pomodoroDuration: pomodoroDuration
+                            )
+                            onSave(newProfile)
+                            dismiss()
+                        }
+                        .buttonStyle(.borderedProminent)
                     }
                 }
+                .listRowBackground(Color.clear)
             }
+            .navigationTitle(profile == nil ? "Nuevo Perfil" : "Editar Perfil")
         }
     }
 }

@@ -2,7 +2,14 @@
 //  SettingsView.swift
 //  Busylight
 //
-//  Configuración con diseño glassmorphism y gestión de calendarios
+//  Settings UI with liquid glass design. Manages AppSettings SwiftData model.
+//  Settings are automatically synced to AppDelegate via ContentView onChange handlers.
+//
+//  Relationships:
+//  - Stores: AppSettings (SwiftData) - appearance, dock/menubar, notifications, ML
+//  - Syncs with: ContentView.swift (theme, dock/menubar), AppDelegate (dock/menubar)
+//  - Uses: MLScheduleManager for ML training status
+//  - Uses: NotificationCenterManager for notification toggles
 //
 
 import SwiftUI
@@ -85,7 +92,12 @@ struct SettingsView: View {
         }
 
     }
-    
+    func showCountryPicker() {
+        // Notificación para mostrar picker o lógica que prefieras
+      //  NotificationCenter.default.post(name: .showCountryPicker, object: nil)
+    }
+
+
     // MARK: - Header
     private var headerSection: some View {
         HStack(spacing: 12) {
@@ -114,7 +126,7 @@ struct SettingsView: View {
     
     // MARK: - Calendars Section
     private var calendarsSection: some View {
-        GlassCard(title: "Calendars & Events", icon: "calendar.badge.clock") {
+        LiquidCard(title: "Calendars & Events", icon: "calendar.badge.clock") {
             VStack(spacing: 16) {
                 // Calendarios seleccionados
                 HStack {
@@ -131,7 +143,7 @@ struct SettingsView: View {
                     Button("Seleccionar") {
                         showingCalendarPicker = true
                     }
-                    .buttonStyle(GlassButtonStyle(color: .blue))
+                    .buttonStyle(.liquidGlass(color: .blue))
                 }
                 
                 Divider()
@@ -151,13 +163,13 @@ struct SettingsView: View {
                     Button("Configurar") {
                         showingHolidayPicker = true
                     }
-                    .buttonStyle(GlassButtonStyle(color: .orange))
+                    .buttonStyle(.liquidGlass(color: .orange))
                 }
                 
                 Divider()
                 
                 // Auto-detect location
-                GlassToggleRow(
+                LiquidGlassToggleRow(
                     icon: "location.fill",
                     title: "Detectar país automáticamente",
                     subtitle: "Usa GPS para suscribirte a festivos de tu país",
@@ -169,7 +181,12 @@ struct SettingsView: View {
                             saveSettings()
                             if newValue {
                                 Task { @MainActor in
-                                    LocationManager.shared.requestAuthorization()
+                                    //locationManager.manualSelectCountry(code: "US")
+                                    settings.detectedCountryCode = "US"
+                                    settings.detectedCountryName = "Estados Unidos"
+                                    settings.detectedCountryFlag = "🇺🇸"
+                                    settings.updatedAt = Date()
+                                    saveSettings()
                                 }
                             }
                         }
@@ -179,7 +196,7 @@ struct SettingsView: View {
                 Divider()
                 
                 // Auto sync
-                GlassToggleRow(
+                LiquidGlassToggleRow(
                     icon: "arrow.triangle.2.circlepath",
                     title: "Sincronización automática",
                     subtitle: "Actualiza eventos cada hora",
@@ -211,7 +228,7 @@ struct SettingsView: View {
     
     // MARK: - ML Section
     private var mlSection: some View {
-        GlassCard(title: "Machine Learning", icon: "brain.head.profile") {
+        LiquidCard(title: "Machine Learning", icon: "brain.head.profile") {
             VStack(spacing: 16) {
                 // Status
                 HStack(spacing: 12) {
@@ -263,22 +280,22 @@ struct SettingsView: View {
                                 .foregroundStyle(.primary)
                         }
                         
-                        // Progress bar
-                        GeometryReader { geo in
-                            ZStack(alignment: .leading) {
-                                RoundedRectangle(cornerRadius: 4)
-                                    .fill(Color.gray.opacity(0.2))
-                                    .frame(height: 8)
-                                
-                                RoundedRectangle(cornerRadius: 4)
-                                    .fill(
-                                        mlManager.trainingDaysCollected >= 14 ? Color.green : Color.orange
-                                    )
-                                    .frame(
-                                        width: min(CGFloat(mlManager.trainingDaysCollected) / 14.0 * geo.size.width, geo.size.width),
-                                        height: 8
-                                    )
-                            }
+                        // Progress bar - using fixed fraction instead of GeometryReader to avoid layout loops
+                        ZStack(alignment: .leading) {
+                            RoundedRectangle(cornerRadius: 4)
+                                .fill(Color.gray.opacity(0.2))
+                                .frame(height: 8)
+                            
+                            RoundedRectangle(cornerRadius: 4)
+                                .fill(
+                                    mlManager.trainingDaysCollected >= 14 ? Color.green : Color.orange
+                                )
+                                .frame(
+                                    width: nil,
+                                    height: 8
+                                )
+                                .frame(maxWidth: .infinity, alignment: .leading)
+                                .scaleEffect(x: min(CGFloat(mlManager.trainingDaysCollected) / 14.0, 1.0), y: 1.0, anchor: .leading)
                         }
                         .frame(height: 8)
                         
@@ -298,7 +315,7 @@ struct SettingsView: View {
                     Divider()
                     
                     // Auto options
-                    GlassToggleRow(
+                    LiquidGlassToggleRow(
                         icon: "wand.and.stars",
                         title: "Entrenamiento automático",
                         subtitle: "Entrena cuando hay suficientes datos",
@@ -313,20 +330,7 @@ struct SettingsView: View {
                         )
                     )
                     
-                    GlassToggleRow(
-                        icon: "clock.arrow.circlepath",
-                        title: "Auto-ajustar horario",
-                        subtitle: "Ajusta horas según predicciones",
-                        isOn: Binding(
-                            get: { settings.autoAdjustSchedule },
-                            set: { newValue in
-                                settings.autoAdjustSchedule = newValue
-                                settings.updatedAt = Date()
-                                _ = newValue // Use AppSettings for autoAdjust
-                                saveSettings()
-                            }
-                        )
-                    )
+                    // Auto-adjust schedule feature removed - manual work hours only
                 }
             }
         }
@@ -334,7 +338,7 @@ struct SettingsView: View {
     
     // MARK: - Appearance Section
     private var appearanceSection: some View {
-        GlassCard(title: "Appearance", icon: "paintpalette") {
+        LiquidCard(title: "Appearance", icon: "paintpalette") {
             VStack(spacing: 16) {
                 // Theme picker
                 VStack(alignment: .leading, spacing: 8) {
@@ -359,7 +363,7 @@ struct SettingsView: View {
                 Divider()
                 
                 // Dock & Menu Bar
-                GlassToggleRow(
+                LiquidGlassToggleRow(
                     icon: "dock.rectangle",
                     title: "Mostrar en Dock",
                     isOn: Binding(
@@ -373,7 +377,7 @@ struct SettingsView: View {
                     )
                 )
                 
-                GlassToggleRow(
+                LiquidGlassToggleRow(
                     icon: "menubar.rectangle",
                     title: "Mostrar en Menu Bar",
                     isOn: Binding(
@@ -392,9 +396,9 @@ struct SettingsView: View {
     
     // MARK: - Notifications Section
     private var notificationsSection: some View {
-        GlassCard(title: "Notifications", icon: "bell.badge") {
+        LiquidCard(title: "Notifications", icon: "bell.badge") {
             VStack(spacing: 8) {
-                GlassToggleRow(
+                LiquidGlassToggleRow(
                     icon: "eye",
                     title: "Regla 20-20-20",
                     subtitle: "Descansa la vista cada 20 minutos",
@@ -413,7 +417,7 @@ struct SettingsView: View {
                     )
                 )
                 
-                GlassToggleRow(
+                LiquidGlassToggleRow(
                     icon: "target",
                     title: "Alertas de Deep Work",
                     isOn: Binding(
@@ -426,7 +430,7 @@ struct SettingsView: View {
                     )
                 )
                 
-                GlassToggleRow(
+                LiquidGlassToggleRow(
                     icon: "chart.line.uptrend.xyaxis",
                     title: "Predicciones del día",
                     isOn: Binding(
@@ -439,7 +443,7 @@ struct SettingsView: View {
                     )
                 )
                 
-                GlassToggleRow(
+                LiquidGlassToggleRow(
                     icon: "cup.and.saucer",
                     title: "Recordatorios de descanso",
                     isOn: Binding(
@@ -457,9 +461,9 @@ struct SettingsView: View {
     
     // MARK: - Data Section
     private var dataSection: some View {
-        GlassCard(title: "Data Management", icon: "externaldrive") {
+        LiquidCard(title: "Data Management", icon: "externaldrive") {
             VStack(spacing: 12) {
-                GlassActionRow(
+                LiquidGlassActionRow(
                     icon: "square.and.arrow.up",
                     title: "Exportar Dataset ML",
                     color: .blue
@@ -467,7 +471,7 @@ struct SettingsView: View {
                     // Export functionality - TODO: Implement export
                 }
                 
-                GlassActionRow(
+                LiquidGlassActionRow(
                     icon: "wand.and.stars",
                     title: "Generar Datos de Demo",
                     color: .purple
@@ -475,7 +479,7 @@ struct SettingsView: View {
                     mlManager.generateDemoData()
                 }
                 
-                GlassActionRow(
+                LiquidGlassActionRow(
                     icon: "trash",
                     title: "Limpiar Datos de Entrenamiento",
                     color: .red
@@ -488,7 +492,7 @@ struct SettingsView: View {
     
     // MARK: - About Section
     private var aboutSection: some View {
-        GlassCard(title: "About", icon: "info.circle") {
+        LiquidCard(title: "About", icon: "info.circle") {
             HStack(spacing: 16) {
                 // App Icon
                 ZStack {
@@ -663,30 +667,10 @@ struct SettingsView: View {
     }
 }
 
-// MARK: - Supporting Button Styles
+// MARK: - Supporting Views
 
-struct GlassButtonStyle: ButtonStyle {
-    let color: Color
-    
-    func makeBody(configuration: Configuration) -> some View {
-        configuration.label
-            .font(.system(.subheadline, design: .rounded).weight(.medium))
-            .padding(.horizontal, 16)
-            .padding(.vertical, 8)
-            .background(
-                RoundedRectangle(cornerRadius: 8)
-                    .fill(color.opacity(configuration.isPressed ? 0.3 : 0.15))
-                    .overlay(
-                        RoundedRectangle(cornerRadius: 8)
-                            .stroke(color.opacity(0.3), lineWidth: 1)
-                    )
-            )
-            .foregroundStyle(color)
-            .scaleEffect(configuration.isPressed ? 0.95 : 1)
-    }
-}
-
-struct GlassActionRow: View {
+struct LiquidGlassActionRow: View {
+    @State private var isHovered = false
     let icon: String
     let title: String
     let color: Color
@@ -711,16 +695,14 @@ struct GlassActionRow: View {
                     .foregroundStyle(.secondary)
             }
             .padding(12)
-            .background(
-                RoundedRectangle(cornerRadius: 10)
-                    .fill(Material.thinMaterial)
-                    .overlay(
-                        RoundedRectangle(cornerRadius: 10)
-                            .stroke(color.opacity(0.2), lineWidth: 1)
-                    )
-            )
+            .background(.ultraThinMaterial)
+            .clipShape(RoundedRectangle(cornerRadius: 20))
+            .onHover { hovering in
+                isHovered = hovering
+            }
         }
         .buttonStyle(.plain)
+        .focusable(false)
     }
 }
 

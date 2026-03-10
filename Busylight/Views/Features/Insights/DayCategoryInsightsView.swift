@@ -133,6 +133,7 @@ struct DayCategoryInsightsView: View {
                 .cornerRadius(10)
             }
             .buttonStyle(.plain)
+            .focusable(false)
             .disabled(isAnalyzing)
         }
         .padding()

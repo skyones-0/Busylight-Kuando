@@ -1,3 +1,16 @@
+//
+//  BusylightManager.swift
+//  Busylight
+//
+//  Manager for Busylight USB device control via HID protocol.
+//  Handles color changes, jingles, and connection state.
+//
+//  Relationships:
+//  - Used by: PomodoroManager (timer colors), SmartFeaturesManager (calendar/focus colors)
+//  - Notifications: Posts BusylightColorChanged notification
+//  - See: DeviceView.swift for manual color controls
+//
+
 import Foundation
 import SwiftUI
 import Combine

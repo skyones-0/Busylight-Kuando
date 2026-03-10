@@ -34,12 +34,14 @@ struct TimerView: View {
                 }
                 .buttonStyle(.borderedProminent)
                 .controlSize(.large)
+                .focusable(false)
                 
                 Button("⏹ Stop") {
                     stop()
                 }
                 .buttonStyle(.bordered)
                 .controlSize(.large)
+                .focusable(false)
                 
                 Button("✕ Close") {
                     stop()
@@ -47,6 +49,7 @@ struct TimerView: View {
                 }
                 .buttonStyle(.bordered)
                 .controlSize(.large)
+                .focusable(false)
             }
         }
         .padding(30)

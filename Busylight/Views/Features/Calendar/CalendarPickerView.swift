@@ -10,32 +10,53 @@ import EventKit
 
 struct CalendarPickerView: View {
     @Environment(\.dismiss) private var dismiss
-    
+
     let eventStore: EKEventStore
     let availableCalendars: [EKCalendar]
     @State var selectedCalendars: Set<String>
     let onSave: (Set<String>) -> Void
-    
+
     @State private var searchText = ""
-    
+
     private var filteredCalendars: [EKCalendar] {
         if searchText.isEmpty {
             return availableCalendars
         }
         return availableCalendars.filter { $0.title.localizedCaseInsensitiveContains(searchText) }
     }
-    
+
     var body: some View {
         NavigationStack {
             VStack(spacing: 0) {
+                // Header con botones (antes estaban en toolbar)
+                HStack {
+                    Button("Cancelar") { dismiss() }
+                        .buttonStyle(.bordered)
+
+                    Spacer()
+
+                    Text("Calendarios")
+                        .font(.headline)
+
+                    Spacer()
+
+                    Button("Guardar") {
+                        onSave(selectedCalendars)
+                        dismiss()
+                    }
+                    .buttonStyle(.borderedProminent)
+                    .fontWeight(.semibold)
+                }
+                .padding()
+
                 // Search bar
                 HStack {
                     Image(systemName: "magnifyingglass")
                         .foregroundStyle(.secondary)
-                    
+
                     TextField("Buscar calendarios...", text: $searchText)
                         .textFieldStyle(.plain)
-                    
+
                     if !searchText.isEmpty {
                         Button {
                             searchText = ""
@@ -44,6 +65,7 @@ struct CalendarPickerView: View {
                                 .foregroundStyle(.secondary)
                         }
                         .buttonStyle(.plain)
+                        .focusable(false)
                     }
                 }
                 .padding()
@@ -51,8 +73,8 @@ struct CalendarPickerView: View {
                     RoundedRectangle(cornerRadius: 10)
                         .fill(Material.thinMaterial)
                 )
-                .padding()
-                
+                .padding(.horizontal)
+
                 // Selected count
                 HStack {
                     Text("\(selectedCalendars.count) seleccionados")
@@ -61,8 +83,8 @@ struct CalendarPickerView: View {
                     Spacer()
                 }
                 .padding(.horizontal)
-                .padding(.bottom, 8)
-                
+                .padding(.vertical, 8)
+
                 // Calendars list
                 List {
                     ForEach(filteredCalendars, id: \.calendarIdentifier) { calendar in
@@ -76,29 +98,10 @@ struct CalendarPickerView: View {
                 }
                 .listStyle(.plain)
             }
-            .navigationTitle("Calendarios")
-            #if os(iOS)
-            .navigationBarTitleDisplayMode(.inline)
-            #endif
-            .toolbar {
-                ToolbarItem(placement: .cancellationAction) {
-                    Button("Cancelar") {
-                        dismiss()
-                    }
-                }
-                
-                ToolbarItem(placement: .confirmationAction) {
-                    Button("Guardar") {
-                        onSave(selectedCalendars)
-                        dismiss()
-                    }
-                    .fontWeight(.semibold)
-                }
-            }
         }
         .frame(width: 400, height: 500)
     }
-    
+
     private func toggleCalendar(_ calendar: EKCalendar) {
         if selectedCalendars.contains(calendar.calendarIdentifier) {
             selectedCalendars.remove(calendar.calendarIdentifier)
@@ -112,7 +115,7 @@ struct CalendarRow: View {
     let calendar: EKCalendar
     let isSelected: Bool
     let action: () -> Void
-    
+
     var body: some View {
         Button(action: action) {
             HStack(spacing: 12) {
@@ -120,19 +123,19 @@ struct CalendarRow: View {
                 Circle()
                     .fill(Color(calendar.cgColor))
                     .frame(width: 12, height: 12)
-                
+
                 VStack(alignment: .leading, spacing: 2) {
                     Text(calendar.title)
                         .font(.subheadline.weight(isSelected ? .semibold : .regular))
                         .foregroundStyle(.primary)
-                    
+
                     Text(calendar.type == .local ? "Local" : calendar.source.title)
                         .font(.caption)
                         .foregroundStyle(.secondary)
                 }
-                
+
                 Spacer()
-                
+
                 if isSelected {
                     Image(systemName: "checkmark.circle.fill")
                         .foregroundStyle(.blue)
@@ -147,6 +150,7 @@ struct CalendarRow: View {
             .contentShape(Rectangle())
         }
         .buttonStyle(.plain)
+        .focusable(false)
     }
 }
 
@@ -155,29 +159,50 @@ struct CalendarRow: View {
 struct HolidayCalendarPickerView: View {
     @Environment(\.dismiss) private var dismiss
     let onSelect: (String) -> Void
-    
+
     @State private var selectedCountry = "US"
-    
+
     private let countries = CalendarConfiguration.supportedCountries
-    
+
     var body: some View {
         NavigationStack {
             VStack(spacing: 20) {
-                // Header
+                // Header con botones (antes estaban en toolbar)
+                HStack {
+                    Button("Cancelar") { dismiss() }
+                        .buttonStyle(.bordered)
+
+                    Spacer()
+
+                    Text("Festivos")
+                        .font(.headline)
+
+                    Spacer()
+
+                    Button("Agregar") {
+                        onSelect(selectedCountry)
+                        dismiss()
+                    }
+                    .buttonStyle(.borderedProminent)
+                    .fontWeight(.semibold)
+                }
+                .padding()
+
+                // Info header
                 VStack(spacing: 8) {
                     ZStack {
                         Circle()
                             .fill(.orange.opacity(0.2))
                             .frame(width: 60, height: 60)
-                        
+
                         Image(systemName: "calendar.badge.exclamationmark")
                             .font(.system(size: 28))
                             .foregroundStyle(.orange)
                     }
-                    
+
                     Text("Calendario de Festivos")
                         .font(.headline)
-                    
+
                     Text("Selecciona tu país para incluir los días festivos en el análisis de ML")
                         .font(.caption)
                         .foregroundStyle(.secondary)
@@ -185,7 +210,7 @@ struct HolidayCalendarPickerView: View {
                         .padding(.horizontal)
                 }
                 .padding(.top)
-                
+
                 // Country list
                 List {
                     Section("País") {
@@ -196,20 +221,20 @@ struct HolidayCalendarPickerView: View {
                                 HStack(spacing: 12) {
                                     Text(country.flag)
                                         .font(.title2)
-                                    
+
                                     VStack(alignment: .leading, spacing: 2) {
                                         Text(country.name)
                                             .font(.subheadline.weight(.medium))
-                                        
+
                                         // Show holiday count
                                         let holidayCount = HolidayData.holidays(for: country.code, year: Calendar.current.component(.year, from: Date())).count
                                         Text("\(holidayCount) festivos este año")
                                             .font(.caption)
                                             .foregroundStyle(.secondary)
                                     }
-                                    
+
                                     Spacer()
-                                    
+
                                     if selectedCountry == country.code {
                                         Image(systemName: "checkmark.circle.fill")
                                             .foregroundStyle(.orange)
@@ -218,9 +243,10 @@ struct HolidayCalendarPickerView: View {
                                 .padding(.vertical, 4)
                             }
                             .buttonStyle(.plain)
+                            .focusable(false)
                         }
                     }
-                    
+
                     // Preview of selected country's holidays
                     Section("Vista previa de festivos") {
                         let holidays = HolidayData.holidays(for: selectedCountry, year: Calendar.current.component(.year, from: Date()))
@@ -233,7 +259,7 @@ struct HolidayCalendarPickerView: View {
                                     .font(.subheadline)
                             }
                         }
-                        
+
                         if holidays.count > 5 {
                             Text("... y \(holidays.count - 5) más")
                                 .font(.caption)
@@ -242,25 +268,6 @@ struct HolidayCalendarPickerView: View {
                     }
                 }
                 .listStyle(.inset(alternatesRowBackgrounds: true))
-            }
-            .navigationTitle("Festivos")
-            #if os(iOS)
-            .navigationBarTitleDisplayMode(.inline)
-            #endif
-            .toolbar {
-                ToolbarItem(placement: .cancellationAction) {
-                    Button("Cancelar") {
-                        dismiss()
-                    }
-                }
-                
-                ToolbarItem(placement: .confirmationAction) {
-                    Button("Agregar") {
-                        onSelect(selectedCountry)
-                        dismiss()
-                    }
-                    .fontWeight(.semibold)
-                }
             }
         }
         .frame(width: 400, height: 550)

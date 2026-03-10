@@ -2,6 +2,16 @@
 //  NotificationManager.swift
 //  Busylight
 //
+//  Manages user notifications: 20-20-20 rule, break reminders,
+//  pomodoro phase changes, and deep work alerts.
+//
+//  Relationships:
+//  - Used by: SettingsView.swift (toggle settings), PomodoroManager (timer alerts)
+//  - Used by: SmartFeaturesManager (deep work notifications)
+//
+//  NotificationManager.swift
+//  Busylight
+//
 //  Gestiona notificaciones: 20-20-20, Deep Work, ML Learning
 //
 
@@ -41,8 +51,9 @@ class NotificationCenterManager: ObservableObject {
     
     func requestAuthorization() {
         notificationCenter.requestAuthorization(options: [.alert, .sound, .badge]) { [weak self] granted, error in
+            guard let self = self else { return }
             Task { @MainActor in
-                self?.isAuthorized = granted
+                self.isAuthorized = granted
                 if granted {
                     BusylightLogger.shared.info("🔔 Notificaciones autorizadas")
                 } else if let error = error {
@@ -51,7 +62,7 @@ class NotificationCenterManager: ObservableObject {
             }
         }
     }
-    
+
     // MARK: - 20-20-20 Rule
     
     /// Inicia el timer para la regla 20-20-20
@@ -73,8 +84,9 @@ class NotificationCenterManager: ObservableObject {
         
         // Crear timer que repite cada 20 minutos
         twentyTwentyTimer = Timer.scheduledTimer(withTimeInterval: 20 * 60, repeats: true) { [weak self] _ in
-            Task { @MainActor in
-                self?.scheduleTwentyTwentyNotification()
+            guard let self = self else { return }
+            Task { @MainActor [self] in
+                self.scheduleTwentyTwentyNotification()
             }
         }
     }
@@ -337,41 +349,41 @@ extension NotificationCenterManager {
             title: "Done ✅",
             options: []
         )
-        
+
         let twentySkipAction = UNNotificationAction(
             identifier: "TWENTY_SKIP",
             title: "Skip",
             options: []
         )
-        
-        _ = UNNotificationCategory(
+
+        let twentyCategory = UNNotificationCategory(
             identifier: "TWENTY_TWENTY",
             actions: [twentyDoneAction, twentySkipAction],
             intentIdentifiers: [],
             options: []
         )
-        
+
         // Categoría para Deep Work
         let deepWorkExtendAction = UNNotificationAction(
             identifier: "DEEP_EXTEND",
             title: "Extend +15 min",
             options: []
         )
-        
+
         let deepWorkStopAction = UNNotificationAction(
             identifier: "DEEP_STOP",
             title: "Stop",
             options: [.destructive]
         )
-        
-        let _deepWorkCategory = UNNotificationCategory(
+
+        let deepWorkCategory = UNNotificationCategory(
             identifier: "DEEP_WORK",
             actions: [deepWorkExtendAction, deepWorkStopAction],
             intentIdentifiers: [],
             options: []
         )
-        
-       // NotificationCenterManager.setNotificationCategories([twentyCategory, deepWorkCategory])
+
+        notificationCenter.setNotificationCategories([twentyCategory, deepWorkCategory])
     }
 }
 

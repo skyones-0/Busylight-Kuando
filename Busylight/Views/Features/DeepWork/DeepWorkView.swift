@@ -2,7 +2,13 @@
 //  DeepWorkView.swift
 //  Busylight
 //
-//  Deep Work Mode con diseño glassmorphism
+//  Deep Work mode UI with session timer and focus controls.
+//  Allows setting focus duration and shows active session status.
+//
+//  Relationships:
+//  - Uses: SmartFeaturesManager for deep work state and timer
+//  - Uses: PomodoroManager (pauses when deep work starts)
+//  - See: SmartFeaturesManager.swift for deep work logic
 //
 
 import SwiftUI
@@ -72,12 +78,12 @@ struct DeepWorkView: View {
     private var configurationView: some View {
         VStack(spacing: 20) {
             // Duration selection card
-            GlassCard(title: "Duración de la sesión", icon: "clock") {
+            LiquidCard(title: "Duración de la sesión", icon: "clock") {
                 VStack(spacing: 16) {
                     // Duration buttons
                     HStack(spacing: 10) {
                         ForEach(durations, id: \.self) { duration in
-                            DurationGlassButton(
+                            DurationLiquidGlassButton(
                                 minutes: duration,
                                 isSelected: selectedDuration == duration
                             ) {
@@ -105,7 +111,7 @@ struct DeepWorkView: View {
             }
             
             // Start button
-            GlassActionButton(
+            LiquidGlassActionButton(
                 title: "Iniciar Deep Work",
                 icon: "play.fill",
                 color: .purple,
@@ -126,14 +132,8 @@ struct DeepWorkView: View {
                     Spacer()
                 }
                 .padding()
-                .background(
-                    RoundedRectangle(cornerRadius: 12)
-                        .fill(Color.orange.opacity(0.1))
-                        .overlay(
-                            RoundedRectangle(cornerRadius: 12)
-                                .stroke(Color.orange.opacity(0.3), lineWidth: 1)
-                        )
-                )
+                .background(.ultraThinMaterial)
+                .clipShape(RoundedRectangle(cornerRadius: 20))
             }
         }
     }
@@ -143,13 +143,8 @@ struct DeepWorkView: View {
         VStack(spacing: 20) {
             // Timer card
             ZStack {
-                RoundedRectangle(cornerRadius: 30)
+                RoundedRectangle(cornerRadius: 20)
                     .fill(.ultraThinMaterial)
-                    .overlay(
-                        RoundedRectangle(cornerRadius: 30)
-                            .stroke(Color.purple.opacity(0.3), lineWidth: 2)
-                    )
-                    .shadow(color: .purple.opacity(0.2), radius: 20, x: 0, y: 10)
                 
                 VStack(spacing: 24) {
                     // Flame icon
@@ -180,53 +175,39 @@ struct DeepWorkView: View {
                             .foregroundStyle(.secondary)
                     }
                     
-                    // Progress bar
-                    GeometryReader { geo in
-                        ZStack(alignment: .leading) {
-                            RoundedRectangle(cornerRadius: 4)
-                                .fill(Color.gray.opacity(0.2))
-                                .frame(height: 8)
-                            
-                            RoundedRectangle(cornerRadius: 4)
-                                .fill(
-                                    LinearGradient(
-                                        colors: [.orange, .red],
-                                        startPoint: .leading,
-                                        endPoint: .trailing
-                                    )
+                    // Progress bar - using scaleEffect instead of GeometryReader to avoid layout loops
+                    ZStack(alignment: .leading) {
+                        RoundedRectangle(cornerRadius: 4)
+                            .fill(Color.gray.opacity(0.2))
+                            .frame(height: 8)
+                        
+                        RoundedRectangle(cornerRadius: 4)
+                            .fill(
+                                LinearGradient(
+                                    colors: [.orange, .red],
+                                    startPoint: .leading,
+                                    endPoint: .trailing
                                 )
-                                .frame(
-                                    width: max(0, min(CGFloat(smartFeatures.deepWorkRemainingMinutes) / CGFloat(selectedDuration) * geo.size.width, geo.size.width)),
-                                    height: 8
-                                )
-                        }
+                            )
+                            .frame(height: 8)
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                            .scaleEffect(
+                                x: max(0, min(CGFloat(smartFeatures.deepWorkRemainingMinutes) / CGFloat(selectedDuration), 1.0)),
+                                y: 1.0,
+                                anchor: .leading
+                            )
                     }
                     .frame(height: 8)
                     .padding(.horizontal, 40)
                     
                     // End button
-                    Button {
-                        endDeepWork()
-                    } label: {
-                        HStack(spacing: 8) {
-                            Image(systemName: "stop.fill")
-                            Text("Finalizar Sesión")
-                        }
-                        .font(.headline)
-                        .foregroundStyle(.white)
-                        .frame(maxWidth: .infinity)
-                        .frame(height: 50)
-                        .background(
-                            RoundedRectangle(cornerRadius: 12)
-                                .fill(Color.red.opacity(0.9))
-                                .overlay(
-                                    RoundedRectangle(cornerRadius: 12)
-                                        .stroke(.white.opacity(0.3), lineWidth: 1)
-                                )
-                        )
-                        .shadow(color: .red.opacity(0.4), radius: 10, x: 0, y: 5)
-                    }
-                    .buttonStyle(.plain)
+                    LiquidGlassActionButton(
+                        title: "Finalizar Sesión",
+                        icon: "stop.fill",
+                        color: .red,
+                        isProminent: true,
+                        action: { endDeepWork() }
+                    )
                     .padding(.horizontal, 40)
                     .padding(.top, 10)
                 }
@@ -235,30 +216,30 @@ struct DeepWorkView: View {
             .frame(height: 400)
             
             // Status card
-            GlassCard(title: "Estado actual", icon: "info.circle") {
+            LiquidCard(title: "Estado actual", icon: "info.circle") {
                 VStack(spacing: 12) {
-                    StatusRowGlass(
+                    StatusRowLiquidGlass(
                         icon: "pause.circle.fill",
                         title: "Pomodoro",
                         value: "Pausado",
                         color: .orange
                     )
                     
-                    StatusRowGlass(
+                    StatusRowLiquidGlass(
                         icon: "lightbulb.fill",
                         title: "Busylight",
                         value: "Rojo - No molestar",
                         color: .red
                     )
                     
-                    StatusRowGlass(
+                    StatusRowLiquidGlass(
                         icon: "moon.fill",
                         title: "Focus Mode",
                         value: "Activado",
                         color: .purple
                     )
                     
-                    StatusRowGlass(
+                    StatusRowLiquidGlass(
                         icon: "bell.slash.fill",
                         title: "Notificaciones",
                         value: "Silenciadas",
@@ -271,7 +252,7 @@ struct DeepWorkView: View {
     
     // MARK: - Benefits Section
     private var benefitsSection: some View {
-        GlassCard(title: "Beneficios de Deep Work", icon: "star.fill") {
+        LiquidCard(title: "Beneficios de Deep Work", icon: "star.fill") {
             VStack(alignment: .leading, spacing: 12) {
                 BenefitRow(icon: "target", text: "Mayor productividad y enfoque")
                 BenefitRow(icon: "bolt", text: "Mejor calidad de trabajo")
@@ -327,23 +308,18 @@ struct DeepWorkBadge: View {
         }
         .padding(.horizontal, 12)
         .padding(.vertical, 6)
-        .background(
-            Capsule()
-                .fill(Color.orange.opacity(0.2))
-                .overlay(
-                    Capsule()
-                        .stroke(Color.orange.opacity(0.4), lineWidth: 1)
-                )
-        )
+        .background(Color.orange.opacity(0.2))
+        .clipShape(Capsule())
         .foregroundStyle(.orange)
     }
 }
 
-struct DurationGlassButton: View {
+struct DurationLiquidGlassButton: View {
     let minutes: Int
     let isSelected: Bool
     let action: () -> Void
-    
+    @State private var isHovered = false
+
     var body: some View {
         Button(action: action) {
             VStack(spacing: 2) {
@@ -354,21 +330,22 @@ struct DurationGlassButton: View {
             }
             .frame(maxWidth: .infinity)
             .padding(.vertical, 12)
-            .background(
-                RoundedRectangle(cornerRadius: 12)
-                    .fill(isSelected ? Color.purple.opacity(0.2) : Color.gray.opacity(0.1))
-                    .overlay(
-                        RoundedRectangle(cornerRadius: 12)
-                            .stroke(isSelected ? Color.purple.opacity(0.5) : Color.clear, lineWidth: 2)
-                    )
-            )
+            .background(isSelected ? Color.purple.opacity(0.2) : Color.clear)
+            .background(.ultraThinMaterial)
+            .clipShape(RoundedRectangle(cornerRadius: 20))
             .foregroundStyle(isSelected ? .purple : .primary)
         }
         .buttonStyle(.plain)
+        .onHover { hovering in
+            isHovered = hovering
+        }
+        .scaleEffect(isHovered ? 0.96 : 1.0)
+        .animation(.easeInOut(duration: 0.2), value: isHovered)
+        .focusable(false)
     }
 }
 
-struct StatusRowGlass: View {
+struct StatusRowLiquidGlass: View {
     let icon: String
     let title: String
     let value: String
@@ -390,10 +367,8 @@ struct StatusRowGlass: View {
                 .foregroundStyle(.secondary)
         }
         .padding(12)
-        .background(
-            RoundedRectangle(cornerRadius: 10)
-                .fill(Material.thinMaterial)
-        )
+        .background(.ultraThinMaterial)
+        .clipShape(RoundedRectangle(cornerRadius: 20))
     }
 }
 

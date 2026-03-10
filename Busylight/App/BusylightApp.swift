@@ -1,3 +1,17 @@
+//
+//  BusylightApp.swift
+//  Busylight
+//
+//  Main app entry point. Configures SwiftData container, window management,
+//  and global app state.
+//
+//  Relationships:
+//  - Uses AppDelegate for dock/menubar status item management
+//  - Provides ModelContainer to all views via .modelContainer()
+//  - Theme is managed by ContentView based on AppSettings SwiftData model
+//  - See: ContentView.swift for theme application, SettingsView.swift for theme UI
+//
+
 import SwiftUI
 import AppKit
 import SwiftData
@@ -6,7 +20,10 @@ import SwiftData
 struct BusylightApp: App {
     @NSApplicationDelegateAdaptor(AppDelegate.self) var appDelegate
     @Environment(\.scenePhase) var scenePhase
-    @AppStorage("appearanceMode") private var appearanceMode = 0
+    @Environment(\.colorScheme) private var systemColorScheme
+    
+    // Theme is managed via AppSettings SwiftData model - see SettingsView.swift for UI
+    // The actual color scheme is applied via .preferredColorScheme() based on settings
     
     // SwiftData container with CloudKit
     let container: ModelContainer
@@ -58,7 +75,6 @@ struct BusylightApp: App {
             ContentView()
                 .environmentObject(appDelegate)
                 .environmentObject(LocationManager.shared)
-                .preferredColorScheme(colorScheme)
                 .modelContainer(container)
         }
         .windowStyle(.hiddenTitleBar)
@@ -79,14 +95,8 @@ struct BusylightApp: App {
         }
     }
     
-    // Computed property para convertir Int a ColorScheme
-    private var colorScheme: ColorScheme? {
-        switch appearanceMode {
-        case 1: return .light
-        case 2: return .dark
-        default: return nil // System
-        }
-    }
+    // Theme toggle is handled in ContentView via @Query and .preferredColorScheme
+    // See: ContentView.swift theme modifier, SettingsView.swift for UI controls
 }
 
 // Función global mejorada para traer ventana al frente

@@ -2,7 +2,13 @@
 //  PomodoroManager.swift
 //  Busylight
 //
-//  Manager for Pomodoro timer functionality
+//  Manager for Pomodoro timer functionality with work/break cycles.
+//  Controls timer state, notifications, and Busylight color sync.
+//
+//  Relationships:
+//  - Uses: BusylightManager (color sync during timer phases)
+//  - Used by: PomodoroView.swift (UI), MenuBarView.swift (menubar timer display)
+//  - Notifications: Posts Pomodoro phase change notifications
 //
 
 import Foundation

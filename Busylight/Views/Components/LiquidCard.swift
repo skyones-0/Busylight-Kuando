@@ -1,13 +1,23 @@
 //
-//  GlassCard.swift
+//  LiquidCard.swift
 //  Busylight
 //
-//  Reusable glassmorphism card component
+//  NATIVE Apple Liquid Glass card components (macOS 15+/26+).
+//
+//  Uses:
+//  - RoundedRectangle(cornerRadius: 20) for card shapes
+//  - .ultraThinMaterial for native vibrancy
+//  - Consistent 16-20pt corner radius across components
+//
+//  Relationships:
+//  - Used by: ContentView.swift, SettingsView.swift, DashboardView.swift, etc.
+//  - See: LiquidGlassStyles.swift for button and toggle components
 //
 
 import SwiftUI
 
-struct GlassCard<Content: View>: View {
+// MARK: - Native Liquid Card
+struct LiquidCard<Content: View>: View {
     let title: String
     let icon: String
     @ViewBuilder let content: Content
@@ -30,27 +40,13 @@ struct GlassCard<Content: View>: View {
             content
         }
         .padding(16)
-        .background(
-            ZStack {
-                RoundedRectangle(cornerRadius: 16)
-                    .fill(Material.thinMaterial)
-                
-                RoundedRectangle(cornerRadius: 16)
-                    .stroke(
-                        LinearGradient(
-                            colors: [.white.opacity(0.2), .white.opacity(0.05)],
-                            startPoint: .topLeading,
-                            endPoint: .bottomTrailing
-                        ),
-                        lineWidth: 1
-                    )
-            }
-        )
+        .background(.ultraThinMaterial)
+        .clipShape(RoundedRectangle(cornerRadius: 20))
     }
 }
 
-// Glass Status Card Component
-struct GlassStatusCard: View {
+// MARK: - Native Liquid Glass Status Card
+struct LiquidGlassStatusCard: View {
     @ObservedObject var busylight: BusylightManager
     
     var body: some View {
@@ -61,7 +57,6 @@ struct GlassStatusCard: View {
                     Circle()
                         .fill(busylight.isConnected ? Color.green : Color.red)
                         .frame(width: 10, height: 10)
-                        .shadow(color: (busylight.isConnected ? Color.green : Color.red).opacity(0.6), radius: 4)
                     
                     if busylight.isConnected {
                         PulsingCircle()
@@ -91,32 +86,13 @@ struct GlassStatusCard: View {
                 Circle()
                     .fill(busylight.color)
                     .frame(width: 14, height: 14)
-                    .overlay(
-                        Circle()
-                            .stroke(.white.opacity(0.4), lineWidth: 1)
-                    )
-                    .shadow(color: busylight.color.opacity(0.5), radius: 4, x: 0, y: 2)
                 
                 Spacer()
             }
         }
         .padding(12)
-        .background(
-            ZStack {
-                RoundedRectangle(cornerRadius: 12)
-                    .fill(Material.thinMaterial)
-                
-                RoundedRectangle(cornerRadius: 12)
-                    .stroke(
-                        LinearGradient(
-                            colors: [.white.opacity(0.2), .white.opacity(0.1)],
-                            startPoint: .topLeading,
-                            endPoint: .bottomTrailing
-                        ),
-                        lineWidth: 1
-                    )
-            }
-        )
+        .background(.ultraThinMaterial)
+        .clipShape(RoundedRectangle(cornerRadius: 20))
     }
 }
 
@@ -128,8 +104,7 @@ struct PulsingCircle: View {
     }
 }
 
-// MARK: - StatCard
-
+// MARK: - StatCard (Native)
 struct StatCard: View {
     let title: String
     let value: String
@@ -152,13 +127,12 @@ struct StatCard: View {
         }
         .frame(maxWidth: .infinity)
         .padding()
-        .background(Color(NSColor.controlBackgroundColor))
-        .cornerRadius(12)
+        .background(.ultraThinMaterial)
+        .clipShape(RoundedRectangle(cornerRadius: 20))
     }
 }
 
-// MARK: - StatBox
-
+// MARK: - StatBox (Native)
 struct StatBox: View {
     let title: String
     let value: String
@@ -181,7 +155,7 @@ struct StatBox: View {
         }
         .frame(maxWidth: .infinity)
         .padding()
-        .background(Color(NSColor.controlBackgroundColor))
-        .cornerRadius(12)
+        .background(.ultraThinMaterial)
+        .clipShape(RoundedRectangle(cornerRadius: 20))
     }
 }

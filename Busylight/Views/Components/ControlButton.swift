@@ -61,5 +61,6 @@ struct ControlButtonStyle: ButtonStyle {
                 y: configuration.isPressed ? 4 : 2
             )
             .scaleEffect(configuration.isPressed ? 0.97 : 1)
+            .focusable(false)
     }
 }

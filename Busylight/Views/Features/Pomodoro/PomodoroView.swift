@@ -2,7 +2,13 @@
 //  PomodoroView.swift
 //  Busylight
 //
-//  Vista Pomodoro con diseño glassmorphism moderno
+//  Pomodoro timer UI with liquid glass design. Shows timer, phase indicators,
+//  quick settings, and statistics.
+//
+//  Relationships:
+//  - Uses: PomodoroManager (@StateObject) for timer state and configuration
+//  - Uses: LiquidGlass components (cards, buttons, icons)
+//  - See: PomodoroManager.swift for timer logic
 //
 
 import SwiftUI
@@ -17,7 +23,7 @@ struct PomodoroView: View {
                 // Header con título elegante
                 headerSection
                 
-                // Timer circular principal con glass
+                // Timer circular principal con liquid glass
                 timerSection
                 
                 // Indicador de fases
@@ -73,14 +79,9 @@ struct PomodoroView: View {
     // MARK: - Timer Section
     private var timerSection: some View {
         ZStack {
-            // Fondo glass
-            RoundedRectangle(cornerRadius: 30)
+            // Native liquid glass background
+            RoundedRectangle(cornerRadius: 24)
                 .fill(.ultraThinMaterial)
-                .overlay(
-                    RoundedRectangle(cornerRadius: 30)
-                        .stroke(pomodoro.currentPhase.color.opacity(0.3), lineWidth: 2)
-                )
-                .shadow(color: pomodoro.currentPhase.color.opacity(0.2), radius: 20, x: 0, y: 10)
             
             VStack(spacing: 20) {
                 // Timer circular
@@ -118,13 +119,13 @@ struct PomodoroView: View {
                 // Botones de acción rápida
                 HStack(spacing: 20) {
                     if pomodoro.isRunning || pomodoro.isPaused {
-                        GlassIconButton(
+                        LiquidGlassIconButton(
                             icon: "stop.fill",
                             color: .red,
                             action: { pomodoro.stop() }
                         )
                         
-                        GlassIconButton(
+                        LiquidGlassIconButton(
                             icon: pomodoro.isRunning ? "pause.fill" : "play.fill",
                             color: pomodoro.isRunning ? .orange : .green,
                             isLarge: true,
@@ -137,13 +138,13 @@ struct PomodoroView: View {
                             }
                         )
                         
-                        GlassIconButton(
+                        LiquidGlassIconButton(
                             icon: "forward.fill",
                             color: .blue,
                             action: { pomodoro.skip() }
                         )
                     } else {
-                        GlassActionButton(
+                        LiquidGlassActionButton(
                             title: "Start Focus",
                             icon: "play.fill",
                             color: pomodoro.currentPhase.color,
@@ -161,7 +162,7 @@ struct PomodoroView: View {
     
     // MARK: - Phase Indicator
     private var phaseIndicatorSection: some View {
-        GlassCard(title: "Session Progress", icon: "chart.line.uptrend.xyaxis") {
+        LiquidCard(title: "Session Progress", icon: "chart.line.uptrend.xyaxis") {
             VStack(spacing: 16) {
                 // Indicador visual de sets
                 HStack(spacing: 8) {
@@ -222,7 +223,7 @@ struct PomodoroView: View {
     
     // MARK: - Quick Config Section
     private var quickConfigSection: some View {
-        GlassCard(title: "Quick Settings", icon: "slider.horizontal.3") {
+        LiquidCard(title: "Quick Settings", icon: "slider.horizontal.3") {
             VStack(spacing: 16) {
                 // Work duration slider
                 VStack(alignment: .leading, spacing: 8) {
@@ -270,6 +271,7 @@ struct PomodoroView: View {
                                 .foregroundStyle(.secondary)
                         }
                         .buttonStyle(.plain)
+                        .focusable(false)
                         
                         Text("\(pomodoro.configuredSets)")
                             .font(.system(.title3, design: .rounded).weight(.semibold))
@@ -286,6 +288,7 @@ struct PomodoroView: View {
                                 .foregroundStyle(.secondary)
                         }
                         .buttonStyle(.plain)
+                        .focusable(false)
                     }
                 }
                 
@@ -328,21 +331,21 @@ struct PomodoroView: View {
     // MARK: - Stats Section
     private var statsSection: some View {
         HStack(spacing: 12) {
-            GlassStatCard(
+            LiquidGlassStatCard(
                 value: "\(pomodoro.sessionsCompleted)",
                 label: "Completed",
                 icon: "checkmark.circle.fill",
                 color: .green
             )
             
-            GlassStatCard(
+            LiquidGlassStatCard(
                 value: formattedTotalTime(),
                 label: "Total Focus",
                 icon: "clock.fill",
                 color: .blue
             )
             
-            GlassStatCard(
+            LiquidGlassStatCard(
                 value: "\(pomodoro.streak)",
                 label: "Day Streak",
                 icon: "flame.fill",
@@ -451,6 +454,7 @@ struct DurationQuickButton: View {
             .foregroundStyle(isSelected ? .green : .primary)
         }
         .buttonStyle(.plain)
+        .focusable(false)
     }
 }
 
@@ -467,7 +471,8 @@ struct CustomSlider: View {
     }
 }
 
-struct GlassStatCard: View {
+struct LiquidGlassStatCard: View {
+    @State private var isHovered = false
     let value: String
     let label: String
     let icon: String
@@ -488,15 +493,11 @@ struct GlassStatCard: View {
         }
         .frame(maxWidth: .infinity)
         .padding(.vertical, 16)
-        .background(
-            ZStack {
-                RoundedRectangle(cornerRadius: 16)
-                    .fill(Material.thinMaterial)
-                
-                RoundedRectangle(cornerRadius: 16)
-                    .stroke(color.opacity(0.2), lineWidth: 1)
-            }
-        )
+        .background(.ultraThinMaterial)
+        .clipShape(RoundedRectangle(cornerRadius: 24))
+        .onHover { hovering in
+            isHovered = hovering
+        }
     }
 }
 

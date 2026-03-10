@@ -102,6 +102,7 @@ struct TeamsView: View {
                 .cornerRadius(12)
             }
             .buttonStyle(.plain)
+            .focusable(false)
             
             Text("Requiere inicio de sesión en Microsoft 365")
                 .font(.caption)
@@ -113,7 +114,7 @@ struct TeamsView: View {
     private var connectedView: some View {
         VStack(spacing: 24) {
             // User Card
-            GlassCard(title: "Usuario", icon: "person.circle") {
+            LiquidCard(title: "Usuario", icon: "person.circle") {
                 HStack {
                     Image(systemName: "person.circle.fill")
                         .font(.system(size: 50))
@@ -141,11 +142,12 @@ struct TeamsView: View {
                             .foregroundColor(.secondary)
                     }
                     .buttonStyle(.plain)
+                    .focusable(false)
                 }
             }
             
             // Status Selector
-            GlassCard(title: "Estado", icon: "info.circle") {
+            LiquidCard(title: "Estado", icon: "info.circle") {
                 VStack(spacing: 12) {
                     ForEach([TeamsStatus.available, .busy, .doNotDisturb, .away], id: \.self) { teamStatus in
                         StatusButton(
@@ -160,7 +162,7 @@ struct TeamsView: View {
             
             // Today's Activities
             if !activities.isEmpty {
-                GlassCard(title: "Actividades de Hoy", icon: "calendar") {
+                LiquidCard(title: "Actividades de Hoy", icon: "calendar") {
                     VStack(alignment: .leading, spacing: 8) {
                         ForEach(activities) { activity in
                             ActivityRow(activity: activity)
@@ -170,7 +172,7 @@ struct TeamsView: View {
             }
             
             // Sync Settings
-            GlassCard(title: "Sincronización", icon: "arrow.triangle.2.circlepath") {
+            LiquidCard(title: "Sincronización", icon: "arrow.triangle.2.circlepath") {
                 VStack(spacing: 12) {
                     Toggle("Sincronizar automáticamente", isOn: .constant(true))
                     Toggle("Detectar reuniones", isOn: .constant(true))
@@ -266,6 +268,7 @@ struct StatusButton: View {
             .cornerRadius(8)
         }
         .buttonStyle(.plain)
+        .focusable(false)
     }
 }
 

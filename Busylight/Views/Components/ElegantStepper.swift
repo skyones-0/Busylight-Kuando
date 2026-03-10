@@ -2,7 +2,7 @@
 //  ElegantStepper.swift
 //  Busylight
 //
-//  Reusable stepper component with glassmorphism style
+//  Reusable stepper component with liquid glass style
 //
 
 import SwiftUI
@@ -48,14 +48,8 @@ struct ElegantStepper: View {
             .buttonStyle(ElegantStepperButtonStyle())
         }
         .padding(9)
-        .background(
-            RoundedRectangle(cornerRadius: 12)
-                .fill(.ultraThinMaterial)
-                .overlay(
-                    RoundedRectangle(cornerRadius: 12)
-                        .stroke(.white.opacity(0.1), lineWidth: 1)
-                )
-        )
+        .background(.ultraThinMaterial)
+        .clipShape(RoundedRectangle(cornerRadius: 16))
     }
 }
 

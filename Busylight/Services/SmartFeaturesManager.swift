@@ -2,7 +2,14 @@
 //  SmartFeaturesManager.swift
 //  Busylight
 //
-//  Super App - 15 Productivity Features
+//  Smart features: Calendar sync, focus mode, deep work, work profiles,
+//  meeting detection (Zoom/Teams), and work hours checking.
+//
+//  Relationships:
+//  - Uses: BusylightManager (automatic color changes based on context)
+//  - Uses: PomodoroManager (pauses timer during deep work)
+//  - Used by: DeepWorkView.swift, DashboardView.swift, MenuBarView.swift
+//  - Note: Auto-adjust work hours by ML has been removed (manual only)
 //
 
 import Foundation
@@ -392,24 +399,9 @@ class SmartFeaturesManager: ObservableObject {
         isWithinWorkHours = isWorkDay && isWorkHour
     }
     
-    // MARK: - ML Integration
-    func updateWorkHours(start: Int, end: Int) {
-        workStartTime = max(0, min(23, start))
-        workEndTime = max(1, min(24, end))
-        
-        // Notificar cambio
-        NotificationCenter.default.post(
-            name: NSNotification.Name("WorkHoursChanged"),
-            object: nil,
-            userInfo: ["start": workStartTime, "end": workEndTime]
-        )
-        
-        // Recheck work hours immediately
-        checkWorkHours()
-        
-        UserInteractionLogger.shared.workHoursChanged(start: workStartTime, end: workEndTime)
-        BusylightLogger.shared.info("Work hours updated by ML: \(workStartTime):00 - \(workEndTime):00")
-    }
+    // MARK: - Work Hours Management
+    // Note: Auto-adjustment by ML has been removed. Work hours are now manual only.
+    // To update work hours, modify workStartTime and workEndTime AppStorage properties directly.
 }
 
 // MARK: - User Interaction Logger (forward declaration)

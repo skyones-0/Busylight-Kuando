@@ -1,10 +1,3 @@
-//
-//  DashboardView.swift
-//  Busylight
-//
-//  Dashboard principal con Insights ML
-//
-
 import SwiftUI
 import SwiftData
 
@@ -13,22 +6,22 @@ struct DashboardView: View {
     @StateObject private var classifier = DayCategoryClassifierWrapper.shared
     @StateObject private var dataCollector = DayDataCollector.shared
     @State private var isLoading = false
-    
+
     var body: some View {
         ScrollView {
             VStack(spacing: 20) {
                 // Header
                 headerSection
-                
+
                 // Today's Prediction Card
                 todayPredictionCard
-                
+
                 // Stats Grid
                 statsGrid
-                
+
                 // Quick Actions
                 quickActionsSection
-                
+
                 // ML Insights (if available)
                 if let category = mlManager.todayCategory {
                     insightsSection(category: category)
@@ -37,19 +30,12 @@ struct DashboardView: View {
             .padding()
         }
         .navigationTitle("Panel")
-        .toolbar {
-            ToolbarItem(placement: .primaryAction) {
-                Button(action: refreshData) {
-                    Image(systemName: "arrow.clockwise")
-                }
-                .disabled(isLoading)
-            }
-        }
+        // TOOLBAR ELIMINADO - causaba crash con sidebar animado
         .onAppear {
             loadInitialData()
         }
     }
-    
+
     // MARK: - Header
     private var headerSection: some View {
         HStack {
@@ -57,20 +43,29 @@ struct DashboardView: View {
                 Text("Hola!")
                     .font(.title)
                     .fontWeight(.bold)
-                
+
                 Text(formattedDate())
                     .font(.subheadline)
                     .foregroundColor(.secondary)
             }
-            
+
             Spacer()
-            
+
+            // Botón refresh movido aquí (antes estaba en toolbar)
+            Button(action: refreshData) {
+                Image(systemName: "arrow.clockwise")
+                    .rotationEffect(isLoading ? .degrees(360) : .zero)
+                    .animation(isLoading ? .linear(duration: 1).repeatForever(autoreverses: false) : .default, value: isLoading)
+            }
+            .disabled(isLoading)
+            .buttonStyle(.bordered)
+
             // Status indicator
             HStack(spacing: 6) {
                 Circle()
                     .fill(classifier.isModelLoaded ? Color.green : Color.orange)
                     .frame(width: 8, height: 8)
-                
+
                 Text(classifier.isModelLoaded ? "ML Activo" : "Cargando ML...")
                     .font(.caption)
                     .foregroundColor(.secondary)
@@ -81,11 +76,11 @@ struct DashboardView: View {
             .cornerRadius(12)
         }
     }
-    
+
     // MARK: - Today's Prediction Card
     @ViewBuilder
     private var todayPredictionCard: some View {
-        GlassCard(title: "Hoy", icon: "calendar") {
+        LiquidCard(title: "Hoy", icon: "calendar") {
             VStack(spacing: 16) {
                 if let category = mlManager.todayCategory {
                     predictionContent(category: category)
@@ -95,75 +90,76 @@ struct DashboardView: View {
             }
         }
     }
-    
+
     private func predictionContent(category: DayCategory) -> some View {
         VStack(spacing: 16) {
             HStack(spacing: 16) {
                 Text(category.emoji)
                     .font(.system(size: 60))
-                
+
                 VStack(alignment: .leading, spacing: 4) {
                     Text(category.displayName)
                         .font(.title2)
                         .fontWeight(.semibold)
-                    
+
                     Text(category.description)
                         .font(.subheadline)
                         .foregroundColor(.secondary)
                         .lineLimit(2)
                 }
-                
+
                 Spacer()
-                
+
                 VStack(alignment: .trailing) {
                     Text("\(Int(mlManager.todayConfidence * 100))%")
                         .font(.title3)
                         .fontWeight(.bold)
                         .foregroundColor(.green)
-                    
+
                     Text("confianza")
                         .font(.caption)
                         .foregroundColor(.secondary)
                 }
             }
-            
+
             Divider()
-            
+
             HStack {
                 Image(systemName: "lightbulb.fill")
                     .foregroundColor(.yellow)
-                
+
                 Text(category.recommendation)
                     .font(.subheadline)
                     .foregroundColor(.secondary)
-                
+
                 Spacer()
             }
         }
     }
-    
+
     private func noPredictionContent() -> some View {
         VStack(spacing: 12) {
             Image(systemName: "brain.head.profile")
                 .font(.system(size: 40))
                 .foregroundColor(.secondary)
-            
+
             Text("Aún no hay predicción")
                 .font(.headline)
-            
+
             Text("El modelo necesita más datos para predecir")
                 .font(.caption)
                 .foregroundColor(.secondary)
-            
+
             Button("Generar Predicción") {
                 generatePrediction()
             }
             .buttonStyle(.borderedProminent)
+            .focusable(false)
             .padding(.top, 8)
         }
         .padding()
     }
-    
+
     // MARK: - Stats Grid
     private var statsGrid: some View {
         LazyVGrid(columns: [
@@ -176,21 +172,21 @@ struct DashboardView: View {
                 icon: "person.3.fill",
                 color: .blue
             )
-            
+
             StatCard(
                 title: "Tiempo Libre",
                 value: "\(dataCollector.freeBlocks) bloques",
                 icon: "clock.fill",
                 color: .green
             )
-            
+
             StatCard(
                 title: "Densidad",
                 value: "\(dataCollector.meetingDensity)%",
                 icon: "chart.bar.fill",
                 color: dataCollector.meetingDensity > 70 ? .red : .orange
             )
-            
+
             StatCard(
                 title: "Riesgo",
                 value: "\(dataCollector.interruptionRisk)%",
@@ -199,10 +195,10 @@ struct DashboardView: View {
             )
         }
     }
-    
+
     // MARK: - Quick Actions
     private var quickActionsSection: some View {
-        GlassCard(title: "Acciones Rápidas", icon: "bolt.fill") {
+        LiquidCard(title: "Acciones Rápidas", icon: "bolt.fill") {
             HStack(spacing: 12) {
                 QuickActionButton(
                     title: "Deep Work",
@@ -211,7 +207,7 @@ struct DashboardView: View {
                 ) {
                     // Navigate to Deep Work
                 }
-                
+
                 QuickActionButton(
                     title: "Pomodoro",
                     icon: "timer",
@@ -219,7 +215,7 @@ struct DashboardView: View {
                 ) {
                     // Navigate to Pomodoro
                 }
-                
+
                 QuickActionButton(
                     title: "Feedback",
                     icon: "hand.thumbsup.fill",
@@ -230,24 +226,24 @@ struct DashboardView: View {
             }
         }
     }
-    
+
     // MARK: - Insights Section
     private func insightsSection(category: DayCategory) -> some View {
-        GlassCard(title: "Insights ML", icon: "brain") {
+        LiquidCard(title: "Insights ML", icon: "brain") {
             VStack(alignment: .leading, spacing: 12) {
                 HStack {
                     Image(systemName: "chart.line.uptrend.xyaxis")
                         .foregroundColor(.blue)
-                    
+
                     Text("Patrones detectados: \(mlManager.trainingDaysCollected) días")
                         .font(.subheadline)
                 }
-                
+
                 if category == .burnoutRisk {
                     HStack {
                         Image(systemName: "exclamationmark.octagon.fill")
                             .foregroundColor(.red)
-                        
+
                         Text("¡Cuidado! Día de alto riesgo detectado")
                             .font(.subheadline)
                             .foregroundColor(.red)
@@ -257,7 +253,7 @@ struct DashboardView: View {
                     .background(Color.red.opacity(0.1))
                     .cornerRadius(8)
                 }
-                
+
                 #if canImport(MLTensor)
                 if #available(macOS 13.0, *) {
                     NavigationLink(destination: MLTensorInsightsView()) {
@@ -274,7 +270,7 @@ struct DashboardView: View {
             }
         }
     }
-    
+
     // MARK: - Actions
     private func loadInitialData() {
         Task {
@@ -284,7 +280,7 @@ struct DashboardView: View {
             isLoading = false
         }
     }
-    
+
     private func refreshData() {
         Task {
             isLoading = true
@@ -294,20 +290,20 @@ struct DashboardView: View {
             isLoading = false
         }
     }
-    
+
     private func generatePrediction() {
         Task {
             Task { await mlManager.predictTodayCategory() }
         }
     }
-    
+
     private func showFeedbackDialog() {
         NotificationCenterManager.shared.showInfoNotification(
             title: "Feedback",
             body: "La predicción fue correcta?"
         )
     }
-    
+
     private func formattedDate() -> String {
         let formatter = DateFormatter()
         formatter.locale = Locale(identifier: "es_ES")
@@ -325,14 +321,14 @@ struct QuickActionButton: View {
     let icon: String
     let color: Color
     let action: () -> Void
-    
+
     var body: some View {
         Button(action: action) {
             VStack(spacing: 8) {
                 Image(systemName: icon)
                     .font(.title2)
                     .foregroundColor(color)
-                
+
                 Text(title)
                     .font(.caption)
                     .foregroundColor(.primary)
@@ -343,6 +339,7 @@ struct QuickActionButton: View {
             .cornerRadius(12)
         }
         .buttonStyle(.plain)
+        .focusable(false)
     }
 }
 
