@@ -106,7 +106,13 @@ class DayCategoryFeedback {
 
 @MainActor
 class MLScheduleManager: ObservableObject {
-    static let shared = MLScheduleManager()
+    static var _shared: MLScheduleManager?
+    static var shared: MLScheduleManager {
+        if _shared == nil {
+            _shared = MLScheduleManager(container: PersistenceController.shared.container)
+        }
+        return _shared!
+    }
     
     // MARK: - Published Properties
     @Published var isModelTrained = false
@@ -117,37 +123,31 @@ class MLScheduleManager: ObservableObject {
     @Published var configuration: MLConfiguration?
     
     // MARK: - Private Properties
-    private let context: ModelContext
+    private var context: ModelContext
     private let minSamplesForTraining = 3
     private var currentDate: Date = Date()
     private var cancellables = Set<AnyCancellable>()
     
     // MARK: - Initialization
     
-    init() {
-        let schema = Schema([MLWorkPattern.self, MLConfiguration.self, HolidayCalendar.self, DayCategoryFeedback.self])
+    init(container: ModelContainer? = nil) {
+        // Use provided container or fallback to PersistenceController
+        let modelContainer = container ?? PersistenceController.shared.container
+        self.context = ModelContext(modelContainer)
         
-        do {
-            let container = try ModelContainer(for: schema)
-            self.context = ModelContext(container)
-            
-            loadConfiguration()
-            updateTrainingStats()
-            
-            // Actualización diaria
-            Task {
-                await dailyUpdateLoop()
-            }
-        } catch {
-            BusylightLogger.shared.error("❌ SwiftData error: \(error)")
-            // Fallback: crear contexto en memoria temporal
-            do {
-                let container = try ModelContainer(for: schema, configurations: ModelConfiguration(isStoredInMemoryOnly: true))
-                self.context = ModelContext(container)
-            } catch {
-                fatalError("No se pudo inicializar SwiftData: \(error)")
-            }
+        loadConfiguration()
+        updateTrainingStats()
+        
+        // Actualización diaria
+        Task {
+            await dailyUpdateLoop()
         }
+    }
+    
+    /// Reset shared instance (useful for testing or when container changes)
+    static func resetShared(container: ModelContainer? = nil) {
+        _shared = nil
+        _ = shared
     }
     
     // MARK: - Configuration

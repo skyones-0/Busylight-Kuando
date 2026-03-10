@@ -23,7 +23,8 @@ struct BusylightApp: App {
             CalendarConfiguration.self,
             CalendarEvent.self,
             CalendarTask.self,
-            AppSettings.self
+            AppSettings.self,
+            DayCategoryFeedback.self
         ])
         
         let configuration = ModelConfiguration(
@@ -35,8 +36,8 @@ struct BusylightApp: App {
             container = try ModelContainer(for: schema, configurations: [configuration])
             BusylightLogger.shared.info("SwiftData container initialized")
             
-            // Initialize ML Manager
-            _ = MLScheduleManager.shared
+            // Initialize ML Manager with shared container
+            MLScheduleManager.resetShared(container: container)
             
         } catch {
             fatalError("Failed to initialize SwiftData: \(error)")

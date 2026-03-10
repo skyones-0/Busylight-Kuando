@@ -24,7 +24,8 @@ class PersistenceController {
             CalendarConfiguration.self,
             CalendarEvent.self,
             CalendarTask.self,
-            AppSettings.self
+            AppSettings.self,
+            DayCategoryFeedback.self
         ])
         
         let modelConfiguration = ModelConfiguration(
@@ -52,7 +53,8 @@ class PersistenceController {
             CalendarConfiguration.self,
             CalendarEvent.self,
             CalendarTask.self,
-            AppSettings.self
+            AppSettings.self,
+            DayCategoryFeedback.self
         ])
         let configuration = ModelConfiguration(
             schema: schema,
