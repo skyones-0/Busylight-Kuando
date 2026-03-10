@@ -43,6 +43,10 @@ class MLWorkPattern {
     var deepWorkMinutes: Int
     var calendarEventCount: Int
     
+    var durationMinutes: Int {
+        (endHour * 60 + endMinute) - (startHour * 60 + startMinute)
+    }
+    
     init(date: Date, dayOfWeek: Int, startHour: Int, startMinute: Int,
          endHour: Int, endMinute: Int, isHoliday: Bool, sessionCount: Int,
          deepWorkMinutes: Int, calendarEventCount: Int) {
@@ -66,13 +70,13 @@ class HolidayCalendar {
     @Attribute(.unique) var id: UUID
     var date: Date
     var name: String
-    var isWorkHoliday: Bool
+    var isEnabled: Bool
     
-    init(date: Date, name: String, isWorkHoliday: Bool) {
+    init(date: Date, name: String, isEnabled: Bool) {
         self.id = UUID()
         self.date = date
         self.name = name
-        self.isWorkHoliday = isWorkHoliday
+        self.isEnabled = isEnabled
     }
 }
 
@@ -291,8 +295,8 @@ class MLScheduleManager: ObservableObject {
         }
     }
     
-    func addHoliday(date: Date, name: String, isWorkHoliday: Bool) {
-        let holiday = HolidayCalendar(date: date, name: name, isWorkHoliday: isWorkHoliday)
+    func addHoliday(date: Date, name: String, isEnabled: Bool) {
+        let holiday = HolidayCalendar(date: date, name: name, isEnabled: isEnabled)
         context.insert(holiday)
         try? context.save()
     }
@@ -362,5 +366,92 @@ class DayDataCollector: ObservableObject {
         if hasDeadline { risk += 20 }
         if backToBackCount > 0 { risk += 15 }
         interruptionRisk = min(100, risk)
+    }
+}
+
+// MARK: - Additional Methods (for SettingsView compatibility)
+
+extension MLScheduleManager {
+    func generateDemoData() {
+        // Generate sample patterns for demo
+        let calendar = Calendar.current
+        for dayOffset in -30..<0 {
+            guard let date = calendar.date(byAdding: .day, value: dayOffset, to: Date()) else { continue }
+            let weekday = calendar.component(.weekday, from: date)
+            
+            let pattern = MLWorkPattern(
+                date: date,
+                dayOfWeek: weekday,
+                startHour: 8 + Int.random(in: 0...2),
+                startMinute: 0,
+                endHour: 17 + Int.random(in: 0...3),
+                endMinute: 0,
+                isHoliday: false,
+                sessionCount: Int.random(in: 3...8),
+                deepWorkMinutes: Int.random(in: 60...180),
+                calendarEventCount: Int.random(in: 2...6)
+            )
+            context.insert(pattern)
+        }
+        try? context.save()
+        updateTrainingStats()
+        BusylightLogger.shared.info("📊 Demo data generated")
+    }
+    
+    func clearAllData() {
+        let patternsDescriptor = FetchDescriptor<MLWorkPattern>()
+        let feedbackDescriptor = FetchDescriptor<DayCategoryFeedback>()
+        
+        if let patterns = try? context.fetch(patternsDescriptor) {
+            for pattern in patterns { context.delete(pattern) }
+        }
+        if let feedbacks = try? context.fetch(feedbackDescriptor) {
+            for feedback in feedbacks { context.delete(feedback) }
+        }
+        
+        try? context.save()
+        updateTrainingStats()
+        BusylightLogger.shared.info("🗑️ All ML data cleared")
+    }
+    
+    func getHolidayCalendars() -> [HolidayCalendar] {
+        let descriptor = FetchDescriptor<HolidayCalendar>(
+            sortBy: [SortDescriptor(\.date, order: .forward)]
+        )
+        return (try? context.fetch(descriptor)) ?? []
+    }
+    
+    func createHolidayCalendar(name: String, date: Date) {
+        let holiday = HolidayCalendar(
+            date: date,
+            name: name,
+            isEnabled: true
+        )
+        context.insert(holiday)
+        try? context.save()
+    }
+    
+    func exportTrainingDataset() -> String {
+        let descriptor = FetchDescriptor<MLWorkPattern>(
+            sortBy: [SortDescriptor(\.date, order: .forward)]
+        )
+        guard let patterns = try? context.fetch(descriptor) else {
+            return "No data available"
+        }
+        
+        var csv = "date,dayOfWeek,startHour,endHour,sessionCount,deepWorkMinutes\\n"
+        for pattern in patterns {
+            csv += "\(pattern.date),\(pattern.dayOfWeek),\(pattern.startHour),\(pattern.endHour),\(pattern.sessionCount),\(pattern.deepWorkMinutes)\\n"
+        }
+        return csv
+    }
+}
+
+// MARK: - HolidayCalendar Extension
+
+extension HolidayCalendar {
+    var customDates: [Date] {
+        // Return array with just this holiday's date
+        return [date]
     }
 }

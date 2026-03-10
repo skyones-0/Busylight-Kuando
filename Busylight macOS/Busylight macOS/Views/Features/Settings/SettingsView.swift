@@ -204,7 +204,7 @@ struct AddHolidayCalendarView: View {
                     Button("Guardar") {
                         MLScheduleManager.shared.createHolidayCalendar(
                             name: name,
-                            countryCode: countryCode
+                            date: Date()
                         )
                         dismiss()
                     }
@@ -388,7 +388,7 @@ struct ExportDatasetView: View {
     
     private func exportDataset() {
         isExporting = true
-        exportURL = mlManager.exportTrainingDataset()
+        exportURL = URL(string: "file://" + mlManager.exportTrainingDataset()) ?? URL(string: "file:///tmp/export.csv")!
         isExporting = false
     }
 }
