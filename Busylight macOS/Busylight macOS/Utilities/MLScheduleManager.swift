@@ -126,15 +126,27 @@ class MLScheduleManager: ObservableObject {
     
     init() {
         let schema = Schema([MLWorkPattern.self, MLConfiguration.self, HolidayCalendar.self, DayCategoryFeedback.self])
-        let container = try! ModelContainer(for: schema)
-        self.context = ModelContext(container)
         
-        loadConfiguration()
-        updateTrainingStats()
-        
-        // Actualización diaria
-        Task {
-            await dailyUpdateLoop()
+        do {
+            let container = try ModelContainer(for: schema)
+            self.context = ModelContext(container)
+            
+            loadConfiguration()
+            updateTrainingStats()
+            
+            // Actualización diaria
+            Task {
+                await dailyUpdateLoop()
+            }
+        } catch {
+            BusylightLogger.shared.error("❌ SwiftData error: \(error)")
+            // Fallback: crear contexto en memoria temporal
+            do {
+                let container = try ModelContainer(for: schema, configurations: ModelConfiguration(isStoredInMemoryOnly: true))
+                self.context = ModelContext(container)
+            } catch {
+                fatalError("No se pudo inicializar SwiftData: \(error)")
+            }
         }
     }
     

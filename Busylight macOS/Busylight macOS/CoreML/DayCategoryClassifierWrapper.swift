@@ -162,10 +162,27 @@ class DayCategoryClassifierWrapper: ObservableObject {
     private func loadModel() {
         BusylightLogger.shared.info("🧠 Cargando DayCategoryClassifier...")
         
-        // Intentar cargar desde bundle
         let bundle = Bundle.main
         
-        // Estrategia 1: .mlmodelc compilado
+        // Estrategia 1: Buscar dentro de .mlpackage (Create ML export)
+        if let packageURL = bundle.url(forResource: modelName, withExtension: "mlpackage") {
+            let modelPath = packageURL.appendingPathComponent("Data/com.apple.CoreML/\(modelName).mlmodel")
+            if FileManager.default.fileExists(atPath: modelPath.path) {
+                do {
+                    let compiledURL = try MLModel.compileModel(at: modelPath)
+                    let config = MLModelConfiguration()
+                    config.computeUnits = .cpuAndNeuralEngine
+                    model = try MLModel(contentsOf: compiledURL, configuration: config)
+                    isModelLoaded = true
+                    BusylightLogger.shared.info("✅ DayCategoryClassifier cargado desde .mlpackage")
+                    return
+                } catch {
+                    BusylightLogger.shared.info("❌ Error compilando desde .mlpackage: \(error)")
+                }
+            }
+        }
+        
+        // Estrategia 2: .mlmodelc compilado (cache)
         if let modelURL = bundle.url(forResource: modelName, withExtension: "mlmodelc") {
             do {
                 let config = MLModelConfiguration()
@@ -179,7 +196,7 @@ class DayCategoryClassifierWrapper: ObservableObject {
             }
         }
         
-        // Estrategia 2: .mlmodel sin compilar
+        // Estrategia 3: .mlmodel suelto
         if let modelURL = bundle.url(forResource: modelName, withExtension: "mlmodel") {
             do {
                 let compiledURL = try MLModel.compileModel(at: modelURL)
