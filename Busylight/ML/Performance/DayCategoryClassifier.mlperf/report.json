@@ -1,0 +1,216 @@
+{
+  "jsonVersion" : 1,
+  "deviceResultVersion" : 4,
+  "modelMetadata" : {
+    "fileName" : "DayCategoryClassifier",
+    "modelType" : "Feature Vectorizer → Tree Ensemble Classifier",
+    "rawMetadata" : "[\n  {\n    \"metadataOutputVersion\" : \"3.0\",\n    \"shortDescription\" : \"Clasifica días laborales en 7 categorías: Rest, Calm, Balanced, Busy, Intense, DeepFocus, BurnoutRisk\",\n    \"outputSchema\" : [\n      {\n        \"isOptional\" : \"0\",\n        \"formattedType\" : \"Int64\",\n        \"type\" : \"Int64\",\n        \"name\" : \"dayCategory\",\n        \"shortDescription\" : \"\"\n      },\n      {\n        \"isOptional\" : \"0\",\n        \"keyType\" : \"Int64\",\n        \"formattedType\" : \"Dictionary (Int64 → Double)\",\n        \"type\" : \"Dictionary\",\n        \"name\" : \"classProbability\",\n        \"shortDescription\" : \"\"\n      }\n    ],\n    \"modelParameters\" : [\n\n    ],\n    \"author\" : \"Busylight Team\",\n    \"specificationVersion\" : 1,\n    \"license\" : \"MIT\",\n    \"stateSchema\" : [\n\n    ],\n    \"isUpdatable\" : \"0\",\n    \"availability\" : {\n      \"macOS\" : \"10.13\",\n      \"tvOS\" : \"11.0\",\n      \"visionOS\" : \"1.0\",\n      \"watchOS\" : \"4.0\",\n      \"iOS\" : \"11.0\",\n      \"macCatalyst\" : \"11.0\"\n    },\n    \"modelType\" : {\n      \"name\" : \"MLModelType_pipelineClassifier\",\n      \"structure\" : [\n        {\n          \"name\" : \"MLModelType_featureVectorizer\"\n        },\n        {\n          \"name\" : \"MLModelType_treeEnsembleClassifier\"\n        }\n      ]\n    },\n    \"inputSchema\" : [\n      {\n        \"isOptional\" : \"0\",\n        \"formattedType\" : \"Double\",\n        \"type\" : \"Double\",\n        \"name\" : \"dayOfWeek\",\n        \"shortDescription\" : \"\"\n      },\n      {\n        \"isOptional\" : \"0\",\n        \"formattedType\" : \"Double\",\n        \"type\" : \"Double\",\n        \"name\" : \"isWeekend\",\n        \"shortDescription\" : \"\"\n      },\n      {\n        \"isOptional\" : \"0\",\n        \"formattedType\" : \"Double\",\n        \"type\" : \"Double\",\n        \"name\" : \"isHoliday\",\n        \"shortDescription\" : \"\"\n      },\n      {\n        \"isOptional\" : \"0\",\n        \"formattedType\" : \"Double\",\n        \"type\" : \"Double\",\n        \"name\" : \"totalMeetingCount\",\n        \"shortDescription\" : \"\"\n      },\n      {\n        \"isOptional\" : \"0\",\n        \"formattedType\" : \"Double\",\n        \"type\" : \"Double\",\n        \"name\" : \"hasImportantDeadline\",\n        \"shortDescription\" : \"\"\n      },\n      {\n        \"isOptional\" : \"0\",\n        \"formattedType\" : \"Double\",\n        \"type\" : \"Double\",\n        \"name\" : \"backToBackMeetings\",\n        \"shortDescription\" : \"\"\n      },\n      {\n        \"isOptional\" : \"0\",\n        \"formattedType\" : \"Double\",\n        \"type\" : \"Double\",\n        \"name\" : \"freeTimeBlocks\",\n        \"shortDescription\" : \"\"\n      },\n      {\n        \"isOptional\" : \"0\",\n        \"formattedType\" : \"Double\",\n        \"type\" : \"Double\",\n        \"name\" : \"meetingDensityScore\",\n        \"shortDescription\" : \"\"\n      },\n      {\n        \"isOptional\" : \"0\",\n        \"formattedType\" : \"Double\",\n        \"type\" : \"Double\",\n        \"name\" : \"interruptionRiskScore\",\n        \"shortDescription\" : \"\"\n      }\n    ],\n    \"classLabels\" : [\n      0,\n      1,\n      2,\n      3,\n      4,\n      5,\n      6\n    ],\n    \"generatedClassName\" : \"DayCategoryClassifier\",\n    \"userDefinedMetadata\" : {\n      \"com.github.apple.coremltools.version\" : \"9.0\",\n      \"com.github.apple.coremltools.source\" : \"scikit-learn==1.5.1\"\n    },\n    \"method\" : \"predict\"\n  }\n]",
+    "modelUrl" : "file:\/\/\/Users\/skyones\/Desktop\/Swift\/Busylight\/CoreML\/Model\/DayCategoryClassifier.mlmodel",
+    "functionNames" : [
+
+    ],
+    "size" : 390943
+  },
+  "deviceResults" : {
+    "perfRunConfig" : {
+      "loadCount" : 3,
+      "predictionCount" : 40,
+      "experimentIterations" : 3
+    },
+    "predict" : {
+      "numOperations" : 40,
+      "samples" : [
+        0.0007410049438476562,
+        4.601478576660156e-05,
+        2.7060508728027344e-05,
+        3.695487976074219e-05,
+        2.6941299438476562e-05,
+        5.1021575927734375e-05,
+        3.0994415283203125e-05,
+        2.6941299438476562e-05,
+        2.491474151611328e-05,
+        2.491474151611328e-05,
+        2.4080276489257812e-05,
+        2.300739288330078e-05,
+        2.193450927734375e-05,
+        2.7060508728027344e-05,
+        2.09808349609375e-05,
+        2.002716064453125e-05,
+        3.600120544433594e-05,
+        2.09808349609375e-05,
+        1.4066696166992188e-05,
+        3.600120544433594e-05,
+        2.491474151611328e-05,
+        2.002716064453125e-05,
+        1.704692840576172e-05,
+        1.6927719116210938e-05,
+        1.9073486328125e-05,
+        1.5974044799804688e-05,
+        2.396106719970703e-05,
+        2.205371856689453e-05,
+        2.09808349609375e-05,
+        2.8967857360839844e-05,
+        2.7060508728027344e-05,
+        2.002716064453125e-05,
+        2.288818359375e-05,
+        2.300739288330078e-05,
+        2.002716064453125e-05,
+        2.491474151611328e-05,
+        1.9073486328125e-05,
+        2.09808349609375e-05,
+        1.895427703857422e-05,
+        2.110004425048828e-05,
+        7.402896881103516e-05,
+        3.3974647521972656e-05,
+        2.7060508728027344e-05,
+        2.205371856689453e-05,
+        2.396106719970703e-05,
+        2.300739288330078e-05,
+        2.5033950805664062e-05,
+        2.5033950805664062e-05,
+        2.300739288330078e-05,
+        2.5987625122070312e-05,
+        1.990795135498047e-05,
+        2.5033950805664062e-05,
+        2.205371856689453e-05,
+        2.491474151611328e-05,
+        2.193450927734375e-05,
+        1.609325408935547e-05,
+        1.2993812561035156e-05,
+        1.3947486877441406e-05,
+        1.5974044799804688e-05,
+        1.800060272216797e-05,
+        2.396106719970703e-05,
+        2.5987625122070312e-05,
+        2.5987625122070312e-05,
+        2.5987625122070312e-05,
+        2.5987625122070312e-05,
+        2.205371856689453e-05,
+        2.396106719970703e-05,
+        2.205371856689453e-05,
+        2.5033950805664062e-05,
+        2.300739288330078e-05,
+        2.09808349609375e-05,
+        2.491474151611328e-05,
+        2.396106719970703e-05,
+        2.5033950805664062e-05,
+        2.193450927734375e-05,
+        2.002716064453125e-05,
+        2.5987625122070312e-05,
+        2.396106719970703e-05,
+        2.5987625122070312e-05,
+        2.205371856689453e-05,
+        6.306171417236328e-05,
+        1.9073486328125e-05,
+        1.5020370483398438e-05,
+        1.3947486877441406e-05,
+        1.5020370483398438e-05,
+        1.3947486877441406e-05,
+        1.5020370483398438e-05,
+        1.5974044799804688e-05,
+        1.704692840576172e-05,
+        5.698204040527344e-05,
+        2.7060508728027344e-05,
+        2.002716064453125e-05,
+        1.6927719116210938e-05,
+        2.396106719970703e-05,
+        2.300739288330078e-05,
+        1.800060272216797e-05,
+        2.300739288330078e-05,
+        2.491474151611328e-05,
+        2.6106834411621094e-05,
+        2.288818359375e-05,
+        1.609325408935547e-05,
+        2.300739288330078e-05,
+        2.193450927734375e-05,
+        2.205371856689453e-05,
+        2.300739288330078e-05,
+        2.002716064453125e-05,
+        2.5987625122070312e-05,
+        2.300739288330078e-05,
+        2.5033950805664062e-05,
+        2.7894973754882812e-05,
+        1.609325408935547e-05,
+        2.300739288330078e-05,
+        2.09808349609375e-05,
+        2.8967857360839844e-05,
+        2.002716064453125e-05,
+        1.5020370483398438e-05,
+        2.09808349609375e-05,
+        1.895427703857422e-05,
+        2.205371856689453e-05,
+        2.300739288330078e-05
+      ],
+      "startTime" : 794805569.040894
+    },
+    "load" : {
+      "numOperations" : 3,
+      "samples" : [
+        0.0014079809188842773,
+        0.0005120038986206055,
+        0.0004940032958984375,
+        0.0008069276809692383,
+        0.0004889965057373047,
+        0.00046896934509277344,
+        0.0007740259170532227,
+        0.000513911247253418,
+        0.0004999637603759766
+      ],
+      "startTime" : 794805569.039473
+    },
+    "modelStructure" : {
+      "unsupported" : {
+
+      }
+    },
+    "availableComputeDevices" : [
+      {
+        "deviceType" : {
+          "neuralEngine" : {
+
+          }
+        }
+      },
+      {
+        "deviceType" : {
+          "gpu" : {
+
+          }
+        }
+      },
+      {
+        "deviceType" : {
+          "cpu" : {
+
+          }
+        }
+      }
+    ],
+    "compile" : {
+      "numOperations" : 3,
+      "samples" : [
+        0.03419506549835205,
+        0.02306997776031494,
+        0.021929025650024414
+      ],
+      "startTime" : 794805569.016225
+    }
+  },
+  "deviceInfo" : {
+    "isCloudDevice" : false,
+    "osNameAndVersionWithoutBuildNumber" : "macOS 26.3.1",
+    "deviceType" : {
+      "macLaptop" : {
+
+      }
+    },
+    "modelName" : "MacBook Pro",
+    "deviceID" : "00008103-0009783E21A2001E",
+    "displayName" : "My Mac",
+    "capacity" : "--",
+    "serialNumber" : "C02DQ63UQ05D",
+    "osNameAndVersionWithInternalBuildNumber" : "macOS 26.3.1",
+    "isSupported" : true
+  },
+  "computeUnit" : 2
+}

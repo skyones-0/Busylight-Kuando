@@ -1,0 +1,24 @@
+{
+    "fileFormatVersion": "1.0.0",
+    "itemInfoEntries": {
+        "33C00150-62F6-436D-A17F-195A0D044801": {
+            "author": "com.apple.CoreML",
+            "description": "External Metadata Overlay",
+            "name": "Metadata.json",
+            "path": "com.apple.CoreML/Metadata.json"
+        },
+        "B77D548E-A981-49D6-811B-880E915262AB": {
+            "author": "com.apple.CoreML",
+            "description": "CoreML Model Specification",
+            "name": "DayCategoryClassifier.mlmodel",
+            "path": "com.apple.CoreML/DayCategoryClassifier.mlmodel"
+        },
+        "D9835016-6323-4625-B6B8-17F0FD13410C": {
+            "author": "com.apple.CoreML",
+            "description": "External FeatureDescription Overlay",
+            "name": "FeatureDescriptions.json",
+            "path": "com.apple.CoreML/FeatureDescriptions.json"
+        }
+    },
+    "rootModelIdentifier": "B77D548E-A981-49D6-811B-880E915262AB"
+}
