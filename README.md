@@ -1,7 +1,8 @@
+```markdown
 # Busylight for Kuando
 
 <p align="center">
-  <img src="Busylight%20macOS/icon%20Exports/icon-macOS-Dark-256x256@1x.png" alt="Busylight Logo" width="120" height="120">
+  <img src="icon%20Exports/icon-macOS-Dark-256x256@1x.png" alt="Busylight Logo" width="120" height="120">
 </p>
 
 <p align="center">
@@ -29,23 +30,26 @@
 - **⏱️ Pomodoro Timer** - Phase management with work/break cycles
 - **🔥 Deep Work Mode** - Distraction-free sessions with auto-pause Pomodoro
 - **🔊 Audio Integration** - 16 jingles and alert sounds
+- **🎵 Relaxing Music** - Built-in audio player for focus music
 
 ### ML & AI Features
 - **🧠 Smart Schedule Learning** - CoreML models learn your work patterns
 - **📈 Work Hour Prediction** - Predicts optimal start/end hours for each day
 - **🎯 Holiday Exclusion** - Mark holidays to exclude from ML training
 - **⚡ Auto-Configuration** - Automatically adjusts settings based on predictions
+- **📊 Day Category Classification** - ML model categorizes days (Work, Rest, etc.)
 
 ### Productivity Features
 - **📅 Calendar Sync** - Auto-detect meetings and sync status
 - **🌙 Focus Mode Sync** - macOS Focus integration
 - **🕐 Smart Work Hours** - Schedule reminders and automatic adjustments
-- **🎨 Glassmorphism UI** - Modern design with blur effects
+- **🎨 Liquid Glass UI** - Native macOS 26+ design with blur effects
+- **📍 Location Awareness** - GPS-based country detection for holidays
 
 ### Integrations
 - **🌐 Local API Server** - HTTP endpoints at localhost:8080
 - **👔 Microsoft Teams** - Presence sync support
-- **📊 Productivity Dashboard** - Stats and insights
+- **📊 Productivity Dashboard** - Stats and insights with ML predictions
 
 ---
 
@@ -64,53 +68,78 @@
 ## 🏗️ Project Structure
 
 ```
-Busylight macOS/
+Busylight/
 │
-├── 📁 Busylight macOS/              # Main App
-│   ├──
-│   │   ├── BusylightApp.swift       # App entry point
-│   │   ├── BusylightManager.swift   # Device control (USB)
-│   │   ├── PomodoroManager.swift    # Timer logic
-│   │   └── Persistence.swift        # SwiftData
-│   │
-│   ├── 📁 Views/                    # SwiftUI Views
-│   │   ├── ContentView.swift        # Main UI
-│   │   ├── MenuBarView.swift        # Menu bar popover
-│   │   └── TimerView.swift          # Timer overlay
-│   │
-│   ├── 📁 CoreML/                   # ML Models & Logic
-│   │   ├── TrainedModelLoader.swift # Load Create ML models
-│   │   ├── WorkSchedulePredictor.swift # In-app training
-│   │   └── 📁 ML Model/             # Pre-trained models
-│   │       ├── StartHours.mlpackage
-│   │       └── EndHours.mlpackage
-│   │
-│   ├── 📁 Utilities/                # Managers
-│   │   ├── MLScheduleManager.swift  # ML orchestration
-│   │   ├── SmartFeaturesManager.swift
-│   │   ├── WebhookServer.swift      # Local API
-│   │   ├── BusylightLogger.swift
-│   │   └── UserInteractionLogger.swift
-│   │
-│   ├── 📁 Models/                   # SwiftData Models
-│   │   ├── MLWorkPattern.swift
-│   │   └── PomodoroSession.swift
-│   │
-│   ├── 📁 Resources/                # Assets & Localization
-│   │   └── Localizable.xcstrings    # 100% Spanish translated
-│   │
-│   └── 📁 Styles/                   # UI Styles
-│       └── GlassmorphismStyles.swift
+├── 📁 App/                          # App Entry Points
+│   ├── BusylightApp.swift           # Main app
+│   └── AppDelegate.swift            # Menu bar & lifecycle
+│
+├── 📁 Services/                     # Core Services
+│   ├── BusylightManager.swift       # Device control (USB) + NSObject
+│   ├── BusylightWrapper.h/.m        # Objective-C bridge to SDK
+│   ├── Busylight-Bridging-Header.h  # Swift/Obj-C bridge
+│   ├── PomodoroManager.swift        # Timer logic
+│   ├── PomodoroSession.swift        # Session model
+│   ├── AudioManager.swift           # Audio playback
+│   ├── LocationManager.swift        # GPS services
+│   ├── NotificationManager.swift    # macOS notifications
+│   └── SmartFeaturesManager.swift   # Smart automation
+│
+├── 📁 Views/                        # SwiftUI Views
+│   ├── Components/                  # Reusable UI
+│   │   ├── ControlButton.swift
+│   │   ├── ElegantStepper.swift
+│   │   └── LiquidCard.swift         # Native Liquid Glass cards
+│   ├── Features/                    # Feature screens
+│   │   ├── Dashboard/               # Main dashboard
+│   │   ├── Device/                  # Device control
+│   │   ├── Pomodoro/                # Timer view
+│   │   ├── DeepWork/                # Focus mode
+│   │   ├── Calendar/                # Calendar picker
+│   │   ├── Insights/                # ML insights
+│   │   ├── Profiles/                # Work profiles
+│   │   ├── Settings/                # App settings
+│   │   └── Teams/                   # Teams integration
+│   ├── MenuBarView.swift            # Menu bar popover
+│   ├── SidebarItem.swift            # Navigation
+│   ├── TimerView.swift              # Timer overlay
+│   └── Styles/
+│       └── LiquidGlassStyles.swift  # Native macOS 26+ styles
+│
+├── 📁 ML/                           # Machine Learning
+│   ├── Infrastructure/
+│   │   └── TrainedModelLoader.swift # Model loading
+│   ├── Models/                      # CoreML packages
+│   │   └── DayCategoryClassifier.mlpackage
+│   └── Processors/                  # ML logic
+│       ├── DayCategoryClassifierWrapper.swift
+│       ├── MLScheduleManager.swift
+│       ├── MLTensorManager.swift
+│       └── WorkSchedulePredictor.swift
+│
+├── 📁 Core/                         # Core Logic
+│   ├── Models/                      # Data models
+│   │   └── CalendarModels.swift
+│   ├── Persistence/                 # SwiftData
+│   │   └── Persistence.swift
+│   └── Networking/                  # API
+│       └── WebhookServer.swift
+│
+├── 📁 Utilities/                    # Helpers
+│   ├── BusylightLogger.swift        # Structured logging
+│   └── UserInteractionLogger.swift  # Analytics
+│
+├── 📁 Resources/                    # Assets
+│   ├── Assets.xcassets/
+│   ├── Localizable.xcstrings        # Spanish localization
+│   ├── Info.plist
+│   └── Tracks/                      # Audio files
+│       └── Distant.aac
 │
 ├── 📁 BusylightTests/               # Unit Tests
-│   └── MLModelTests.swift           # CoreML model tests
+│   └── MLModelTests.swift
 │
-├── 📁 ML Training Data/             # Training datasets
-│   ├── work_schedule_training_data.csv
-│   ├── testing_data.csv
-│   └── 📁 predict_hours.mlproj/     # Create ML project
-│
-└── 📁 BusylightSDK_Swift.framework/ # Hardware SDK
+└── 📁 BusylightSDK_Swift.framework/ # Hardware SDK v1
 ```
 
 ---
@@ -124,7 +153,7 @@ git clone https://github.com/skyones-0/Busylight-Kuando.git
 cd Busylight-Kuando
 
 # Open in Xcode
-open "Busylight macOS/Busylight macOS.xcodeproj"
+open Busylight/Busylight.xcodeproj
 
 # Build and run (Cmd+R)
 ```
@@ -133,8 +162,8 @@ open "Busylight macOS/Busylight macOS.xcodeproj"
 ```bash
 # Run unit tests (Cmd+U in Xcode)
 # or via command line:
-xcodebuild test -project "Busylight mac OS/Busylight mac OS.xcodeproj" \
-  -scheme "Busylight mac OS" \
+xcodebuild test -project Busylight/Busylight.xcodeproj \
+  -scheme Busylight \
   -destination 'platform=macOS'
 ```
 
@@ -238,10 +267,9 @@ Run tests with **Cmd+U** in Xcode.
 ## 🧠 ML Model Details
 
 ### Pre-trained Models (Create ML)
-The app uses two CoreML models trained in Create ML:
+The app uses CoreML models:
 
-- **StartHours.mlmodel** - Predicts optimal start hour (0-23)
-- **EndHours.mlmodel** - Predicts optimal end hour (0-23)
+- **DayCategoryClassifier.mlpackage** - Categorizes days (Work, Rest, Meeting, etc.)
 
 ### Input Features
 - `dayOfWeek` - Day of week (1=Sunday, 7=Saturday)
@@ -276,7 +304,9 @@ The app is fully localized in Spanish (100%):
 - **UserNotifications** - Local notifications
 
 ### Hardware Integration
-- **BusylightSDK_Swift** - Official Kuando SDK
+- **BusylightSDK_Swift v1** - Official Kuando SDK
+- **Objective-C Bridge** - BusylightWrapper.h/.m
+- **NSObject Conformance** - For delegate protocol
 - USB HID communication
 - Real-time device status
 
@@ -285,14 +315,21 @@ The app is fully localized in Spanish (100%):
 ## 🔄 Recent Updates
 
 ### Latest Changes
+- ✅ **Objective-C Bridge** - BusylightWrapper with proper bridging header
+- ✅ **NSObject Conformance** - BusylightManager inherits NSObject for delegate
+- ✅ **Liquid Glass UI** - Native macOS 26+ design system
+- ✅ **Audio Manager** - Built-in music player for focus
+- ✅ **Location Services** - GPS-based country detection
 - ✅ **100% Spanish Localization** - Complete translation
 - ✅ **Unit Tests** - ML model validation tests
-- ✅ **Pre-trained Models** - Create ML StartHours/EndHours models
+- ✅ **Day Category Classifier** - ML model for day categorization
 - ✅ **Auto-training** - Automatic model retraining
 - ✅ **Holiday Calendars** - Exclude holidays from training
 - ✅ **Local API** - HTTP server for integrations
 
 ### Architecture Improvements
+- ✅ Objective-C bridging header configured
+- ✅ NSObject inheritance for delegate protocols
 - ✅ Conditional compilation for testing (`#if !TESTING`)
 - ✅ Modular ML architecture with fallback training
 - ✅ SwiftData for local persistence
@@ -315,3 +352,4 @@ This project is proprietary software.
 <p align="center">
   Made with ❤️ for macOS
 </p>
+```
