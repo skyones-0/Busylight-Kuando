@@ -3,7 +3,7 @@
 //  Busylight
 //
 //  Main content view with sidebar navigation
-//  Refactored: Split into feature modules
+//  Refactored: Split into feature modules with glassmorphism design
 //
 
 import SwiftUI
@@ -25,113 +25,115 @@ struct ContentView: View {
     
     var body: some View {
         NavigationSplitView {
-            // Sidebar
-            List(SidebarItem.allCases, selection: $selectedItem) { item in
-                NavigationLink(value: item) {
-                    Label(item.rawValue, systemImage: item.icon)
-                        .font(.system(.body, design: .rounded))
+            // Sidebar con glassmorphism
+            ZStack {
+                // Background
+                MeshGradientBackground()
+                
+                // Sidebar content
+                VStack(spacing: 0) {
+                    // Header
+                    VStack(spacing: 8) {
+                        ZStack {
+                            Circle()
+                                .fill(
+                                    LinearGradient(
+                                        colors: [.orange.opacity(0.8), .red.opacity(0.6)],
+                                        startPoint: .topLeading,
+                                        endPoint: .bottomTrailing
+                                    )
+                                )
+                                .frame(width: 50, height: 50)
+                                .shadow(color: .orange.opacity(0.4), radius: 10, x: 0, y: 4)
+                            
+                            Image(systemName: "lightbulb.fill")
+                                .font(.title2)
+                                .foregroundStyle(.white)
+                        }
+                        
+                        Text("Busylight")
+                            .font(.system(.title3, design: .rounded).weight(.bold))
+                        
+                        Text("Control Center")
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                    }
+                    .padding(.top, 20)
+                    .padding(.bottom, 16)
+                    
+                    // Navigation items
+                    VStack(spacing: 4) {
+                        ForEach(SidebarItem.allCases) { item in
+                            GlassSidebarItem(item: item, isSelected: selectedItem == item)
+                                .onTapGesture {
+                                    withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) {
+                                        selectedItem = item
+                                        UserInteractionLogger.shared.navigation(to: item.rawValue)
+                                    }
+                                }
+                        }
+                    }
+                    .padding(.horizontal, 8)
+                    
+                    Spacer()
+                    
+                    // Connection status en sidebar
+                    GlassStatusCard(busylight: busylight)
+                        .padding(.horizontal, 12)
+                        .padding(.bottom, 16)
                 }
             }
-            .navigationTitle("Busylight")
-            .listStyle(.sidebar)
-            
+            .frame(minWidth: 180, idealWidth: 200, maxWidth: 220)
         } detail: {
-            // Detail View based on selection
-            switch selectedItem {
-            case .pomodoro:
-                PomodoroView()
-                    .environmentObject(busylight)
-            case .deepWork:
-                DeepWorkView()
-            case .workProfiles:
-                WorkProfilesView()
-            case .teams:
-                TeamsView()
-            case .dashboard:
-                DashboardView()
-            case .configuration:
-                SettingsView()
-            case .device:
-                DeviceView(busylight: busylight)
+            // Detail view con glassmorphism background
+            ZStack {
+                Color(NSColor.windowBackgroundColor)
+                
+                ScrollView {
+                    switch selectedItem {
+                    case .pomodoro:
+                        PomodoroView()
+                            .environmentObject(busylight)
+                    case .deepWork:
+                        DeepWorkView()
+                    case .workProfiles:
+                        WorkProfilesView()
+                    case .teams:
+                        TeamsView()
+                    case .dashboard:
+                        DashboardView()
+                    case .configuration:
+                        SettingsView()
+                    case .device:
+                        DeviceView(busylight: busylight)
+                    }
+                }
             }
         }
+        .frame(minWidth: 750, idealWidth: 850, maxWidth: 1000,
+               minHeight: 550, idealHeight: 650, maxHeight: 800)
+        .onReceive(NotificationCenter.default.publisher(for: .openMainWindow)) { _ in
+            BusylightLogger.shared.debug("Recibida notificación openMainWindow")
+            bringWindowToFront()
+        }
     }
-}
-
-// MARK: - Placeholder Views (To be implemented)
-// These should be moved to their respective files in Features/ folder
-
-struct PomodoroViewPlaceholder: View {
-    @EnvironmentObject var busylight: BusylightManager
     
-    var body: some View {
-        VStack {
-            Text("Pomodoro Timer")
-                .font(.largeTitle)
-            Text("Move PomodoroView code here from old ContentView.swift")
-                .foregroundStyle(.secondary)
-            
-            // Placeholder for actual implementation
-            GlassCard(title: "Timer", icon: "timer") {
-                Text("Pomodoro timer implementation goes here")
-                    .padding()
+    private func bringWindowToFront() {
+        BusylightLogger.shared.debug("Ejecutando bringWindowToFront")
+        UserInteractionLogger.shared.windowBroughtToFront()
+        NSApp.activate(ignoringOtherApps: true)
+        NSApp.unhide(nil)
+        
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+            for window in NSApp.windows {
+                if window.isVisible || !window.isMiniaturized {
+                    window.makeKeyAndOrderFront(nil)
+                    window.orderFrontRegardless()
+                    BusylightLogger.shared.info("Ventana traída al frente exitosamente")
+                    return
+                }
             }
-            .padding()
-        }
-    }
-}
-
-struct DeepWorkViewPlaceholder: View {
-    var body: some View {
-        VStack {
-            Text("Deep Work Mode")
-                .font(.largeTitle)
-            Text("Move DeepWorkView code here from old ContentView.swift")
-                .foregroundStyle(.secondary)
-        }
-    }
-}
-
-struct WorkProfilesViewPlaceholder: View {
-    var body: some View {
-        VStack {
-            Text("Work Profiles")
-                .font(.largeTitle)
-            Text("Move WorkProfilesView code here from old ContentView.swift")
-                .foregroundStyle(.secondary)
-        }
-    }
-}
-
-struct TeamsViewPlaceholder: View {
-    var body: some View {
-        VStack {
-            Text("Microsoft Teams")
-                .font(.largeTitle)
-            Text("Move TeamsView code here from old ContentView.swift")
-                .foregroundStyle(.secondary)
-        }
-    }
-}
-
-struct DashboardViewPlaceholder: View {
-    var body: some View {
-        VStack {
-            Text("Dashboard")
-                .font(.largeTitle)
-            Text("Move DashboardView code here from old ContentView.swift")
-                .foregroundStyle(.secondary)
-        }
-    }
-}
-
-struct SettingsViewPlaceholder: View {
-    var body: some View {
-        VStack {
-            Text("Settings")
-                .font(.largeTitle)
-            Text("Move SettingsView code here from old ContentView.swift")
-                .foregroundStyle(.secondary)
+            BusylightLogger.shared.warning("No se encontró ventana para traer al frente")
         }
     }
 }
