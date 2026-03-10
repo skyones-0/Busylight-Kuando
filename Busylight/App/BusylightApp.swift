@@ -19,7 +19,11 @@ struct BusylightApp: App {
             PomodoroSession.self,
             MLWorkPattern.self,
             MLConfiguration.self,
-            HolidayCalendar.self
+            HolidayCalendar.self,
+            CalendarConfiguration.self,
+            CalendarEvent.self,
+            CalendarTask.self,
+            AppSettings.self
         ])
         
         let configuration = ModelConfiguration(
@@ -52,6 +56,7 @@ struct BusylightApp: App {
         WindowGroup("Busylight") {
             ContentView()
                 .environmentObject(appDelegate)
+                .environmentObject(LocationManager.shared)
                 .preferredColorScheme(colorScheme)
                 .modelContainer(container)
         }

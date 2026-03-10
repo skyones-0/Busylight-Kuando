@@ -2,7 +2,7 @@
 //  PomodoroView.swift
 //  Busylight
 //
-//  Vista completa del temporizador Pomodoro
+//  Vista Pomodoro con diseño glassmorphism moderno
 //
 
 import SwiftUI
@@ -10,210 +10,341 @@ import SwiftUI
 struct PomodoroView: View {
     @StateObject private var pomodoro = PomodoroManager.shared
     @EnvironmentObject var busylight: BusylightManager
-    @State private var selectedDuration: Int = 25
-    
-    let durations = [15, 25, 45]
     
     var body: some View {
-        VStack(spacing: 24) {
-            // Header
-            headerSection
-            
-            // Timer Display
-            timerDisplay
-            
-            // Duration Selector (solo cuando no está activo)
-            if pomodoro.timerState == .idle {
-                durationSelector
+        ScrollView {
+            VStack(spacing: 24) {
+                // Header con título elegante
+                headerSection
+                
+                // Timer circular principal con glass
+                timerSection
+                
+                // Indicador de fases
+                phaseIndicatorSection
+                
+                // Controles principales
+                controlsSection
+                
+                // Configuración rápida
+                if !pomodoro.isRunning {
+                    quickConfigSection
+                }
+                
+                // Estadísticas
+                statsSection
             }
-            
-            // Status Card
-            statusCard
-            
-            // Controls
-            controlsSection
-            
-            // Stats
-            statsSection
+            .padding(.horizontal, 20)
+            .padding(.top, 20)
+            .padding(.bottom, 40)
         }
-        .padding()
         .frame(maxWidth: .infinity, maxHeight: .infinity)
-        .background(
-            LinearGradient(
-                colors: [Color.blue.opacity(0.1), Color.purple.opacity(0.1)],
-                startPoint: .topLeading,
-                endPoint: .bottomTrailing
-            )
-        )
     }
     
     // MARK: - Header
     private var headerSection: some View {
-        VStack(spacing: 8) {
-            Text("⏱️ Pomodoro")
-                .font(.largeTitle)
-                .fontWeight(.bold)
-            
-            Text(pomodoro.phaseDescription)
-                .font(.title3)
-                .foregroundColor(.secondary)
-        }
-    }
-    
-    // MARK: - Timer Display
-    private var timerDisplay: some View {
-        ZStack {
-            // Background circle
-            Circle()
-                .stroke(lineWidth: 20)
-                .opacity(0.1)
-                .foregroundColor(timerColor)
-            
-            // Progress circle
-            Circle()
-                .trim(from: 0, to: progress)
-                .stroke(
-                    timerColor.gradient,
-                    style: StrokeStyle(lineWidth: 20, lineCap: .round)
-                )
-                .rotationEffect(.degrees(-90))
-                .animation(.easeInOut, value: progress)
-            
-            // Time text
-            VStack(spacing: 8) {
-                Text(formattedTime)
-                    .font(.system(size: 72, weight: .bold, design: .monospaced))
-                    .foregroundColor(.primary)
+        HStack(spacing: 12) {
+            ZStack {
+                Circle()
+                    .fill(pomodoro.currentPhase.color.opacity(0.2))
+                    .frame(width: 50, height: 50)
                 
-                if pomodoro.timerState != .idle {
-                    Text("Set \(pomodoro.currentSet) de \(pomodoro.maxSets)")
-                        .font(.title3)
-                        .foregroundColor(.secondary)
-                }
+                Image(systemName: pomodoro.currentPhase.icon)
+                    .font(.system(size: 24))
+                    .foregroundStyle(pomodoro.currentPhase.color)
             }
+            
+            VStack(alignment: .leading, spacing: 4) {
+                Text("Focus Session")
+                    .font(.system(.title3, design: .rounded).weight(.bold))
+                
+                Text(pomodoro.phaseDescription)
+                    .font(.subheadline)
+                    .foregroundStyle(.secondary)
+            }
+            
+            Spacer()
+            
+            // Phase badge
+            PhaseBadge(phase: pomodoro.currentPhase, isRunning: pomodoro.isRunning)
         }
-        .frame(width: 300, height: 300)
-        .padding()
     }
     
-    // MARK: - Duration Selector
-    private var durationSelector: some View {
-        VStack(spacing: 12) {
-            Text("Duración")
-                .font(.headline)
-                .foregroundColor(.secondary)
+    // MARK: - Timer Section
+    private var timerSection: some View {
+        ZStack {
+            // Fondo glass
+            RoundedRectangle(cornerRadius: 30)
+                .fill(.ultraThinMaterial)
+                .overlay(
+                    RoundedRectangle(cornerRadius: 30)
+                        .stroke(pomodoro.currentPhase.color.opacity(0.3), lineWidth: 2)
+                )
+                .shadow(color: pomodoro.currentPhase.color.opacity(0.2), radius: 20, x: 0, y: 10)
             
-            HStack(spacing: 16) {
-                ForEach(durations, id: \.self) { duration in
-                    DurationButton(
-                        duration: duration,
-                        isSelected: selectedDuration == duration
-                    ) {
-                        selectedDuration = duration
-                        pomodoro.setDuration(duration)
+            VStack(spacing: 20) {
+                // Timer circular
+                ZStack {
+                    // Círculo de fondo
+                    Circle()
+                        .stroke(pomodoro.currentPhase.color.opacity(0.15), lineWidth: 20)
+                        .frame(width: 220, height: 220)
+                    
+                    // Círculo de progreso
+                    Circle()
+                        .trim(from: 0, to: pomodoro.progress)
+                        .stroke(
+                            pomodoro.currentPhase.color.gradient,
+                            style: StrokeStyle(lineWidth: 20, lineCap: .round)
+                        )
+                        .frame(width: 220, height: 220)
+                        .rotationEffect(.degrees(-90))
+                        .animation(.easeInOut(duration: 0.5), value: pomodoro.progress)
+                    
+                    // Tiempo
+                    VStack(spacing: 4) {
+                        Text(pomodoro.timeString)
+                            .font(.system(size: 56, weight: .thin, design: .rounded))
+                            .monospacedDigit()
+                            .foregroundStyle(.primary)
+                        
+                        Text("Set \(pomodoro.currentSet) of \(pomodoro.totalSets)")
+                            .font(.system(.subheadline, design: .rounded))
+                            .foregroundStyle(.secondary)
                     }
                 }
+                .padding(.top, 30)
+                
+                // Botones de acción rápida
+                HStack(spacing: 20) {
+                    if pomodoro.isRunning || pomodoro.isPaused {
+                        GlassIconButton(
+                            icon: "stop.fill",
+                            color: .red,
+                            action: { pomodoro.stop() }
+                        )
+                        
+                        GlassIconButton(
+                            icon: pomodoro.isRunning ? "pause.fill" : "play.fill",
+                            color: pomodoro.isRunning ? .orange : .green,
+                            isLarge: true,
+                            action: {
+                                if pomodoro.isRunning {
+                                    pomodoro.pause()
+                                } else {
+                                    pomodoro.start()
+                                }
+                            }
+                        )
+                        
+                        GlassIconButton(
+                            icon: "forward.fill",
+                            color: .blue,
+                            action: { pomodoro.skip() }
+                        )
+                    } else {
+                        GlassActionButton(
+                            title: "Start Focus",
+                            icon: "play.fill",
+                            color: pomodoro.currentPhase.color,
+                            isProminent: true
+                        ) {
+                            pomodoro.start()
+                        }
+                    }
+                }
+                .padding(.bottom, 30)
+            }
+        }
+        .frame(height: pomodoro.isRunning || pomodoro.isPaused ? 380 : 340)
+    }
+    
+    // MARK: - Phase Indicator
+    private var phaseIndicatorSection: some View {
+        GlassCard(title: "Session Progress", icon: "chart.line.uptrend.xyaxis") {
+            VStack(spacing: 16) {
+                // Indicador visual de sets
+                HStack(spacing: 8) {
+                    ForEach(1...pomodoro.totalSets, id: \.self) { set in
+                        HStack(spacing: 4) {
+                            // Work indicator
+                            PhaseDot(
+                                isActive: set < pomodoro.currentSet || (set == pomodoro.currentSet && pomodoro.currentPhase == .work),
+                                isCurrent: set == pomodoro.currentSet && pomodoro.currentPhase == .work,
+                                color: .green
+                            )
+                            
+                            // Break indicator (excepto después del último set)
+                            if set < pomodoro.totalSets {
+                                PhaseDot(
+                                    isActive: set < pomodoro.currentSet || (set == pomodoro.currentSet && pomodoro.currentPhase != .work),
+                                    isCurrent: set == pomodoro.currentSet && pomodoro.currentPhase != .work,
+                                    color: set % 4 == 0 ? .orange : .blue
+                                )
+                            }
+                        }
+                    }
+                }
+                
+                // Leyenda
+                HStack(spacing: 16) {
+                    LegendItem(color: .green, label: "Work")
+                    LegendItem(color: .blue, label: "Short Break")
+                    LegendItem(color: .orange, label: "Long Break")
+                }
             }
         }
     }
     
-    // MARK: - Status Card
-    private var statusCard: some View {
-        GlassCard(title: "Estado", icon: "info.circle.fill") {
-            HStack {
+    // MARK: - Controls Section
+    private var controlsSection: some View {
+        HStack(spacing: 12) {
+            if !pomodoro.isRunning && !pomodoro.isPaused {
+                // Botones de duración rápida
+                DurationQuickButton(minutes: 15, isSelected: pomodoro.workTimeMinutes == 15) {
+                    pomodoro.setDuration(15)
+                }
+                
+                DurationQuickButton(minutes: 25, isSelected: pomodoro.workTimeMinutes == 25) {
+                    pomodoro.setDuration(25)
+                }
+                
+                DurationQuickButton(minutes: 45, isSelected: pomodoro.workTimeMinutes == 45) {
+                    pomodoro.setDuration(45)
+                }
+                
+                DurationQuickButton(minutes: 60, isSelected: pomodoro.workTimeMinutes == 60) {
+                    pomodoro.setDuration(60)
+                }
+            }
+        }
+    }
+    
+    // MARK: - Quick Config Section
+    private var quickConfigSection: some View {
+        GlassCard(title: "Quick Settings", icon: "slider.horizontal.3") {
+            VStack(spacing: 16) {
+                // Work duration slider
                 VStack(alignment: .leading, spacing: 8) {
                     HStack {
-                        Circle()
-                            .fill(statusColor)
-                            .frame(width: 12, height: 12)
-                        
-                        Text(statusText)
-                            .font(.subheadline)
-                            .fontWeight(.medium)
+                        Image(systemName: "briefcase.fill")
+                            .foregroundStyle(.green)
+                        Text("Work Duration")
+                            .font(.subheadline.weight(.medium))
+                        Spacer()
+                        Text("\(pomodoro.workTimeMinutes) min")
+                            .font(.system(.subheadline, design: .rounded).weight(.semibold))
+                            .foregroundStyle(.green)
                     }
                     
-                    if pomodoro.timerState != .idle {
-                        Text("Tiempo restante: \(formattedTimeRemaining)")
+                    CustomSlider(
+                        value: Binding(
+                            get: { Double(pomodoro.workTimeMinutes) },
+                            set: { pomodoro.workTimeMinutes = Int($0) }
+                        ),
+                        range: 5...60,
+                        step: 5,
+                        color: .green
+                    )
+                }
+                
+                Divider()
+                
+                // Sets stepper
+                HStack {
+                    Image(systemName: "number")
+                        .foregroundStyle(.purple)
+                    Text("Number of Sets")
+                        .font(.subheadline.weight(.medium))
+                    Spacer()
+                    
+                    HStack(spacing: 16) {
+                        Button {
+                            if pomodoro.configuredSets > 1 {
+                                pomodoro.configuredSets -= 1
+                                pomodoro.updateConfiguration()
+                            }
+                        } label: {
+                            Image(systemName: "minus.circle.fill")
+                                .font(.title3)
+                                .foregroundStyle(.secondary)
+                        }
+                        .buttonStyle(.plain)
+                        
+                        Text("\(pomodoro.configuredSets)")
+                            .font(.system(.title3, design: .rounded).weight(.semibold))
+                            .frame(minWidth: 30)
+                        
+                        Button {
+                            if pomodoro.configuredSets < 8 {
+                                pomodoro.configuredSets += 1
+                                pomodoro.updateConfiguration()
+                            }
+                        } label: {
+                            Image(systemName: "plus.circle.fill")
+                                .font(.title3)
+                                .foregroundStyle(.secondary)
+                        }
+                        .buttonStyle(.plain)
+                    }
+                }
+                
+                Divider()
+                
+                // Break durations
+                HStack(spacing: 20) {
+                    VStack(alignment: .leading, spacing: 4) {
+                        Text("Short Break")
                             .font(.caption)
-                            .foregroundColor(.secondary)
+                            .foregroundStyle(.secondary)
+                        Picker("", selection: $pomodoro.shortBreakMinutes) {
+                            ForEach([3, 5, 10, 15], id: \.self) { min in
+                                Text("\(min) min").tag(min)
+                            }
+                        }
+                        .pickerStyle(.menu)
+                        .labelsHidden()
+                    }
+                    
+                    Spacer()
+                    
+                    VStack(alignment: .leading, spacing: 4) {
+                        Text("Long Break")
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                        Picker("", selection: $pomodoro.longBreakMinutes) {
+                            ForEach([10, 15, 20, 30], id: \.self) { min in
+                                Text("\(min) min").tag(min)
+                            }
+                        }
+                        .pickerStyle(.menu)
+                        .labelsHidden()
                     }
                 }
-                
-                Spacer()
-                
-                // Phase indicator
-                HStack(spacing: 4) {
-                    ForEach(0..<pomodoro.maxSets * 2, id: \.self) { index in
-                        Circle()
-                            .fill(phaseColor(for: index))
-                            .frame(width: 8, height: 8)
-                    }
-                }
             }
-        }
-    }
-    
-    // MARK: - Controls
-    private var controlsSection: some View {
-        HStack(spacing: 20) {
-            // Reset button
-            Button(action: { pomodoro.reset() }) {
-                Image(systemName: "arrow.counterclockwise")
-                    .font(.title2)
-                    .foregroundColor(.secondary)
-                    .frame(width: 60, height: 60)
-                    .background(Color.secondary.opacity(0.1))
-                    .clipShape(Circle())
-            }
-            .buttonStyle(.plain)
-            .disabled(pomodoro.timerState == .idle)
-            
-            // Main button (Start/Pause/Resume)
-            Button(action: toggleTimer) {
-                Image(systemName: mainButtonIcon)
-                    .font(.system(size: 40))
-                    .foregroundColor(.white)
-                    .frame(width: 100, height: 100)
-                    .background(mainButtonColor.gradient)
-                    .clipShape(Circle())
-                    .shadow(radius: 10)
-            }
-            .buttonStyle(.plain)
-            
-            // Skip button
-            Button(action: { pomodoro.skip() }) {
-                Image(systemName: "forward.fill")
-                    .font(.title2)
-                    .foregroundColor(.secondary)
-                    .frame(width: 60, height: 60)
-                    .background(Color.secondary.opacity(0.1))
-                    .clipShape(Circle())
-            }
-            .buttonStyle(.plain)
-            .disabled(pomodoro.timerState == .idle)
         }
     }
     
     // MARK: - Stats Section
     private var statsSection: some View {
-        HStack(spacing: 16) {
-            StatBox(
-                title: "Completados",
+        HStack(spacing: 12) {
+            GlassStatCard(
                 value: "\(pomodoro.sessionsCompleted)",
+                label: "Completed",
                 icon: "checkmark.circle.fill",
                 color: .green
             )
             
-            StatBox(
-                title: "Tiempo Total",
-                value: formattedTotalTime,
+            GlassStatCard(
+                value: formattedTotalTime(),
+                label: "Total Focus",
                 icon: "clock.fill",
                 color: .blue
             )
             
-            StatBox(
-                title: "Racha",
-                value: "\(pomodoro.streak) días",
+            GlassStatCard(
+                value: "\(pomodoro.streak)",
+                label: "Day Streak",
                 icon: "flame.fill",
                 color: .orange
             )
@@ -221,124 +352,155 @@ struct PomodoroView: View {
     }
     
     // MARK: - Helpers
-    private var progress: Double {
-        guard pomodoro.totalTime > 0 else { return 0 }
-        return 1.0 - (Double(pomodoro.timeRemaining) / Double(pomodoro.totalTime))
-    }
-    
-    private var formattedTime: String {
-        let minutes = pomodoro.timeRemaining / 60
-        let seconds = pomodoro.timeRemaining % 60
-        return String(format: "%02d:%02d", minutes, seconds)
-    }
-    
-    private var formattedTimeRemaining: String {
-        let minutes = pomodoro.timeRemaining / 60
-        return "\(minutes) min"
-    }
-    
-    private var formattedTotalTime: String {
-        let totalMinutes = pomodoro.totalFocusTime / 60
-        if totalMinutes < 60 {
-            return "\(totalMinutes)m"
+    private func formattedTotalTime() -> String {
+        let hours = pomodoro.totalFocusTime / 3600
+        let minutes = (pomodoro.totalFocusTime % 3600) / 60
+        if hours > 0 {
+            return "\(hours)h \(minutes)m"
         } else {
-            let hours = totalMinutes / 60
-            let mins = totalMinutes % 60
-            return mins > 0 ? "\(hours)h \(mins)m" : "\(hours)h"
-        }
-    }
-    
-    private var timerColor: Color {
-        switch pomodoro.currentPhase {
-        case .work: return .blue
-        case .shortBreak: return .green
-        case .longBreak: return .purple
-        }
-    }
-    
-    private var statusColor: Color {
-        switch pomodoro.timerState {
-        case .running: return .green
-        case .paused: return .orange
-        case .idle: return .secondary
-        }
-    }
-    
-    private var statusText: String {
-        switch pomodoro.timerState {
-        case .running: return "En progreso"
-        case .paused: return "Pausado"
-        case .idle: return "Listo para iniciar"
-        }
-    }
-    
-    private var mainButtonIcon: String {
-        switch pomodoro.timerState {
-        case .idle: return "play.fill"
-        case .running: return "pause.fill"
-        case .paused: return "play.fill"
-        }
-    }
-    
-    private var mainButtonColor: Color {
-        switch pomodoro.timerState {
-        case .idle: return .blue
-        case .running: return .orange
-        case .paused: return .green
-        }
-    }
-    
-    private func toggleTimer() {
-        switch pomodoro.timerState {
-        case .idle:
-            pomodoro.start()
-            BusylightManager.shared.red() // Busy during work
-        case .running:
-            pomodoro.pause()
-            BusylightManager.shared.yellow() // Available when paused
-        case .paused:
-            pomodoro.resume()
-            BusylightManager.shared.red()
-        }
-    }
-    
-    private func phaseColor(for index: Int) -> Color {
-        let currentIndex = (pomodoro.currentSet - 1) * 2 + (pomodoro.currentPhase == .work ? 0 : 1)
-        if index < currentIndex {
-            return .green
-        } else if index == currentIndex {
-            return pomodoro.currentPhase == .work ? .blue : .green
-        } else {
-            return .secondary.opacity(0.3)
+            return "\(minutes)m"
         }
     }
 }
 
 // MARK: - Supporting Views
 
-struct DurationButton: View {
-    let duration: Int
+struct PhaseBadge: View {
+    let phase: PomodoroPhase
+    let isRunning: Bool
+    
+    var body: some View {
+        HStack(spacing: 6) {
+            Circle()
+                .fill(isRunning ? phase.color : .gray)
+                .frame(width: 8, height: 8)
+            
+            Text(isRunning ? "Active" : "Ready")
+                .font(.system(.caption, design: .rounded).weight(.medium))
+        }
+        .padding(.horizontal, 12)
+        .padding(.vertical, 6)
+        .background(
+            Capsule()
+                .fill(isRunning ? phase.color.opacity(0.15) : Color.gray.opacity(0.15))
+                .overlay(
+                    Capsule()
+                        .stroke(isRunning ? phase.color.opacity(0.3) : Color.clear, lineWidth: 1)
+                )
+        )
+        .foregroundStyle(isRunning ? phase.color : .secondary)
+    }
+}
+
+struct PhaseDot: View {
+    let isActive: Bool
+    let isCurrent: Bool
+    let color: Color
+    
+    var body: some View {
+        Circle()
+            .fill(isActive ? color : Color.gray.opacity(0.2))
+            .frame(width: isCurrent ? 14 : 10, height: isCurrent ? 14 : 10)
+            .overlay(
+                Circle()
+                    .stroke(isCurrent ? color.opacity(0.5) : Color.clear, lineWidth: 2)
+            )
+            .shadow(color: isActive ? color.opacity(0.4) : Color.clear, radius: isCurrent ? 4 : 0)
+    }
+}
+
+struct LegendItem: View {
+    let color: Color
+    let label: String
+    
+    var body: some View {
+        HStack(spacing: 6) {
+            Circle()
+                .fill(color)
+                .frame(width: 8, height: 8)
+            Text(label)
+                .font(.caption)
+                .foregroundStyle(.secondary)
+        }
+    }
+}
+
+struct DurationQuickButton: View {
+    let minutes: Int
     let isSelected: Bool
     let action: () -> Void
     
     var body: some View {
         Button(action: action) {
-            Text("\(duration) min")
-                .font(.subheadline)
-                .fontWeight(isSelected ? .semibold : .regular)
-                .foregroundColor(isSelected ? .white : .primary)
-                .padding(.horizontal, 16)
-                .padding(.vertical, 8)
-                .background(isSelected ? Color.blue : Color.secondary.opacity(0.1))
-                .cornerRadius(8)
+            VStack(spacing: 4) {
+                Text("\(minutes)")
+                    .font(.system(.title2, design: .rounded).weight(.bold))
+                Text("min")
+                    .font(.caption2)
+            }
+            .frame(maxWidth: .infinity)
+            .padding(.vertical, 12)
+            .background(
+                RoundedRectangle(cornerRadius: 12)
+                    .fill(isSelected ? Color.green.opacity(0.2) : Color.gray.opacity(0.1))
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 12)
+                            .stroke(isSelected ? Color.green.opacity(0.5) : Color.clear, lineWidth: 2)
+                    )
+            )
+            .foregroundStyle(isSelected ? .green : .primary)
         }
         .buttonStyle(.plain)
     }
 }
 
+struct CustomSlider: View {
+    @Binding var value: Double
+    let range: ClosedRange<Double>
+    let step: Double
+    let color: Color
+    
+    var body: some View {
+        Slider(value: $value, in: range, step: step)
+            .tint(color)
+            .padding(.horizontal, 4)
+    }
+}
+
+struct GlassStatCard: View {
+    let value: String
+    let label: String
+    let icon: String
+    let color: Color
+    
+    var body: some View {
+        VStack(spacing: 8) {
+            Image(systemName: icon)
+                .font(.title3)
+                .foregroundStyle(color)
+            
+            Text(value)
+                .font(.system(.title3, design: .rounded).weight(.bold))
+            
+            Text(label)
+                .font(.caption)
+                .foregroundStyle(.secondary)
+        }
+        .frame(maxWidth: .infinity)
+        .padding(.vertical, 16)
+        .background(
+            ZStack {
+                RoundedRectangle(cornerRadius: 16)
+                    .fill(Material.thinMaterial)
+                
+                RoundedRectangle(cornerRadius: 16)
+                    .stroke(color.opacity(0.2), lineWidth: 1)
+            }
+        )
+    }
+}
 
 // MARK: - Preview
-
 struct PomodoroView_Previews: PreviewProvider {
     static var previews: some View {
         PomodoroView()

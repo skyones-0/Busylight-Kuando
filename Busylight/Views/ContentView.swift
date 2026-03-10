@@ -20,7 +20,9 @@ extension View {
 
 struct ContentView: View {
     @StateObject private var busylight = BusylightManager()
+    @StateObject private var locationManager = LocationManager.shared
     @EnvironmentObject var appDelegate: AppDelegate
+    @Environment(\.modelContext) private var modelContext
     @State private var selectedItem: SidebarItem = .pomodoro
     
     var body: some View {
@@ -57,6 +59,36 @@ struct ContentView: View {
                         Text("Control Center")
                             .font(.caption)
                             .foregroundStyle(.secondary)
+                        
+                        // Country Badge
+                        if let countryFlag = locationManager.detectedCountryFlag,
+                           let countryName = locationManager.detectedCountryName {
+                            HStack(spacing: 4) {
+                                Text(countryFlag)
+                                    .font(.caption)
+                                Text(countryName)
+                                    .font(.caption2)
+                                    .foregroundStyle(.secondary)
+                                    .lineLimit(1)
+                            }
+                            .padding(.horizontal, 8)
+                            .padding(.vertical, 3)
+                            .background(
+                                Capsule()
+                                    .fill(Color.blue.opacity(0.15))
+                            )
+                            .padding(.top, 4)
+                        } else if locationManager.isLoading {
+                            HStack(spacing: 4) {
+                                ProgressView()
+                                    .controlSize(.small)
+                                    .scaleEffect(0.6)
+                                Text("Detectando país...")
+                                    .font(.caption2)
+                                    .foregroundStyle(.secondary)
+                            }
+                            .padding(.top, 4)
+                        }
                     }
                     .padding(.top, 20)
                     .padding(.bottom, 16)
@@ -115,6 +147,10 @@ struct ContentView: View {
         .onReceive(NotificationCenter.default.publisher(for: .openMainWindow)) { _ in
             BusylightLogger.shared.debug("Recibida notificación openMainWindow")
             bringWindowToFront()
+        }
+        .task {
+            locationManager.configure(with: modelContext)
+            locationManager.requestAuthorization()
         }
     }
     

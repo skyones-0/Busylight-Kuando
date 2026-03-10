@@ -4,5 +4,9 @@
 <dict>
 	<key>NSUserNotificationUsageDescription</key>
 	<string>Busylight envía notificaciones para recordatorios de descanso visual (20-20-20) y cuando el timer se pausa por inactividad.</string>
+	<key>NSLocationWhenInUseUsageDescription</key>
+	<string>Busylight usa tu ubicación para detectar automáticamente tu país y suscribirte al calendario de festivos correspondiente.</string>
+	<key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
+	<string>Busylight usa tu ubicación para detectar automáticamente tu país y suscribirte al calendario de festivos correspondiente.</string>
 </dict>
 </plist>

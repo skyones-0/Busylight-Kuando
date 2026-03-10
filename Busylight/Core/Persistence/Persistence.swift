@@ -20,7 +20,11 @@ class PersistenceController {
             PomodoroSession.self,
             MLWorkPattern.self,
             MLConfiguration.self,
-            HolidayCalendar.self
+            HolidayCalendar.self,
+            CalendarConfiguration.self,
+            CalendarEvent.self,
+            CalendarTask.self,
+            AppSettings.self
         ])
         
         let modelConfiguration = ModelConfiguration(
@@ -44,7 +48,11 @@ class PersistenceController {
             PomodoroSession.self,
             MLWorkPattern.self,
             MLConfiguration.self,
-            HolidayCalendar.self
+            HolidayCalendar.self,
+            CalendarConfiguration.self,
+            CalendarEvent.self,
+            CalendarTask.self,
+            AppSettings.self
         ])
         let configuration = ModelConfiguration(
             schema: schema,

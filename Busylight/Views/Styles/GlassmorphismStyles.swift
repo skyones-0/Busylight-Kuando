@@ -413,3 +413,146 @@ struct MeshGradientBackground: View {
         }
     }
 }
+
+// MARK: - Glass Action Button (Prominent)
+struct GlassActionButton: View {
+    let title: String
+    let icon: String
+    let color: Color
+    var isProminent: Bool = false
+    let action: () -> Void
+    
+    var body: some View {
+        Button(action: action) {
+            HStack(spacing: 8) {
+                Image(systemName: icon)
+                    .font(.system(size: isProminent ? 18 : 16, weight: .semibold))
+                Text(title)
+                    .font(.system(isProminent ? .headline : .subheadline, design: .rounded).weight(.semibold))
+            }
+            .foregroundStyle(isProminent ? .white : color)
+            .frame(maxWidth: .infinity)
+            .frame(height: isProminent ? 56 : 48)
+            .background(
+                ZStack {
+                    RoundedRectangle(cornerRadius: 14)
+                        .fill(
+                            isProminent
+                                ? color.opacity(0.9)
+                                : color.opacity(0.15)
+                        )
+                    
+                    RoundedRectangle(cornerRadius: 14)
+                        .stroke(
+                            isProminent
+                                ? color.opacity(0.5)
+                                : color.opacity(0.3),
+                            lineWidth: isProminent ? 2 : 1
+                        )
+                }
+            )
+            .shadow(
+                color: color.opacity(isProminent ? 0.4 : 0.15),
+                radius: isProminent ? 12 : 6,
+                x: 0,
+                y: isProminent ? 6 : 3
+            )
+        }
+        .buttonStyle(.plain)
+        .pressEffect()
+    }
+}
+
+// MARK: - Glass Toggle Row
+struct GlassToggleRow: View {
+    let icon: String
+    let title: String
+    var subtitle: String? = nil
+    @Binding var isOn: Bool
+    
+    var body: some View {
+        HStack(spacing: 12) {
+            Image(systemName: icon)
+                .font(.callout)
+                .foregroundStyle(.secondary)
+                .frame(width: 24)
+            
+            VStack(alignment: .leading, spacing: subtitle != nil ? 2 : 0) {
+                Text(title)
+                    .font(.system(.body, design: .rounded))
+                
+                if let subtitle = subtitle {
+                    Text(subtitle)
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                }
+            }
+            
+            Spacer()
+            
+            Toggle("", isOn: $isOn)
+                .toggleStyle(.switch)
+                .controlSize(.small)
+        }
+        .padding(12)
+        .background(
+            ZStack {
+                RoundedRectangle(cornerRadius: 10)
+                    .fill(Material.thinMaterial)
+                
+                RoundedRectangle(cornerRadius: 10)
+                    .stroke(.white.opacity(0.15), lineWidth: 1)
+            }
+        )
+    }
+}
+
+// MARK: - Glass Icon Button
+struct GlassIconButton: View {
+    let icon: String
+    let color: Color
+    var isLarge: Bool = false
+    let action: () -> Void
+    
+    var body: some View {
+        Button(action: action) {
+            Image(systemName: icon)
+                .font(.system(size: isLarge ? 28 : 20, weight: .semibold))
+                .foregroundStyle(.white)
+                .frame(width: isLarge ? 70 : 50, height: isLarge ? 70 : 50)
+                .background(
+                    ZStack {
+                        Circle()
+                            .fill(color.opacity(0.9))
+                        Circle()
+                            .stroke(.white.opacity(0.3), lineWidth: 1)
+                    }
+                )
+                .shadow(color: color.opacity(0.4), radius: 10, x: 0, y: 5)
+        }
+        .buttonStyle(.plain)
+        .pressEffect()
+    }
+}
+
+// MARK: - Button Press Effect Modifier
+struct PressEffectModifier: ViewModifier {
+    @State private var isPressed = false
+    
+    func body(content: Content) -> some View {
+        content
+            .simultaneousGesture(
+                DragGesture(minimumDistance: 0)
+                    .onChanged { _ in isPressed = true }
+                    .onEnded { _ in isPressed = false }
+            )
+            .scaleEffect(isPressed ? 0.95 : 1.0)
+            .animation(.easeInOut(duration: 0.1), value: isPressed)
+    }
+}
+
+extension View {
+    func pressEffect() -> some View {
+        modifier(PressEffectModifier())
+    }
+}

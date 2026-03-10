@@ -2,103 +2,80 @@
 //  SettingsView.swift
 //  Busylight
 //
-//  Configuración de la app
+//  Configuración con diseño glassmorphism y gestión de calendarios
 //
 
 import SwiftUI
 import SwiftData
+import EventKit
 
 struct SettingsView: View {
+    @Environment(\.modelContext) private var modelContext
+    @Query private var appSettings: [AppSettings]
+    @Query private var calendarConfigs: [CalendarConfiguration]
+    @Query private var calendarEvents: [CalendarEvent]
+    
     @StateObject private var mlManager = MLScheduleManager.shared
     @StateObject private var notifications = NotificationCenterManager.shared
-    @AppStorage("appearanceMode") private var appearanceMode = 0
-    @AppStorage("twentyTwentyEnabled") private var twentyTwentyEnabled = true
     
-    @State private var showingClearDataConfirmation = false
-    @State private var showingExportSheet = false
+    @State private var showingCalendarPicker = false
+    @State private var showingHolidayPicker = false
+    @State private var showingClearConfirmation = false
+
+    @State private var eventStore = EKEventStore()
+    @State private var availableCalendars: [EKCalendar] = []
+    
+    private var settings: AppSettings {
+        appSettings.first ?? AppSettings()
+    }
     
     var body: some View {
-        Form {
-            // MARK: - Appearance
-            Section("Apariencia") {
-                Picker("Tema", selection: $appearanceMode) {
-                    Text("Sistema").tag(0)
-                    Text("Claro").tag(1)
-                    Text("Oscuro").tag(2)
-                }
-                .pickerStyle(.segmented)
+        ScrollView {
+            VStack(spacing: 20) {
+                // Header
+                headerSection
+                
+                // Calendars Section
+                calendarsSection
+                
+                // ML Section
+                mlSection
+                
+                // Appearance Section
+                appearanceSection
+                
+                // Notifications Section
+                notificationsSection
+                
+                // Data Management
+                dataSection
+                
+                // About
+                aboutSection
             }
-            
-            // MARK: - Notifications
-            Section("Notificaciones") {
-                Toggle("Regla 20-20-20", isOn: $twentyTwentyEnabled)
-                    .onChange(of: twentyTwentyEnabled) { oldValue, newValue in
-                        if newValue {
-                            notifications.startTwentyTwentyTimer()
-                        } else {
-                            notifications.stopTwentyTwentyTimer()
-                        }
-                    }
-                
-                Toggle("Alertas de Deep Work", isOn: .constant(true))
-                Toggle("Predicciones del día", isOn: .constant(true))
-            }
-            
-            // MARK: - ML Settings
-            Section("Machine Learning") {
-                Toggle("ML Habilitado", isOn: Binding(
-                    get: { mlManager.configuration?.isMLEnabled ?? false },
-                    set: { mlManager.updateConfiguration(isEnabled: $0) }
-                ))
-                
-                NavigationLink("Calendarios de Festivos") {
-                    HolidayCalendarsView()
-                }
-                
-                Button("Exportar Dataset de Entrenamiento") {
-                    showingExportSheet = true
-                }
-                
-                Button("Agregar Datos de Demo") {
-                    mlManager.generateDemoData()
-                }
-                .foregroundColor(.blue)
-                
-                Button("Limpiar Datos de Entrenamiento") {
-                    showingClearDataConfirmation = true
-                }
-                .foregroundColor(.red)
-            }
-            
-            // MARK: - Device
-            Section("Dispositivo") {
-                NavigationLink("Configuración de Busylight") {
-                    DeviceSettingsView()
-                }
-            }
-            
-            // MARK: - About
-            Section("Acerca de") {
-                HStack {
-                    Text("Versión")
-                    Spacer()
-                    Text("1.0.0")
-                        .foregroundColor(.secondary)
-                }
-                
-                HStack {
-                    Text("Modelo ML")
-                    Spacer()
-                    Text("DayCategoryClassifier")
-                        .foregroundColor(.secondary)
-                }
-                
-                Link("Sitio Web", destination: URL(string: "https://skyones.co")!)
+            .padding(.horizontal, 20)
+            .padding(.top, 20)
+            .padding(.bottom, 40)
+        }
+        .task {
+            await loadSettings()
+            await requestCalendarAccess()
+        }
+        .sheet(isPresented: $showingCalendarPicker) {
+            CalendarPickerView(
+                eventStore: eventStore,
+                availableCalendars: availableCalendars,
+                selectedCalendars: Set(calendarConfigs.filter { $0.calendarType != "holiday" }.map { $0.calendarIdentifier })
+            ) { selectedIds in
+                updateSelectedCalendars(selectedIds)
             }
         }
-        .formStyle(.grouped)
-        .navigationTitle("Configuración")
-        .alert("¿Limpiar todos los datos?", isPresented: $showingClearDataConfirmation) {
+        .sheet(isPresented: $showingHolidayPicker) {
+            HolidayCalendarPickerView { countryCode in
+                addHolidayCalendar(countryCode: countryCode)
+            }
+        }
+        .alert("¿Limpiar todos los datos?", isPresented: $showingClearConfirmation) {
             Button("Cancelar", role: .cancel) { }
             Button("Limpiar", role: .destructive) {
                 mlManager.clearAllData()
@@ -106,297 +83,641 @@ struct SettingsView: View {
         } message: {
             Text("Esta acción eliminará todos los patrones de trabajo y el historial de entrenamiento. No se puede deshacer.")
         }
-        .sheet(isPresented: $showingExportSheet) {
-            ExportDatasetView()
-        }
+
     }
-}
-
-// MARK: - Holiday Calendars View
-
-struct HolidayCalendarsView: View {
-    @StateObject private var mlManager = MLScheduleManager.shared
-    @State private var showingAddCalendar = false
     
-    var body: some View {
-        List {
-            ForEach(mlManager.getHolidayCalendars()) { calendar in
-                HolidayCalendarRow(calendar: calendar)
-            }
-            .onDelete { indexSet in
-                // Delete calendars
-            }
-        }
-        .navigationTitle("Calendarios de Festivos")
-        .toolbar {
-            ToolbarItem(placement: .primaryAction) {
-                Button(action: { showingAddCalendar = true }) {
-                    Image(systemName: "plus")
-                }
-            }
-        }
-        .sheet(isPresented: $showingAddCalendar) {
-            AddHolidayCalendarView()
-        }
-    }
-}
-
-struct HolidayCalendarRow: View {
-    let calendar: HolidayCalendar
-    
-    var body: some View {
-        HStack {
-            VStack(alignment: .leading, spacing: 4) {
-                Text(calendar.name)
-                    .font(.headline)
+    // MARK: - Header
+    private var headerSection: some View {
+        HStack(spacing: 12) {
+            ZStack {
+                Circle()
+                    .fill(.blue.opacity(0.2))
+                    .frame(width: 50, height: 50)
                 
-                Text("\(calendar.customDates.count) fechas personalizadas")
-                    .font(.caption)
-                    .foregroundColor(.secondary)
+                Image(systemName: "gearshape.fill")
+                    .font(.system(size: 24))
+                    .foregroundStyle(.blue)
+            }
+            
+            VStack(alignment: .leading, spacing: 4) {
+                Text("Settings")
+                    .font(.system(.title3, design: .rounded).weight(.bold))
+                
+                Text("Personaliza tu experiencia")
+                    .font(.subheadline)
+                    .foregroundStyle(.secondary)
             }
             
             Spacer()
-            
-            if calendar.isEnabled {
-                Image(systemName: "checkmark.circle.fill")
-                    .foregroundColor(.green)
-            }
         }
     }
-}
-
-// MARK: - Add Holiday Calendar View
-
-struct AddHolidayCalendarView: View {
-    @Environment(\.dismiss) private var dismiss
-    @State private var name = ""
-    @State private var countryCode = "US"
     
-    let countries = [
-        ("US", "🇺🇸 Estados Unidos"),
-        ("MX", "🇲🇽 México"),
-        ("ES", "🇪🇸 España"),
-        ("CO", "🇨🇴 Colombia"),
-        ("AR", "🇦🇷 Argentina")
-    ]
-    
-    var body: some View {
-        NavigationStack {
-            Form {
-                TextField("Nombre", text: $name)
-                
-                Picker("País", selection: $countryCode) {
-                    ForEach(countries, id: \.0) { code, name in
-                        Text(name).tag(code)
-                    }
-                }
-            }
-            .navigationTitle("Nuevo Calendario")
-            #if os(iOS)
-            .navigationBarTitleDisplayMode(.inline)
-            #endif
-            .toolbar {
-                ToolbarItem(placement: .cancellationAction) {
-                    Button("Cancelar") { dismiss() }
-                }
-                
-                ToolbarItem(placement: .confirmationAction) {
-                    Button("Guardar") {
-                        MLScheduleManager.shared.createHolidayCalendar(
-                            name: name,
-                            date: Date()
-                        )
-                        dismiss()
-                    }
-                    .disabled(name.isEmpty)
-                }
-            }
-        }
-    }
-}
-
-// MARK: - Device Settings View
-
-struct DeviceSettingsView: View {
-    @EnvironmentObject var busylight: BusylightManager
-    
-    var body: some View {
-        Form {
-            Section("Estado") {
+    // MARK: - Calendars Section
+    private var calendarsSection: some View {
+        GlassCard(title: "Calendars & Events", icon: "calendar.badge.clock") {
+            VStack(spacing: 16) {
+                // Calendarios seleccionados
                 HStack {
-                    Text("Conexión")
-                    Spacer()
-                    Text(busylight.isConnected ? "Conectado" : "Desconectado")
-                        .foregroundColor(busylight.isConnected ? .green : .red)
-                }
-            }
-            
-            Section("Colores") {
-                ColorPresetButtons()
-            }
-            
-            Section("Efectos") {
-                Button("Test de Luz") {
-                    busylight.red()
-                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
-                        busylight.green()
-                    }
-                    DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) {
-                        busylight.blue()
-                    }
-                    DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) {
-                        busylight.off()
-                    }
-                }
-                
-                Button("Pulso") {
-                    busylight.yellow()
-                }
-            }
-        }
-        .navigationTitle("Configuración de Busylight")
-    }
-}
-
-// MARK: - Color Preset Buttons
-
-struct ColorPresetButtons: View {
-    @EnvironmentObject var busylight: BusylightManager
-    
-    let colors: [(String, NSColor)] = [
-        ("Rojo", .red),
-        ("Verde", .green),
-        ("Azul", .blue),
-        ("Amarillo", .yellow),
-        ("Cian", .cyan),
-        ("Magenta", .magenta),
-        ("Blanco", .white),
-        ("Naranja", .orange),
-        ("Morado", .purple),
-        ("Rosa", .systemPink)
-    ]
-    
-    private func colorForIndex(_ index: Int) -> Color {
-        switch index {
-        case 0: return .red
-        case 1: return .green
-        case 2: return .blue
-        case 3: return .yellow
-        case 4: return .cyan
-        case 5: return .pink
-        case 6: return .white
-        case 7: return .orange
-        case 8: return .purple
-        case 9: return .pink
-        default: return .gray
-        }
-    }
-    
-    var body: some View {
-        LazyVGrid(columns: [GridItem(.adaptive(minimum: 60))], spacing: 12) {
-            ForEach(Array(colors.enumerated()), id: \.offset) { index, item in
-                let (name, _) = item
-                Button(action: { 
-                    switch index {
-                    case 0: busylight.red()
-                    case 1: busylight.green()
-                    case 2: busylight.blue()
-                    case 3: busylight.yellow()
-                    case 4: busylight.blue()
-                    case 5: busylight.off()
-                    case 6: busylight.off()
-                    case 7: busylight.yellow()
-                    case 8: busylight.blue()
-                    case 9: busylight.red()
-                    default: break
-                    }
-                }) {
-                    RoundedRectangle(cornerRadius: 8)
-                        .fill(colorForIndex(index))
-                        .frame(height: 40)
-                        .overlay(
-                            Text(name)
-                                .font(.caption)
-                                .foregroundColor(.white)
-                                .shadow(radius: 2)
-                        )
-                }
-                .buttonStyle(.plain)
-            }
-        }
-        .padding(.vertical, 8)
-    }
-}
-
-// MARK: - Export Dataset View
-
-struct ExportDatasetView: View {
-    @Environment(\.dismiss) private var dismiss
-    @StateObject private var mlManager = MLScheduleManager.shared
-    @State private var exportURL: URL?
-    @State private var isExporting = false
-    
-    var body: some View {
-        NavigationStack {
-            VStack(spacing: 20) {
-                Image(systemName: "doc.text")
-                    .font(.system(size: 60))
-                    .foregroundColor(.blue)
-                
-                Text("Exportar Dataset")
-                    .font(.title2)
-                    .fontWeight(.bold)
-                
-                Text("Exporta tus patrones de trabajo para entrenar el modelo externamente.")
-                    .font(.subheadline)
-                    .foregroundColor(.secondary)
-                    .multilineTextAlignment(.center)
-                
-                if isExporting {
-                    ProgressView()
-                        .padding()
-                } else if let url = exportURL {
-                    VStack(spacing: 12) {
-                        Text("✅ Exportado exitosamente")
-                            .foregroundColor(.green)
-                        
-                        Text(url.lastPathComponent)
+                    VStack(alignment: .leading, spacing: 4) {
+                        Text("Calendarios de Trabajo")
+                            .font(.subheadline.weight(.medium))
+                        Text("\(calendarConfigs.filter { $0.calendarType != "holiday" && $0.isEnabled }.count) seleccionados")
                             .font(.caption)
-                            .foregroundColor(.secondary)
+                            .foregroundStyle(.secondary)
                     }
-                } else {
-                    Button("Exportar a CSV") {
-                        exportDataset()
+                    
+                    Spacer()
+                    
+                    Button("Seleccionar") {
+                        showingCalendarPicker = true
                     }
-                    .buttonStyle(.borderedProminent)
-                    .padding()
+                    .buttonStyle(GlassButtonStyle(color: .blue))
+                }
+                
+                Divider()
+                
+                // Calendarios de festivos
+                HStack {
+                    VStack(alignment: .leading, spacing: 4) {
+                        Text("Calendario de Festivos")
+                            .font(.subheadline.weight(.medium))
+                        Text(calendarConfigs.first { $0.calendarType == "holiday" }?.calendarName ?? "No configurado")
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                    }
+                    
+                    Spacer()
+                    
+                    Button("Configurar") {
+                        showingHolidayPicker = true
+                    }
+                    .buttonStyle(GlassButtonStyle(color: .orange))
+                }
+                
+                Divider()
+                
+                // Auto sync
+                GlassToggleRow(
+                    icon: "arrow.triangle.2.circlepath",
+                    title: "Sincronización automática",
+                    subtitle: "Actualiza eventos cada hora",
+                    isOn: Binding(
+                        get: { settings.autoSyncCalendars },
+                        set: { newValue in
+                            settings.autoSyncCalendars = newValue
+                            settings.updatedAt = Date()
+                            saveSettings()
+                        }
+                    )
+                )
+                
+                // Last sync info
+                if let lastSync = settings.lastCalendarSync {
+                    HStack {
+                        Text("Última sincronización:")
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                        Spacer()
+                        Text(lastSync, style: .relative)
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                    }
+                }
+            }
+        }
+    }
+    
+    // MARK: - ML Section
+    private var mlSection: some View {
+        GlassCard(title: "Machine Learning", icon: "brain.head.profile") {
+            VStack(spacing: 16) {
+                // Status
+                HStack(spacing: 12) {
+                    ZStack {
+                        Circle()
+                            .fill(mlManager.isModelTrained ? Color.green.opacity(0.2) : Color.orange.opacity(0.2))
+                            .frame(width: 44, height: 44)
+                        
+                        Image(systemName: mlManager.isModelTrained ? "checkmark.seal.fill" : "brain")
+                            .font(.title3)
+                            .foregroundStyle(mlManager.isModelTrained ? .green : .orange)
+                    }
+                    
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text("Smart Schedule Learning")
+                            .font(.subheadline.weight(.medium))
+                        Text(mlStatusText)
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                    }
+                    
+                    Spacer()
+                    
+                    Toggle("", isOn: Binding(
+                        get: { settings.mlEnabled },
+                        set: { newValue in
+                            settings.mlEnabled = newValue
+                            settings.updatedAt = Date()
+                            mlManager.updateConfiguration(isEnabled: newValue)
+                            saveSettings()
+                        }
+                    ))
+                    .toggleStyle(.switch)
+                    .controlSize(.small)
+                }
+                
+                if settings.mlEnabled {
+                    Divider()
+                    
+                    // Training data progress
+                    VStack(alignment: .leading, spacing: 8) {
+                        HStack {
+                            Text("Datos recolectados")
+                                .font(.caption)
+                                .foregroundStyle(.secondary)
+                            Spacer()
+                            Text("\(mlManager.trainingDaysCollected) días")
+                                .font(.caption)
+                                .foregroundStyle(.primary)
+                        }
+                        
+                        // Progress bar
+                        GeometryReader { geo in
+                            ZStack(alignment: .leading) {
+                                RoundedRectangle(cornerRadius: 4)
+                                    .fill(Color.gray.opacity(0.2))
+                                    .frame(height: 8)
+                                
+                                RoundedRectangle(cornerRadius: 4)
+                                    .fill(
+                                        mlManager.trainingDaysCollected >= 14 ? Color.green : Color.orange
+                                    )
+                                    .frame(
+                                        width: min(CGFloat(mlManager.trainingDaysCollected) / 14.0 * geo.size.width, geo.size.width),
+                                        height: 8
+                                    )
+                            }
+                        }
+                        .frame(height: 8)
+                        
+                        if mlManager.isModelTrained {
+                            HStack {
+                                Text("Precisión del modelo:")
+                                    .font(.caption)
+                                    .foregroundStyle(.secondary)
+                                Spacer()
+                                Text("\(Int(mlManager.modelAccuracy * 100))%")
+                                    .font(.caption.weight(.semibold))
+                                    .foregroundStyle(.green)
+                            }
+                        }
+                    }
+                    
+                    Divider()
+                    
+                    // Auto options
+                    GlassToggleRow(
+                        icon: "wand.and.stars",
+                        title: "Entrenamiento automático",
+                        subtitle: "Entrena cuando hay suficientes datos",
+                        isOn: Binding(
+                            get: { settings.autoTrainingEnabled },
+                            set: { newValue in
+                                settings.autoTrainingEnabled = newValue
+                                settings.updatedAt = Date()
+                                _ = newValue // Use AppSettings for autoTraining
+                                saveSettings()
+                            }
+                        )
+                    )
+                    
+                    GlassToggleRow(
+                        icon: "clock.arrow.circlepath",
+                        title: "Auto-ajustar horario",
+                        subtitle: "Ajusta horas según predicciones",
+                        isOn: Binding(
+                            get: { settings.autoAdjustSchedule },
+                            set: { newValue in
+                                settings.autoAdjustSchedule = newValue
+                                settings.updatedAt = Date()
+                                _ = newValue // Use AppSettings for autoAdjust
+                                saveSettings()
+                            }
+                        )
+                    )
+                }
+            }
+        }
+    }
+    
+    // MARK: - Appearance Section
+    private var appearanceSection: some View {
+        GlassCard(title: "Appearance", icon: "paintpalette") {
+            VStack(spacing: 16) {
+                // Theme picker
+                VStack(alignment: .leading, spacing: 8) {
+                    Text("Tema")
+                        .font(.subheadline.weight(.medium))
+                    
+                    Picker("Tema", selection: Binding(
+                        get: { settings.appearanceMode },
+                        set: { newValue in
+                            settings.appearanceMode = newValue
+                            settings.updatedAt = Date()
+                            saveSettings()
+                        }
+                    )) {
+                        Label("Sistema", systemImage: "macpro.gen1").tag(0)
+                        Label("Claro", systemImage: "sun.max.fill").tag(1)
+                        Label("Oscuro", systemImage: "moon.fill").tag(2)
+                    }
+                    .pickerStyle(.segmented)
+                }
+                
+                Divider()
+                
+                // Dock & Menu Bar
+                GlassToggleRow(
+                    icon: "dock.rectangle",
+                    title: "Mostrar en Dock",
+                    isOn: Binding(
+                        get: { settings.showInDock },
+                        set: { newValue in
+                            settings.showInDock = newValue
+                            settings.updatedAt = Date()
+                            saveSettings()
+                            UserInteractionLogger.shared.dockVisibilityChanged(show: newValue)
+                        }
+                    )
+                )
+                
+                GlassToggleRow(
+                    icon: "menubar.rectangle",
+                    title: "Mostrar en Menu Bar",
+                    isOn: Binding(
+                        get: { settings.showInMenuBar },
+                        set: { newValue in
+                            settings.showInMenuBar = newValue
+                            settings.updatedAt = Date()
+                            saveSettings()
+                            UserInteractionLogger.shared.menuBarVisibilityChanged(show: newValue)
+                        }
+                    )
+                )
+            }
+        }
+    }
+    
+    // MARK: - Notifications Section
+    private var notificationsSection: some View {
+        GlassCard(title: "Notifications", icon: "bell.badge") {
+            VStack(spacing: 8) {
+                GlassToggleRow(
+                    icon: "eye",
+                    title: "Regla 20-20-20",
+                    subtitle: "Descansa la vista cada 20 minutos",
+                    isOn: Binding(
+                        get: { settings.twentyTwentyEnabled },
+                        set: { newValue in
+                            settings.twentyTwentyEnabled = newValue
+                            settings.updatedAt = Date()
+                            saveSettings()
+                            if newValue {
+                                notifications.startTwentyTwentyTimer()
+                            } else {
+                                notifications.stopTwentyTwentyTimer()
+                            }
+                        }
+                    )
+                )
+                
+                GlassToggleRow(
+                    icon: "target",
+                    title: "Alertas de Deep Work",
+                    isOn: Binding(
+                        get: { settings.deepWorkNotificationsEnabled },
+                        set: { newValue in
+                            settings.deepWorkNotificationsEnabled = newValue
+                            settings.updatedAt = Date()
+                            saveSettings()
+                        }
+                    )
+                )
+                
+                GlassToggleRow(
+                    icon: "chart.line.uptrend.xyaxis",
+                    title: "Predicciones del día",
+                    isOn: Binding(
+                        get: { settings.dayPredictionNotificationsEnabled },
+                        set: { newValue in
+                            settings.dayPredictionNotificationsEnabled = newValue
+                            settings.updatedAt = Date()
+                            saveSettings()
+                        }
+                    )
+                )
+                
+                GlassToggleRow(
+                    icon: "cup.and.saucer",
+                    title: "Recordatorios de descanso",
+                    isOn: Binding(
+                        get: { settings.breakRemindersEnabled },
+                        set: { newValue in
+                            settings.breakRemindersEnabled = newValue
+                            settings.updatedAt = Date()
+                            saveSettings()
+                        }
+                    )
+                )
+            }
+        }
+    }
+    
+    // MARK: - Data Section
+    private var dataSection: some View {
+        GlassCard(title: "Data Management", icon: "externaldrive") {
+            VStack(spacing: 12) {
+                GlassActionRow(
+                    icon: "square.and.arrow.up",
+                    title: "Exportar Dataset ML",
+                    color: .blue
+                ) {
+                    // Export functionality - TODO: Implement export
+                }
+                
+                GlassActionRow(
+                    icon: "wand.and.stars",
+                    title: "Generar Datos de Demo",
+                    color: .purple
+                ) {
+                    mlManager.generateDemoData()
+                }
+                
+                GlassActionRow(
+                    icon: "trash",
+                    title: "Limpiar Datos de Entrenamiento",
+                    color: .red
+                ) {
+                    showingClearConfirmation = true
+                }
+            }
+        }
+    }
+    
+    // MARK: - About Section
+    private var aboutSection: some View {
+        GlassCard(title: "About", icon: "info.circle") {
+            HStack(spacing: 16) {
+                // App Icon
+                ZStack {
+                    Circle()
+                        .fill(
+                            LinearGradient(
+                                colors: [.orange, .red],
+                                startPoint: .topLeading,
+                                endPoint: .bottomTrailing
+                            )
+                        )
+                        .frame(width: 50, height: 50)
+                        .shadow(color: .orange.opacity(0.4), radius: 8)
+                    
+                    Image(systemName: "lightbulb.fill")
+                        .font(.title3)
+                        .foregroundStyle(.white)
+                }
+                
+                VStack(alignment: .leading, spacing: 2) {
+                    Text("Busylight")
+                        .font(.system(.body, design: .rounded).weight(.semibold))
+                    Text("Version 1.0.0")
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
                 }
                 
                 Spacer()
-            }
-            .padding()
-            #if os(iOS)
-            .navigationBarTitleDisplayMode(.inline)
-            #endif
-            .toolbar {
-                ToolbarItem(placement: .cancellationAction) {
-                    Button("Cerrar") { dismiss() }
+                
+                Link(destination: URL(string: "https://skyones.co")!) {
+                    Image(systemName: "arrow.up.right.square")
+                        .foregroundStyle(.secondary)
                 }
             }
         }
     }
     
-    private func exportDataset() {
-        isExporting = true
-        exportURL = URL(string: "file://" + mlManager.exportTrainingDataset()) ?? URL(string: "file:///tmp/export.csv")!
-        isExporting = false
+    // MARK: - Computed Properties
+    private var mlStatusText: String {
+        if !settings.mlEnabled {
+            return "ML desactivado"
+        }
+        if mlManager.isModelTrained {
+            return "Modelo entrenado - \(Int(mlManager.modelAccuracy * 100))% precisión"
+        }
+        return "Recolectando datos - \(mlManager.trainingDaysCollected) días"
+    }
+    
+    // MARK: - Actions
+    private func loadSettings() async {
+        if appSettings.isEmpty {
+            let newSettings = AppSettings()
+            modelContext.insert(newSettings)
+            try? modelContext.save()
+        }
+    }
+    
+    private func saveSettings() {
+        try? modelContext.save()
+    }
+    
+    private func requestCalendarAccess() async {
+        let status = EKEventStore.authorizationStatus(for: .event)
+        if status == .notDetermined {
+            do {
+                let granted = try await eventStore.requestFullAccessToEvents()
+                if granted {
+                    await loadCalendars()
+                }
+            } catch {
+                BusylightLogger.shared.error("Error requesting calendar access: \(error)")
+            }
+        } else if status == .fullAccess {
+            await loadCalendars()
+        }
+    }
+    
+    @MainActor
+    private func loadCalendars() async {
+        availableCalendars = eventStore.calendars(for: .event)
+            .filter { $0.allowsContentModifications }
+            .sorted { $0.title < $1.title }
+    }
+    
+    private func updateSelectedCalendars(_ selectedIds: Set<String>) {
+        // Remove unselected calendars
+        for config in calendarConfigs where config.calendarType != "holiday" {
+            if !selectedIds.contains(config.calendarIdentifier) {
+                modelContext.delete(config)
+            }
+        }
+        
+        // Add newly selected calendars
+        for calendar in availableCalendars where selectedIds.contains(calendar.calendarIdentifier) {
+            let exists = calendarConfigs.contains { $0.calendarIdentifier == calendar.calendarIdentifier }
+            if !exists {
+                let newConfig = CalendarConfiguration(
+                    calendarIdentifier: calendar.calendarIdentifier,
+                    calendarName: calendar.title,
+                    calendarType: "work",
+                    colorHex: calendar.cgColor?.toHex()
+                )
+                modelContext.insert(newConfig)
+            }
+        }
+        
+        // Sync events
+        syncCalendarEvents()
+        saveSettings()
+    }
+    
+    private func addHolidayCalendar(countryCode: String) {
+        // Remove existing holiday calendar
+        for config in calendarConfigs where config.calendarType == "holiday" {
+            modelContext.delete(config)
+        }
+        
+        let country = CalendarConfiguration.supportedCountries.first { $0.code == countryCode }
+        let holidayConfig = CalendarConfiguration(
+            calendarIdentifier: "holidays.\(countryCode)",
+            calendarName: "\(country?.flag ?? "🌎") Festivos \(country?.name ?? countryCode)",
+            calendarType: "holiday"
+        )
+        modelContext.insert(holidayConfig)
+        saveSettings()
+        
+        // Generate holidays for ML
+        let holidays = HolidayData.holidays(for: countryCode, year: Calendar.current.component(.year, from: Date()))
+        BusylightLogger.shared.info("Added \(holidays.count) holidays for \(countryCode)")
+    }
+    
+    private func syncCalendarEvents() {
+        let enabledConfigs = calendarConfigs.filter { $0.isEnabled && $0.calendarType != "holiday" }
+        
+        for config in enabledConfigs {
+            guard let ekCalendar = availableCalendars.first(where: { $0.calendarIdentifier == config.calendarIdentifier }) else { continue }
+            
+            let predicate = eventStore.predicateForEvents(
+                withStart: Date().addingTimeInterval(-30*24*60*60), // 30 days ago
+                end: Date().addingTimeInterval(30*24*60*60), // 30 days ahead
+                calendars: [ekCalendar]
+            )
+            
+            let events = eventStore.events(matching: predicate)
+            
+            // Check for existing events
+            let existingEventIds = Set(calendarEvents.map { $0.eventIdentifier })
+            
+            for event in events {
+                if !existingEventIds.contains(event.eventIdentifier) {
+                    let newEvent = CalendarEvent(
+                        eventIdentifier: event.eventIdentifier,
+                        title: event.title,
+                        startDate: event.startDate,
+                        endDate: event.endDate,
+                        isAllDay: event.isAllDay,
+                        calendarIdentifier: event.calendar.calendarIdentifier,
+                        calendarName: event.calendar.title,
+                        notes: event.notes,
+                        location: event.location,
+                        attendeeCount: event.attendees?.count ?? 0
+                    )
+                    newEvent.analyzeIfMeeting()
+                    modelContext.insert(newEvent)
+                }
+            }
+        }
+        
+        settings.lastCalendarSync = Date()
+        saveSettings()
+        BusylightLogger.shared.info("Synced calendar events")
+    }
+}
+
+// MARK: - Supporting Button Styles
+
+struct GlassButtonStyle: ButtonStyle {
+    let color: Color
+    
+    func makeBody(configuration: Configuration) -> some View {
+        configuration.label
+            .font(.system(.subheadline, design: .rounded).weight(.medium))
+            .padding(.horizontal, 16)
+            .padding(.vertical, 8)
+            .background(
+                RoundedRectangle(cornerRadius: 8)
+                    .fill(color.opacity(configuration.isPressed ? 0.3 : 0.15))
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 8)
+                            .stroke(color.opacity(0.3), lineWidth: 1)
+                    )
+            )
+            .foregroundStyle(color)
+            .scaleEffect(configuration.isPressed ? 0.95 : 1)
+    }
+}
+
+struct GlassActionRow: View {
+    let icon: String
+    let title: String
+    let color: Color
+    let action: () -> Void
+    
+    var body: some View {
+        Button(action: action) {
+            HStack(spacing: 12) {
+                Image(systemName: icon)
+                    .font(.callout)
+                    .foregroundStyle(color)
+                    .frame(width: 24)
+                
+                Text(title)
+                    .font(.subheadline)
+                    .foregroundStyle(.primary)
+                
+                Spacer()
+                
+                Image(systemName: "chevron.right")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+            }
+            .padding(12)
+            .background(
+                RoundedRectangle(cornerRadius: 10)
+                    .fill(Material.thinMaterial)
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 10)
+                            .stroke(color.opacity(0.2), lineWidth: 1)
+                    )
+            )
+        }
+        .buttonStyle(.plain)
+    }
+}
+
+// MARK: - Helper Extensions
+
+extension CGColor {
+    func toHex() -> String? {
+        guard let components = self.components, components.count >= 3 else { return nil }
+        let r = Float(components[0])
+        let g = Float(components[1])
+        let b = Float(components[2])
+        return String(format: "%02lX%02lX%02lX", lroundf(r * 255), lroundf(g * 255), lroundf(b * 255))
     }
 }
 
 // MARK: - Preview
-
 struct SettingsView_Previews: PreviewProvider {
     static var previews: some View {
         SettingsView()
+            .modelContainer(for: [AppSettings.self, CalendarConfiguration.self, CalendarEvent.self])
     }
 }
