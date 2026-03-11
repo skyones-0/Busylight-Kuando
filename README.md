@@ -1,4 +1,3 @@
-```markdown
 # Busylight for Kuando
 
 <p align="center">
@@ -352,4 +351,3 @@ This project is proprietary software.
 <p align="center">
   Made with ❤️ for macOS
 </p>
-```
