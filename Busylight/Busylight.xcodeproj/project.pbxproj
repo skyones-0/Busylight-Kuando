@@ -71,13 +71,6 @@
 			);
 			target = 6838BD7F2F5FA5F900FF5933 /* Busylight */;
 		};
-		68A40EBC2F60B99200F4E6EE /* Exceptions for "Services" folder in "BusylightTests" target */ = {
-			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
-			membershipExceptions = (
-				BusylightWrapper.h,
-			);
-			target = 6838BD8E2F5FA5FA00FF5933 /* BusylightTests */;
-		};
 		68ED95622F5FBD400076CCA5 /* Exceptions for "BusylightTests" folder in "Busylight" target */ = {
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
@@ -147,7 +140,6 @@
 			exceptions = (
 				68A40EBB2F60B99100F4E6EE /* Exceptions for "Services" folder in "Busylight" target */,
 				68A40DEA2F60A33000F4E6EE /* Exceptions for "Services" folder in "Headers" phase from "Busylight" target */,
-				68A40EBC2F60B99200F4E6EE /* Exceptions for "Services" folder in "BusylightTests" target */,
 			);
 			path = Services;
 			sourceTree = "<group>";
