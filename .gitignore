@@ -4,7 +4,7 @@
 
 ## User settings
 xcuserdata/
-
+*.txt
 ## Xcode 8 and earlier
 *.xcscmblueprint
 *.xccheckout
@@ -24,7 +24,8 @@ DerivedData/
 
 ## Obj-C/Swift specific
 *.hmap
-
+*.lmmodel
+*.mlpackage
 ## App packaging
 *.ipa
 *.dSYM.zip

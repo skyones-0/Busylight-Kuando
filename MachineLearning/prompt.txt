@@ -11,6 +11,8 @@ RULES FOR KIMI-CLI INTERACTION
 [ ] START with first task immediately
 [ ] NO preamble, NO context analysis visible
 
+SKILL: SwiftData, SwiftUI architecture, Swift language
+
 ACTION:
 [ ]First commit 
 [ ]Create productivity task management feature for Busylight macOS app using SwiftData and [ ]SwiftUI. Follow Things 3 design pattern.
